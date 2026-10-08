@@ -23,10 +23,17 @@ private final class PollGeneration: @unchecked Sendable {
 
     func performIfCurrent(_ generation: Int, action: () throws -> Void) throws -> Bool {
         lock.lock()
-        defer { lock.unlock() }
-        guard generation == value else { return false }
+        let current = generation == value
+        lock.unlock()
+        guard current else { return false }
         try action()
         return true
+    }
+
+    func isCurrent(_ generation: Int) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return generation == value
     }
 }
 
@@ -36,9 +43,11 @@ private final class HardwareWorker: @unchecked Sendable {
     private var journal: RecoveryJournal?
     private var display: DisplayBrightness?
     private var displayJournal: DisplayRecoveryJournal?
+    private var displayLogic = DisplayDimmingLogic()
     private var smoothedAngle: Double?
     private var yieldedControl = false
-    private var displayYielded = false
+    private var gammaActive = false
+    private var lastGammaFactor: Double?
     private let logger = Logger(subsystem: "uk.co.kalkmancode.Dimmer", category: "display")
     private var displayRetryAfter = Date.distantPast
 
@@ -76,7 +85,8 @@ private final class HardwareWorker: @unchecked Sendable {
         guard try gate.performIfCurrent(generation, action: { written = try apply(angle, offAt: offAt, fullAt: fullAt) }) else {
             throw PollCancelled()
         }
-        let displaySample = updateDisplay(angle: angle, offAt: offAt, fullAt: fullAt, enabled: dimsScreen)
+        let displaySample = try updateDisplay(angle: angle, offAt: offAt, fullAt: fullAt, enabled: dimsScreen,
+                                              generation: generation, gate: gate)
         return (angle, try backlight!.read().brightness, written, displaySample.brightness, displaySample.status)
     }
 
@@ -179,106 +189,237 @@ private final class HardwareWorker: @unchecked Sendable {
         RecoveryJournal.clear()
     }
 
-    private func updateDisplay(angle: Double, offAt: Double, fullAt: Double, enabled: Bool) -> (brightness: Double?, status: String) {
+    private func updateDisplay(angle: Double, offAt: Double, fullAt: Double, enabled: Bool,
+                               generation: Int, gate: PollGeneration) throws -> (brightness: Double?, status: String) {
         guard enabled else {
-            restoreDisplay()
+            let hasRecovery = displayLogic.baseline != nil || displayJournal != nil || DisplayRecoveryJournal.load() != nil || gammaActive
+            if hasRecovery {
+                restoreDisplay()
+                displayLogic.reset()
+            }
             return (nil, "Screen dimming is off.")
         }
-        if angle >= fullAt {
-            restoreDisplay()
-            displayYielded = false
-            return (try? display?.read(), "Screen ready.")
+
+        if display == nil {
+            do {
+                display = try DisplayBrightness()
+                try recoverStaleDisplayState()
+            } catch {
+                displayRetryAfter = Date().addingTimeInterval(2)
+                logger.error("display dimming unavailable: \(error.localizedDescription, privacy: .public)")
+                return (nil, error.localizedDescription)
+            }
         }
-        guard !displayYielded else {
-            return (try? display?.read(), "Screen dimming paused after a brightness change.")
+
+        if angle >= fullAt {
+            var didRestore = false
+            let journalBaseline = displayJournal?.originalBrightness ?? DisplayRecoveryJournal.load()?.originalBrightness
+            if let baseline = displayLogic.isDimming ? displayLogic.prepareRestore() : journalBaseline {
+                didRestore = true
+                guard restoreDisplay(to: baseline) else {
+                    return (try? display?.read(), "Display brightness restoration is retrying.")
+                }
+            } else if gammaActive {
+                restoreGamma(display: display)
+            }
+            do {
+                let current = try display?.read()
+                if let current {
+                    if didRestore { return (current, "Screen ready.") }
+                    let previousBaseline = displayLogic.baseline
+                    let decision = displayLogic.update(angle: angle, current: current, offAt: offAt, fullAt: fullAt)
+                    if case .capture(let value) = decision {
+                        if previousBaseline == nil || abs(previousBaseline! - value) > 0.035 {
+                            logger.info("display captured original=\(value, privacy: .public); automatic brightness unchanged; displayID=\(self.display!.displayID, privacy: .public)")
+                        }
+                    }
+                    return (current, "Screen ready.")
+                }
+                return (nil, "Screen dimming is unavailable.")
+            } catch {
+                return (nil, error.localizedDescription)
+            }
         }
         guard Date() >= displayRetryAfter else { return (nil, "Screen dimming will retry shortly.") }
 
         do {
-            if display == nil {
-                display = try DisplayBrightness()
-                try recoverStaleDisplayState()
-            }
             guard let display else { throw DisplayBrightnessError.controlsUnavailable }
-
-            if displayJournal == nil {
-                let original = try display.read()
-                let captured = DisplayRecoveryJournal(originalBrightness: original, lastWritten: original)
-                try captured.save()
-                displayJournal = captured
-                logger.info("display captured original=\(original, privacy: .public); automatic brightness unchanged; displayID=\(display.displayID, privacy: .public)")
-            }
-
-            guard var active = displayJournal else { throw DisplayBrightnessError.controlsUnavailable }
             let current = try display.read()
-            if !active.owns(current) {
-                yieldDisplay(current: current, reason: "display brightness changed outside Dimmer")
-                return (current, "Screen dimming paused after a brightness change.")
-            }
-
-            let factor = BrightnessCurve.output(angle: angle, offAt: offAt, fullAt: fullAt)
-            let target = DisplayBrightnessTarget.value(captured: active.originalBrightness, factor: factor)
-            if abs(target - current) > 0.008 {
+            switch displayLogic.update(angle: angle, current: current, offAt: offAt, fullAt: fullAt) {
+            case .capture:
+                return (current, "Screen ready.")
+            case .waitForOpen:
+                return (current, "Screen dimming waits for the lid to open fully once.")
+            case .restore(let baseline):
+                _ = restoreDisplay(to: baseline)
+                return (try? display.read(), "Screen ready.")
+            case .dim(let target, let override):
+                if displayJournal == nil {
+                    guard let baseline = displayLogic.baseline else { throw DisplayBrightnessError.controlsUnavailable }
+                    let captured = DisplayRecoveryJournal(originalBrightness: baseline, lastWritten: baseline)
+                    try captured.save()
+                    displayJournal = captured
+                }
+                guard var active = displayJournal else { throw DisplayBrightnessError.controlsUnavailable }
+                if override {
+                    logger.info("display override; automatic brightness changed during close; target will be enforced until reopen")
+                }
                 active.pendingBrightness = target
                 try active.save()
                 displayJournal = active
-                let actual = try display.write(target)
+                let gammaFactor = DisplayGammaFade.factor(angle: angle, offAt: offAt, fullAt: fullAt)
+                let ramp = try rampDisplay(brightness: target, gammaFactor: gammaFactor, display: display,
+                                           generation: generation, gate: gate)
+                guard ramp.completed else { throw PollCancelled() }
+                let actual: Double
+                if let value = ramp.brightness { actual = value }
+                else { actual = try display.read() }
+                active = displayJournal ?? active
                 active.lastWritten = actual
                 active.pendingBrightness = nil
                 try active.save()
                 displayJournal = active
+                displayLogic.markWritten(actual)
                 logger.info("display angle=\(angle, privacy: .public)° target=\(target, privacy: .public) readback=\(actual, privacy: .public)")
-                return (actual, "Screen dimming is active in yield mode.")
+                return (actual, "Screen dimming is active.")
+            case .idle:
+                return (current, "Screen ready.")
             }
-            return (current, "Screen dimming is active in yield mode.")
         } catch {
+            if error is PollCancelled { throw error }
             displayRetryAfter = Date().addingTimeInterval(2)
             logger.error("display dimming unavailable: \(error.localizedDescription, privacy: .public)")
             return (nil, error.localizedDescription)
         }
     }
 
-    private func yieldDisplay(current: Double, reason: String) {
-        DisplayRecoveryJournal.clear()
-        displayJournal = nil
-        displayYielded = true
-        logger.info("display control yielded; brightness=\(current, privacy: .public); reason=\(reason, privacy: .public)")
+    private func rampDisplay(brightness targetBrightness: Double?, gammaFactor targetGamma: Double?,
+                             display: DisplayBrightness, generation: Int?, gate: PollGeneration?,
+                             restoreColorSyncWhenComplete: Bool = true) throws
+        -> (brightness: Double?, completed: Bool) {
+        let startingBrightness = try display.read()
+        let startingGamma = lastGammaFactor ?? 1
+        let brightnessValues = targetBrightness.map {
+            DisplayRampPlanner.values(from: startingBrightness, to: $0, maximumStep: 0.04)
+        } ?? []
+        let gammaValues = targetGamma.map {
+            DisplayRampPlanner.values(from: startingGamma, to: $0, maximumStep: 0.08)
+        } ?? []
+        let started = Date()
+        var brightness = startingBrightness
+        var gamma = startingGamma
+        var brightnessSteps = 0
+        var gammaSteps = 0
+        var brightnessMaxStep = 0.0
+        var gammaMaxStep = 0.0
+        let count = max(brightnessValues.count, gammaValues.count)
+        for index in 0..<count {
+            if let generation, let gate, !gate.isCurrent(generation) {
+                logRamp(kind: "brightness", from: startingBrightness, to: brightness, steps: brightnessSteps,
+                        maxStep: brightnessMaxStep, started: started, enabled: !brightnessValues.isEmpty)
+                logRamp(kind: "gamma", from: startingGamma, to: gamma, steps: gammaSteps,
+                        maxStep: gammaMaxStep, started: started, enabled: !gammaValues.isEmpty)
+                return (brightness, false)
+            }
+            Thread.sleep(forTimeInterval: 0.016)
+            if index < brightnessValues.count {
+                let next = brightnessValues[index]
+                if var journal = displayJournal {
+                    journal.pendingBrightness = next
+                    try journal.save()
+                    displayJournal = journal
+                }
+                brightness = try display.write(next)
+                if var journal = displayJournal {
+                    journal.lastWritten = brightness
+                    journal.pendingBrightness = nil
+                    try journal.save()
+                    displayJournal = journal
+                }
+                displayLogic.markWritten(brightness)
+                brightnessMaxStep = max(brightnessMaxStep, abs(brightness - (index == 0 ? startingBrightness : brightnessValues[index - 1])))
+                brightnessSteps += 1
+            }
+            if index < gammaValues.count {
+                let next = gammaValues[index]
+                if next < 0.999, !gammaActive {
+                    logger.info("display gamma on; black fade active")
+                    gammaActive = true
+                }
+                if gammaActive || next < 0.999 { try display.setGammaScale(next) }
+                gammaMaxStep = max(gammaMaxStep, abs(next - gamma))
+                gamma = next
+                lastGammaFactor = next
+                gammaSteps += 1
+            }
+        }
+        logRamp(kind: "brightness", from: startingBrightness, to: brightness, steps: brightnessSteps,
+                maxStep: brightnessMaxStep, started: started, enabled: !brightnessValues.isEmpty)
+        logRamp(kind: "gamma", from: startingGamma, to: gamma, steps: gammaSteps,
+                maxStep: gammaMaxStep, started: started, enabled: !gammaValues.isEmpty)
+        if restoreColorSyncWhenComplete, let targetGamma, targetGamma >= 0.999, gammaActive {
+            restoreGamma(display: display)
+        }
+        return (brightness, true)
+    }
+
+    private func logRamp(kind: String, from: Double, to: Double, steps: Int, maxStep: Double,
+                         started: Date, enabled: Bool) {
+        guard enabled else { return }
+        let elapsed = Int(Date().timeIntervalSince(started) * 1_000)
+        logger.info("display ramp kind=\(kind, privacy: .public) from=\(from, privacy: .public) to=\(to, privacy: .public) steps=\(steps, privacy: .public) maxStep=\(maxStep, privacy: .public) ms=\(elapsed, privacy: .public)")
     }
 
     private func restoreDisplay() {
-        guard let display else { return }
-        guard let active = displayJournal ?? DisplayRecoveryJournal.load() else {
-            self.display = nil
-            return
-        }
+        // Only a close in progress (or a stale journal) has anything to hand back; restoring the open baseline
+        // on every failed keyboard poll would fight the user's own screen brightness ten times a second.
+        let baseline = (displayLogic.isDimming ? displayLogic.prepareRestore() : nil) ?? displayJournal?.originalBrightness ?? DisplayRecoveryJournal.load()?.originalBrightness
+        if let baseline { _ = restoreDisplay(to: baseline) }
+        else if gammaActive { restoreGamma(display: display) }
+    }
+
+    @discardableResult
+    private func restoreDisplay(to baseline: Double) -> Bool {
+        let device = display ?? (try? DisplayBrightness())
+        display = device
         var resolved = false
-        if let current = try? display.read() {
-            if active.owns(current), !displayYielded {
-                if let restored = try? display.write(active.originalBrightness) {
-                    resolved = abs(restored - active.originalBrightness) <= 0.035
-                    if resolved { logger.info("display restored brightness=\(restored, privacy: .public)") }
-                }
-            } else {
-                resolved = true
-            }
+        if let device {
+            let ramp = try? rampDisplay(brightness: baseline, gammaFactor: gammaActive ? 1 : nil,
+                                        display: device, generation: nil, gate: nil,
+                                        restoreColorSyncWhenComplete: false)
+            let restored = ramp?.completed == true ? ramp?.brightness : nil
+            let readback = try? device.read()
+            let verified = readback.map { abs($0 - baseline) <= 0.035 } ?? false
+            logger.info("display restored brightness=\(restored ?? -1, privacy: .public); writeSucceeded=\(restored != nil, privacy: .public)")
+            logger.info("display restore verified brightness=\(readback ?? -1, privacy: .public); withinTolerance=\(verified, privacy: .public)")
+            resolved = restored.map { abs($0 - baseline) <= 0.035 } == true && verified
         }
-        if resolved { DisplayRecoveryJournal.clear() }
-        if resolved, let brightness = try? display.read() {
-            logger.info("display restore verified brightness=\(brightness, privacy: .public); automatic brightness unchanged")
+        restoreGamma(display: device)
+        if resolved {
+            DisplayRecoveryJournal.clear()
+            displayJournal = nil
         }
-        displayJournal = nil
-        self.display = nil
+        return resolved
+    }
+
+    private func restoreGamma(display: DisplayBrightness?) {
+        DisplayBrightness.restoreGamma()
+        display?.clearCapturedGamma()
+        logger.info("display gamma off; ColorSync settings restored")
+        gammaActive = false
+        lastGammaFactor = nil
     }
 
     private func recoverStaleDisplayState() throws {
         guard let stale = DisplayRecoveryJournal.load(), let display else { return }
-        let current = try display.read()
-        var resolved = !stale.owns(current)
-        if stale.owns(current),
-           let restored = try? display.write(stale.originalBrightness),
-           abs(restored - stale.originalBrightness) <= 0.035 {
-            resolved = true
+        _ = try display.read()
+        let ramp = try rampDisplay(brightness: stale.originalBrightness, gammaFactor: nil,
+                                   display: display, generation: nil, gate: nil)
+        guard ramp.completed, let restored = ramp.brightness else { throw DisplayBrightnessError.controlsUnavailable }
+        let resolved = abs(restored - stale.originalBrightness) <= 0.035
+        if resolved {
             logger.info("display recovered brightness=\(restored, privacy: .public)")
+            logger.info("display restore verified brightness=\(restored, privacy: .public); withinTolerance=true")
         }
         guard resolved else { throw DisplayBrightnessError.controlsUnavailable }
         DisplayRecoveryJournal.clear()
@@ -322,6 +463,7 @@ final class DimmerController: ObservableObject {
     private var lastHardwareLog = Date.distantPast
     private var retryAfter = Date.distantPast
     private var pollInFlight = false
+    private var pollPending = false
     private var controlFailureNeedsResume = false
 
     init() {
@@ -332,6 +474,7 @@ final class DimmerController: ObservableObject {
 
     func start() {
         guard !paused else { return }
+        pollPending = false
         timer?.invalidate()
         retryAfter = .distantPast
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
@@ -349,6 +492,7 @@ final class DimmerController: ObservableObject {
         if paused {
             timer?.invalidate()
             timer = nil
+            pollPending = false
             pollGeneration.cancel()
             work.async { [hardware] in hardware.restoreAndClose() }
             errorMessage = "Paused; original brightness restored."
@@ -364,7 +508,9 @@ final class DimmerController: ObservableObject {
         timer?.invalidate()
         timer = nil
         pollGeneration.cancel()
-        work.async { [hardware] in hardware.restoreAndClose() }
+        // Synchronous: the Mac may suspend the process before an async restore runs, leaving the screen
+        // dim and the gamma black through sleep.
+        work.sync { hardware.restoreAndClose() }
     }
 
     func resumeAfterWake() {
@@ -383,7 +529,12 @@ final class DimmerController: ObservableObject {
     }
 
     private func poll() {
-        guard !pollInFlight, !controlFailureNeedsResume, Date() >= retryAfter else { return }
+        guard !controlFailureNeedsResume, Date() >= retryAfter else { return }
+        if pollInFlight {
+            pollPending = true
+            pollGeneration.cancel()
+            return
+        }
         pollInFlight = true
         let low = offAt
         let high = fullAt
@@ -418,15 +569,18 @@ final class DimmerController: ObservableObject {
                         self.logger.info("angle=\(sample.angle, privacy: .public)° target=\(target, privacy: .public) readback=\(sample.brightness, privacy: .public)")
                     }
                 case .failure(let error):
-                    if error is PollCancelled { return }
-                    if error is BacklightError || (error as NSError).domain == "Dimmer" {
+                    if !(error is PollCancelled), error is BacklightError || (error as NSError).domain == "Dimmer" {
                         self.controlFailureNeedsResume = true
                         self.timer?.invalidate()
                         self.timer = nil
-                    } else {
+                    } else if !(error is PollCancelled) {
                         self.retryAfter = Date().addingTimeInterval(2)
                     }
-                    self.errorMessage = error.localizedDescription
+                    if !(error is PollCancelled) { self.errorMessage = error.localizedDescription }
+                }
+                if self.pollPending {
+                    self.pollPending = false
+                    self.poll()
                 }
             }
         }

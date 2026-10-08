@@ -32,7 +32,7 @@ body:
     id: dimmer-version
     attributes:
       label: Dimmer version
-      value: 1.0.0
+      value: 1.0.1
     validations:
       required: true
   - type: textarea

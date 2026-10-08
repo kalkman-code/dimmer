@@ -38,6 +38,80 @@ enum DisplayBrightnessTarget {
     }
 }
 
+enum DisplayGammaFade {
+    static func factor(angle: Double, offAt: Double, fullAt: Double) -> Double {
+        guard fullAt > offAt else { return angle > offAt ? 1 : 0 }
+        let fadeStart = offAt + (fullAt - offAt) * 0.2
+        guard angle > offAt else { return 0 }
+        guard angle < fadeStart else { return 1 }
+        let progress = (angle - offAt) / (fadeStart - offAt)
+        return progress * progress * (3 - 2 * progress)
+    }
+}
+
+enum DisplayRampPlanner {
+    static func values(from current: Double, to target: Double, maximumStep: Double) -> [Double] {
+        guard current.isFinite, target.isFinite, maximumStep.isFinite, maximumStep > 0 else { return [] }
+        let distance = target - current
+        guard abs(distance) > 0 else { return [] }
+        let steps = max(1, Int(ceil(abs(distance) / maximumStep)))
+        return (1...steps).map { index in
+            index == steps ? target : current + distance * Double(index) / Double(steps)
+        }
+    }
+}
+
+struct DisplayDimmingLogic {
+    enum Decision: Equatable {
+        case capture(Double)
+        case waitForOpen
+        case dim(target: Double, override: Bool)
+        case restore(Double)
+        case idle
+    }
+
+    private(set) var baseline: Double?
+    private(set) var isDimming = false
+    private var overrideLogged = false
+    private var lastWritten: Double?
+
+    mutating func update(angle: Double, current: Double, offAt: Double, fullAt: Double) -> Decision {
+        if angle >= fullAt {
+            guard !isDimming else { return .idle }
+            baseline = current
+            return .capture(current)
+        }
+
+        guard let baseline else { return .waitForOpen }
+        let factor = BrightnessCurve.output(angle: angle, offAt: offAt, fullAt: fullAt)
+        let target = DisplayBrightnessTarget.value(captured: baseline, factor: factor)
+        let outsideChange = lastWritten.map { !DisplayBrightnessTarget.owns(current: current, lastWritten: $0) } ?? false
+        let shouldLogOverride = outsideChange && !overrideLogged
+        if shouldLogOverride { overrideLogged = true }
+        isDimming = true
+        lastWritten = target
+        return .dim(target: target, override: shouldLogOverride)
+    }
+
+    mutating func markWritten(_ brightness: Double) {
+        lastWritten = brightness
+    }
+
+    mutating func prepareRestore() -> Double? {
+        isDimming = false
+        overrideLogged = false
+        lastWritten = nil
+        return baseline
+    }
+
+    mutating func reset() {
+        baseline = nil
+        isDimming = false
+        overrideLogged = false
+        lastWritten = nil
+    }
+}
+
 struct DisplayRecoveryJournal: Codable {
     let originalBrightness: Double
     var lastWritten: Double
@@ -79,6 +153,12 @@ final class DisplayBrightness {
     private let getBrightness: GetBrightness
     private let setBrightness: SetBrightness
     private let canChangeBrightness: CanChangeBrightness?
+    private struct GammaTable {
+        let red: [CGGammaValue]
+        let green: [CGGammaValue]
+        let blue: [CGGammaValue]
+    }
+    private var capturedGamma: GammaTable?
 
     init() throws {
         displayID = try Self.builtInDisplayID()
@@ -122,6 +202,53 @@ final class DisplayBrightness {
         let actual = try read()
         guard abs(actual - target) <= 0.035 else { throw DisplayBrightnessError.brightnessReadbackMismatch }
         return actual
+    }
+
+    func setGammaScale(_ factor: Double) throws {
+        if capturedGamma == nil { capturedGamma = try readGammaTable() }
+        let scale = min(max(factor, 0), 1)
+        guard let table = capturedGamma else { throw DisplayBrightnessError.controlsUnavailable }
+        let red = table.red.map { CGGammaValue(Double($0) * scale) }
+        let green = table.green.map { CGGammaValue(Double($0) * scale) }
+        let blue = table.blue.map { CGGammaValue(Double($0) * scale) }
+        let status = red.withUnsafeBufferPointer { redValues in
+            green.withUnsafeBufferPointer { greenValues in
+                blue.withUnsafeBufferPointer { blueValues in
+                    CGSetDisplayTransferByTable(displayID, UInt32(red.count), redValues.baseAddress,
+                                                greenValues.baseAddress, blueValues.baseAddress)
+                }
+            }
+        }
+        guard status == .success else { throw DisplayBrightnessError.brightnessWriteFailed(Int32(status.rawValue)) }
+    }
+
+    private func readGammaTable() throws -> GammaTable {
+        let capacity = max(2, Int(CGDisplayGammaTableCapacity(displayID)))
+        var red = Array(repeating: CGGammaValue(0), count: capacity)
+        var green = red
+        var blue = red
+        var count: UInt32 = 0
+        let status = red.withUnsafeMutableBufferPointer { redValues in
+            green.withUnsafeMutableBufferPointer { greenValues in
+                blue.withUnsafeMutableBufferPointer { blueValues in
+                    CGGetDisplayTransferByTable(displayID, UInt32(capacity), redValues.baseAddress,
+                                                greenValues.baseAddress, blueValues.baseAddress, &count)
+                }
+            }
+        }
+        guard status == .success, count >= 2, Int(count) <= capacity else {
+            throw DisplayBrightnessError.brightnessWriteFailed(Int32(status.rawValue))
+        }
+        return GammaTable(red: Array(red.prefix(Int(count))), green: Array(green.prefix(Int(count))),
+                          blue: Array(blue.prefix(Int(count))))
+    }
+
+    func clearCapturedGamma() {
+        capturedGamma = nil
+    }
+
+    static func restoreGamma() {
+        CGDisplayRestoreColorSyncSettings()
     }
 
     private static func builtInDisplayID() throws -> CGDirectDisplayID {
