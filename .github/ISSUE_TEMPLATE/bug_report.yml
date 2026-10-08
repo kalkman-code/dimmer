@@ -1,0 +1,69 @@
+name: Bug report
+description: Report a problem with Dimmer.
+title: '[Bug] '
+labels: [bug]
+body:
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: e.g. macOS 27.2
+    validations:
+      required: true
+  - type: input
+    id: mac-model
+    attributes:
+      label: Mac model
+      description: Find this under Apple menu > About This Mac.
+      placeholder: e.g. MacBook Pro 16-inch 2021 M1 Max
+    validations:
+      required: true
+  - type: dropdown
+    id: chip
+    attributes:
+      label: Chip
+      description: Intel is untested, so a report from an Intel MacBook is useful even if Dimmer works.
+      options:
+        - Apple silicon
+        - Intel
+    validations:
+      required: true
+  - type: input
+    id: dimmer-version
+    attributes:
+      label: Dimmer version
+      value: 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: What did you do before the problem happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: panel
+    attributes:
+      label: What does the Dimmer panel show?
+      description: Include the status line, lid angle and keyboard backlight percentage if shown.
+    validations:
+      required: false
+  - type: textarea
+    id: anything-else
+    attributes:
+      label: Anything else
+    validations:
+      required: false

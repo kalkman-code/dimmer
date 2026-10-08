@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="120 120 784 784" width="784" height="784">
+  <defs>
+    <clipPath id="sharp">
+      <rect x="120" y="120" width="784" height="392"/>
+    </clipPath>
+    <clipPath id="frosted">
+      <rect x="120" y="512" width="784" height="392"/>
+    </clipPath>
+    <filter id="veil-blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="32"/>
+    </filter>
+  </defs>
+  <g clip-path="url(#sharp)">
+    <polygon points="512,180 844,512 512,844" fill="#FFFFFF"/>
+    <polygon points="512,180 512,844 180,512" fill="#E2E5EA"/>
+  </g>
+  <g clip-path="url(#frosted)">
+    <g filter="url(#veil-blur)" opacity="0.85">
+      <polygon points="512,180 844,512 512,844" fill="#FFFFFF"/>
+      <polygon points="512,180 512,844 180,512" fill="#E2E5EA"/>
+    </g>
+  </g>
+  <line x1="150" y1="512" x2="874" y2="512" stroke="#B9C8E6" stroke-width="6" stroke-opacity="0.8"/>
+</svg>
