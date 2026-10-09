@@ -32,11 +32,11 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             let height = min(1046, screenHeight)
             let window = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 680, height: height),
-                styleMask: [.titled, .closable, .miniaturizable],
+                styleMask: [.titled, .closable],
                 backing: .buffered,
                 defer: false
             )
-            window.title = "Dimmer Settings"
+            window.title = L10n.string("Dimmer Settings")
             window.isReleasedWhenClosed = false
             window.appearance = NSAppearance(named: .darkAqua)
             window.backgroundColor = NSColor(red: 20.0 / 255, green: 20.0 / 255, blue: 22.0 / 255, alpha: 1)
@@ -44,11 +44,15 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             // Assigning the controller resizes the window to the controller's view, which is still empty.
             window.setContentSize(NSSize(width: 680, height: height))
             window.delegate = self
+            window.setFrameAutosaveName("DimmerSettings")
             self.window = window
         }
         guard let window else { return }
         if !hasShown {
-            window.center()
+            if !window.setFrameUsingName("DimmerSettings") { window.center() }
+            let height = min(1046, (window.screen?.visibleFrame.height ?? 1010) - 40)
+            window.setContentSize(NSSize(width: 680, height: height))
+            window.setFrame(window.constrainFrameRect(window.frame, to: window.screen), display: false)
             hasShown = true
         }
         window.makeKeyAndOrderFront(nil)
@@ -65,6 +69,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         AppShell.returnToMenuBar(closing: window)
     }
 
+    #if DEBUG
     // Renders this app's own Settings window, title bar included, to a PNG. An app may always draw its
     // own views, so unlike screencapture this needs no Screen Recording permission and sees nothing else
     // on the screen. Driven by scripts/snapshot-settings.sh for design review.
@@ -78,4 +83,5 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         // replaced rather than followed out of the snapshot folder.
         return (try? data.write(to: url, options: .atomic)) != nil
     }
+    #endif
 }

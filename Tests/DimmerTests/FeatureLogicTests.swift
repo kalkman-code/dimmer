@@ -49,7 +49,7 @@ final class FeatureLogicTests: XCTestCase {
         XCTAssertTrue(detector.pushedBack(81, settings: SnapSettings()))
     }
 
-    // Toby's misses on 08-10-2026: flicks that began inside the zone (94°→87° at 69°/s, 78°→67° at
+    // Flicks that began inside the zone (94°→87° at 69°/s, 78°→67° at
     // 55°/s with the zone at 50–101°) never fired, because a snap had to start above the zone.
     func testFlickStartingInsideTheZoneSnaps() {
         var zone = SnapSettings()
@@ -193,7 +193,7 @@ final class FeatureLogicTests: XCTestCase {
     }
 
     func testSnapSettingsSavedBeforeTintKeepTheirValues() throws {
-        // Exactly what Toby's test build stored on 08-10-2026, before the tint existed.
+        // Legacy settings stored before the tint existed.
         let saved = #"{"blurStrength":0.44,"zoneLow":70,"zoneHigh":91,"snapDegrees":8,"minimumSpeed":90}"#
         let settings = try JSONDecoder().decode(SnapSettings.self, from: Data(saved.utf8))
         XCTAssertEqual(settings, SnapSettings(zoneLow: 70, zoneHigh: 91, snapDegrees: 8, minimumSpeed: 90, blurStrength: 0.44, smoke: 0, clearSeconds: 0.08))

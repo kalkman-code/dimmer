@@ -13,17 +13,17 @@ enum DisplayBrightnessError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .builtInDisplayUnavailable:
-            "Built-in display brightness is unavailable."
+            L10n.string("Built-in display brightness is unavailable.")
         case .controlsUnavailable:
-            "Display brightness controls are unavailable on this Mac."
+            L10n.string("Display brightness controls are unavailable on this Mac.")
         case .brightnessReadFailed(let status):
-            "Display brightness could not be read (\(status))."
+            L10n.string("Display brightness could not be read (\(status)).")
         case .brightnessWriteFailed(let status):
-            "Display brightness could not be changed (\(status))."
+            L10n.string("Display brightness could not be changed (\(status)).")
         case .brightnessReadbackMismatch:
-            "Display brightness did not match the requested value."
+            L10n.string("Display brightness did not match the requested value.")
         case .invalidBrightness:
-            "The display returned an invalid brightness value."
+            L10n.string("The display returned an invalid brightness value.")
         }
     }
 }
@@ -136,14 +136,14 @@ struct DisplayRecoveryJournal: Codable {
             (pendingBrightness.map { DisplayBrightnessTarget.owns(current: brightness, lastWritten: $0) } ?? false)
     }
 
-    private static var url: URL {
+    static var url: URL {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let directory = support.appendingPathComponent("Dimmer", isDirectory: true)
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory.appendingPathComponent("display-recovery.json")
     }
 
     func save(to destination: URL? = nil) throws {
+        try FileManager.default.createDirectory(at: (destination ?? Self.url).deletingLastPathComponent(), withIntermediateDirectories: true)
         try JSONEncoder().encode(self).write(to: destination ?? Self.url, options: .atomic)
     }
 

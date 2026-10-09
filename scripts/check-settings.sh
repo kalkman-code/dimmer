@@ -9,6 +9,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/build/Dimmer.app"
 : "${APP:?}"
 [ -d "$APP" ] || { printf 'No build at %s; run scripts/build-app.sh first.\n' "$APP" >&2; exit 1; }
+if ! grep -a -q -- '--open-settings' "$APP/Contents/MacOS/Dimmer"; then
+    printf 'This probe needs a debug build; release builds do not accept --open-settings.\n' >&2
+    exit 1
+fi
 
 quit_dimmer() {
     osascript -e 'tell application id "uk.co.kalkmancode.Dimmer" to quit' >/dev/null 2>&1 || true

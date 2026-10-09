@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Dimmer",
+    defaultLocalization: "en-GB",
     platforms: [.macOS(.v14)],
     products: [.executable(name: "Dimmer", targets: ["Dimmer"])],
     dependencies: [
@@ -13,6 +14,7 @@ let package = Package(
             name: "Dimmer",
             dependencies: [.product(name: "KeyboardShortcuts", package: "KeyboardShortcuts")],
             path: "Sources/Dimmer",
+            resources: [.process("Resources")],
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("IOKit"),

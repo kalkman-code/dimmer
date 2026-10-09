@@ -14,13 +14,13 @@ enum AwakeDuration: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .off: "Off"
-        case .indefinitely: "Indefinitely"
-        case .fifteenMinutes: "15 minutes"
-        case .oneHour: "1 hour"
-        case .twoHours: "2 hours"
-        case .fiveHours: "5 hours"
-        case .untilTime: "Until a time…"
+        case .off: L10n.string("Off")
+        case .indefinitely: L10n.string("Indefinitely")
+        case .fifteenMinutes: L10n.string("15 minutes")
+        case .oneHour: L10n.string("1 hour")
+        case .twoHours: L10n.string("2 hours")
+        case .fiveHours: L10n.string("5 hours")
+        case .untilTime: L10n.string("Until a time…")
         }
     }
 }
@@ -113,7 +113,7 @@ struct SnapSettings: Codable, Equatable, Sendable {
     }
 }
 
-// The snap gesture as Toby uses it (08-10-2026): flicks down into the zone, often starting inside it or
+// The snap gesture flicks down into the zone, often starting inside it or
 // just above it, sometimes slower than a full snap. So the veil is not a switch: any quick downward
 // movement in or near the zone fades it in as far as the movement has gone, a full snap locks it, and
 // anything short of a snap fades back out.
@@ -203,8 +203,6 @@ enum InputActivity {
         (.keyDown, "key"), (.mouseMoved, "pointer move"), (.scrollWheel, "scroll"), (.leftMouseDown, "click"),
         (.rightMouseDown, "click"), (.leftMouseDragged, "drag"), (.otherMouseDown, "click"),
     ]
-
-    static func secondsSinceLastInput() -> Double { lastInput().seconds }
 
     static func lastInput() -> (seconds: Double, kind: String) {
         eventTypes.map { (CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: $0.0), $0.1) }

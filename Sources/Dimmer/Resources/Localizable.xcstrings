@@ -1,0 +1,2021 @@
+{
+  "sourceLanguage" : "en-GB",
+  "strings" : {
+    "%@" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        }
+      }
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@ Activate to type an exact value." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Activate to type an exact value."
+          }
+        }
+      }
+    },
+    "%@ angle" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ angle"
+          }
+        }
+      }
+    },
+    "%@ brightness" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ brightness"
+          }
+        }
+      }
+    },
+    "%@ exact value" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ exact value"
+          }
+        }
+      }
+    },
+    "%@ Return applies. Escape cancels." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Return applies. Escape cancels."
+          }
+        }
+      }
+    },
+    "%lld" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      }
+    },
+    "%lld°" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld°"
+          }
+        }
+      }
+    },
+    "← → 1° · ↑ ↓ 5%" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "← → 1° · ↑ ↓ 5%"
+          }
+        }
+      }
+    },
+    "0%" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0%"
+          }
+        }
+      }
+    },
+    "1 hour" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 hour"
+          }
+        }
+      }
+    },
+    "2 hours" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 hours"
+          }
+        }
+      }
+    },
+    "5 hours" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 hours"
+          }
+        }
+      }
+    },
+    "15 minutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minutes"
+          }
+        }
+      }
+    },
+    "100%" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100%"
+          }
+        }
+      }
+    },
+    "130°" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "130°"
+          }
+        }
+      }
+    },
+    "A page, as the veil leaves it." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A page, as the veil leaves it."
+          }
+        }
+      }
+    },
+    "About Dimmer" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About Dimmer"
+          }
+        }
+      }
+    },
+    "Active" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active"
+          }
+        }
+      }
+    },
+    "Approval needed. Allow Dimmer in System Settings → General → Login Items." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approval needed. Allow Dimmer in System Settings → General → Login Items."
+          }
+        }
+      }
+    },
+    "Awake until you turn this off." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Awake until you turn this off."
+          }
+        }
+      }
+    },
+    "Blur preview, %lld percent, %@" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur preview, %1$lld percent, %2$@"
+          }
+        }
+      }
+    },
+    "Blur strength" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur strength"
+          }
+        }
+      }
+    },
+    "Blur when the lid is snapped into the zone" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur when the lid is snapped into the zone"
+          }
+        }
+      }
+    },
+    "Built-in display brightness is unavailable." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built-in display brightness is unavailable."
+          }
+        }
+      }
+    },
+    "Built-in lid angle sensor is unavailable." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built-in lid angle sensor is unavailable."
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "Clear speed" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear speed"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "Copy" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
+    "Copy support details" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy support details"
+          }
+        }
+      }
+    },
+    "Could not %@ Launch at Login: %@" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not %1$@ Launch at Login: %2$@"
+          }
+        }
+      }
+    },
+    "Could not create a keep-awake assertion (%d)." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not create a keep-awake assertion (%d)."
+          }
+        }
+      }
+    },
+    "Could not disable Launch at Login: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not disable Launch at Login: %@"
+          }
+        }
+      }
+    },
+    "Could not enable Launch at Login: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not enable Launch at Login: %@"
+          }
+        }
+      }
+    },
+    "Could not open the lid angle sensor (%d)." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not open the lid angle sensor (%d)."
+          }
+        }
+      }
+    },
+    "Could not read the lid angle sensor (%d)." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not read the lid angle sensor (%d)."
+          }
+        }
+      }
+    },
+    "Cut" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cut"
+          }
+        }
+      }
+    },
+    "Deep smoke: shapes only, nearly dark." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deep smoke: shapes only, nearly dark."
+          }
+        }
+      }
+    },
+    "Degree unit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "°"
+          }
+        }
+      }
+    },
+    "degrees" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "degrees"
+          }
+        }
+      }
+    },
+    "degrees per second" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "degrees per second"
+          }
+        }
+      }
+    },
+    "Degrees per second unit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "°/s"
+          }
+        }
+      }
+    },
+    "Details copied" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details copied"
+          }
+        }
+      }
+    },
+    "Development" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Development"
+          }
+        }
+      }
+    },
+    "Dim the keyboard" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dim the keyboard"
+          }
+        }
+      }
+    },
+    "Dim the screen too" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dim the screen too"
+          }
+        }
+      }
+    },
+    "Dimmer" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer"
+          }
+        }
+      }
+    },
+    "Dimmer active" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer active"
+          }
+        }
+      }
+    },
+    "Dimmer follows your MacBook’s lid angle to dim the keyboard and screen as it closes." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer follows your MacBook’s lid angle to dim the keyboard and screen as it closes."
+          }
+        }
+      }
+    },
+    "Screen and privacy control continue. Pause and resume to reconnect the keyboard." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen and privacy control continue. Pause and resume to reconnect the keyboard."
+          }
+        }
+      }
+    },
+    "Dimmer keep awake" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer keep awake"
+          }
+        }
+      }
+    },
+    "Dimmer leaves automatic brightness unchanged." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer leaves automatic brightness unchanged."
+          }
+        }
+      }
+    },
+    "Dimmer paused" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer paused"
+          }
+        }
+      }
+    },
+    "Dimmer Settings" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer Settings"
+          }
+        }
+      }
+    },
+    "Dimmer starts only when you open it." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer starts only when you open it."
+          }
+        }
+      }
+    },
+    "Dimmer will run quietly when you log in." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer will run quietly when you log in."
+          }
+        }
+      }
+    },
+    "Dimmer: %@\nBuild: %@\nmacOS: %@\nMac model: %@" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer: %1$@\nBuild: %2$@\nmacOS: %3$@\nMac model: %4$@"
+          }
+        }
+      }
+    },
+    "Dimming is off." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimming is off."
+          }
+        }
+      }
+    },
+    "Dimming is paused. Resume from the menu bar." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimming is paused. Resume from the menu bar."
+          }
+        }
+      }
+    },
+    "Dimming keeps running. Open Dimmer from Applications or Spotlight to bring Settings back, where Show in menu bar puts the icon back." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimming keeps running. Open Dimmer from Applications or Spotlight to bring Settings back, where Show in menu bar puts the icon back."
+          }
+        }
+      }
+    },
+    "Dimming the keyboard and the screen as the lid closes." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimming the keyboard and the screen as the lid closes."
+          }
+        }
+      }
+    },
+    "Dimming the keyboard as the lid closes." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimming the keyboard as the lid closes."
+          }
+        }
+      }
+    },
+    "Dimming the screen as the lid closes." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimming the screen as the lid closes."
+          }
+        }
+      }
+    },
+    "Display brightness controls are unavailable on this Mac." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display brightness controls are unavailable on this Mac."
+          }
+        }
+      }
+    },
+    "Display brightness could not be changed (%d)." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display brightness could not be changed (%d)."
+          }
+        }
+      }
+    },
+    "Display brightness could not be read (%d)." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display brightness could not be read (%d)."
+          }
+        }
+      }
+    },
+    "Display brightness did not match the requested value." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display brightness did not match the requested value."
+          }
+        }
+      }
+    },
+    "Display brightness restoration is retrying." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display brightness restoration is retrying."
+          }
+        }
+      }
+    },
+    "Drag an end sideways for its angle, up or down for its brightness. Tab selects a value; Return edits it and Escape cancels." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag an end sideways for its angle, up or down for its brightness. Tab selects a value; Return edits it and Escape cancels."
+          }
+        }
+      }
+    },
+    "Edit" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
+    "Fades the keyboard and screen to off. Input or moving the lid brings them back." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fades the keyboard and screen to off. Input or moving the lid brings them back."
+          }
+        }
+      }
+    },
+    "Frost" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frost"
+          }
+        }
+      }
+    },
+    "Frost: a light veil." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frost: a light veil."
+          }
+        }
+      }
+    },
+    "Frosted veil" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frosted veil"
+          }
+        }
+      }
+    },
+    "Full: nothing on screen is readable." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full: nothing on screen is readable."
+          }
+        }
+      }
+    },
+    "Go dark" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go dark"
+          }
+        }
+      }
+    },
+    "GPL-3.0" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPL-3.0"
+          }
+        }
+      }
+    },
+    "Hide Dimmer from the menu bar?" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide Dimmer from the menu bar?"
+          }
+        }
+      }
+    },
+    "Hide icon" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide icon"
+          }
+        }
+      }
+    },
+    "How far the lid must drop into the zone." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How far the lid must drop into the zone."
+          }
+        }
+      }
+    },
+    "How long the veil takes to fade once it clears." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How long the veil takes to fade once it clears."
+          }
+        }
+      }
+    },
+    "In Settings, turn off Launch at Login. Wake the keyboard with a key or trackpad input, then Quit Dimmer to restore brightness, automatic keyboard brightness and screen colour. Check that brightness has returned before moving Dimmer from Applications to the Bin in Finder.\n\nOptional cleanup after restoration and quitting: remove Dimmer’s preferences and any remaining recovery files at the paths below. If restoration failed, keep the recovery files and reopen Dimmer with the keyboard awake before trying again.\n\n%@" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Settings, turn off Launch at Login. Wake the keyboard with a key or trackpad input, then Quit Dimmer to restore brightness, automatic keyboard brightness and screen colour. Check that brightness has returned before moving Dimmer from Applications to the Bin in Finder.\n\nOptional cleanup after restoration and quitting: remove Dimmer’s preferences and any remaining recovery files at the paths below. If restoration failed, keep the recovery files and reopen Dimmer with the keyboard awake before trying again.\n\n%@"
+          }
+        }
+      }
+    },
+    "Include these details in your report. Nothing is sent automatically." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include these details in your report. Nothing is sent automatically."
+          }
+        }
+      }
+    },
+    "Indefinitely" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indefinitely"
+          }
+        }
+      }
+    },
+    "Instant" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instant"
+          }
+        }
+      }
+    },
+    "Invalid value" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid value"
+          }
+        }
+      }
+    },
+    "Keep awake" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep awake"
+          }
+        }
+      }
+    },
+    "Keep the display awake too" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the display awake too"
+          }
+        }
+      }
+    },
+    "Keep the Mac awake" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the Mac awake"
+          }
+        }
+      }
+    },
+    "Keeps the Mac awake indefinitely." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps the Mac awake indefinitely."
+          }
+        }
+      }
+    },
+    "Keeps the Mac awake until %@." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps the Mac awake until %@."
+          }
+        }
+      }
+    },
+    "Keyboard" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard"
+          }
+        }
+      }
+    },
+    "Keyboard and screen off until you type, touch the trackpad or move the lid." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard and screen off until you type, touch the trackpad or move the lid."
+          }
+        }
+      }
+    },
+    "Keyboard backlight controls are unavailable on this Mac." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard backlight controls are unavailable on this Mac."
+          }
+        }
+      }
+    },
+    "Keyboard brightness changed outside Dimmer; control paused to respect it." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard brightness changed outside Dimmer; control paused to respect it."
+          }
+        }
+      }
+    },
+    "Keyboard brightness changed outside Dimmer; pause and resume to reconnect." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard brightness changed outside Dimmer; pause and resume to reconnect."
+          }
+        }
+      }
+    },
+    "Keyboard high end" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard high end"
+          }
+        }
+      }
+    },
+    "Keyboard low end" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard low end"
+          }
+        }
+      }
+    },
+    "Launch at Login" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch at Login"
+          }
+        }
+      }
+    },
+    "Lid" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lid"
+          }
+        }
+      }
+    },
+    "Lid %lld°" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lid %lld°"
+          }
+        }
+      }
+    },
+    "Lid angle" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lid angle"
+          }
+        }
+      }
+    },
+    "lid in zone" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lid in zone"
+          }
+        }
+      }
+    },
+    "Light smoke: darker, the room sees less glow." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light smoke: darker, the room sees less glow."
+          }
+        }
+      }
+    },
+    "Light: large text is still readable." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light: large text is still readable."
+          }
+        }
+      }
+    },
+    "macOS could not determine the login status. Try again." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS could not determine the login status. Try again."
+          }
+        }
+      }
+    },
+    "macOS could not find Dimmer’s login item. Install Dimmer in Applications and try again." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS could not find Dimmer’s login item. Install Dimmer in Applications and try again."
+          }
+        }
+      }
+    },
+    "Medium: shapes show, words do not." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medium: shapes show, words do not."
+          }
+        }
+      }
+    },
+    "milliseconds" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "milliseconds"
+          }
+        }
+      }
+    },
+    "Milliseconds unit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ms"
+          }
+        }
+      }
+    },
+    "More" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        }
+      }
+    },
+    "Move screen range below the zone" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move screen range below the zone"
+          }
+        }
+      }
+    },
+    "None: the zone does nothing visible." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None: the zone does nothing visible."
+          }
+        }
+      }
+    },
+    "now %lld%%" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "now %lld%%"
+          }
+        }
+      }
+    },
+    "now untouched" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "now untouched"
+          }
+        }
+      }
+    },
+    "off" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "off"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Opaque cover" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opaque cover"
+          }
+        }
+      }
+    },
+    "Open Dimmer from Applications or Spotlight to return to Settings." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Dimmer from Applications or Spotlight to return to Settings."
+          }
+        }
+      }
+    },
+    "Open Login Items…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Login Items…"
+          }
+        }
+      }
+    },
+    "Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own."
+          }
+        }
+      }
+    },
+    "Paste" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste"
+          }
+        }
+      }
+    },
+    "Pause" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        }
+      }
+    },
+    "Pause and Quit hand brightness back to you. Wake an idle-dimmed keyboard before quitting to restore it immediately. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause and Quit hand brightness back to you. Wake an idle-dimmed keyboard before quitting to restore it immediately. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake."
+          }
+        }
+      }
+    },
+    "Paused" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
+          }
+        }
+      }
+    },
+    "Paused." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused."
+          }
+        }
+      }
+    },
+    "percent" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "percent"
+          }
+        }
+      }
+    },
+    "Percent unit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%"
+          }
+        }
+      }
+    },
+    "Preview" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
+          }
+        }
+      }
+    },
+    "Privacy" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        }
+      }
+    },
+    "Privacy shortcut" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy shortcut"
+          }
+        }
+      }
+    },
+    "Project on GitHub" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project on GitHub"
+          }
+        }
+      }
+    },
+    "Quit Dimmer" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit Dimmer"
+          }
+        }
+      }
+    },
+    "Range %@ to %@." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Range %1$@ to %2$@."
+          }
+        }
+      }
+    },
+    "Range %@ to %@. Activate to type an exact value." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Range %@ to %@. Activate to type an exact value."
+          }
+        }
+      }
+    },
+    "Range %@ to %@. Return applies. Escape cancels." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Range %@ to %@. Return applies. Escape cancels."
+          }
+        }
+      }
+    },
+    "Reconnecting after sleep…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnecting after sleep…"
+          }
+        }
+      }
+    },
+    "Reconnecting to lid sensor…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnecting to lid sensor…"
+          }
+        }
+      }
+    },
+    "Redo" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redo"
+          }
+        }
+      }
+    },
+    "Report a bug…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report a bug…"
+          }
+        }
+      }
+    },
+    "Resume" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        }
+      }
+    },
+    "Screen" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen"
+          }
+        }
+      }
+    },
+    "Screen dimming is active." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen dimming is active."
+          }
+        }
+      }
+    },
+    "Screen dimming is off." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen dimming is off."
+          }
+        }
+      }
+    },
+    "Screen dimming is unavailable." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen dimming is unavailable."
+          }
+        }
+      }
+    },
+    "Screen dimming waits for the lid to open fully once." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen dimming waits for the lid to open fully once."
+          }
+        }
+      }
+    },
+    "Screen dimming will retry shortly." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen dimming will retry shortly."
+          }
+        }
+      }
+    },
+    "Screen high end" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen high end"
+          }
+        }
+      }
+    },
+    "Screen low end" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen low end"
+          }
+        }
+      }
+    },
+    "Screen ready." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen ready."
+          }
+        }
+      }
+    },
+    "Select All" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select All"
+          }
+        }
+      }
+    },
+    "Selected in the Dimmer menu bar panel" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected in the Dimmer menu bar panel"
+          }
+        }
+      }
+    },
+    "Settings…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings…"
+          }
+        }
+      }
+    },
+    "Show in menu bar" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show in menu bar"
+          }
+        }
+      }
+    },
+    "Slow" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slow"
+          }
+        }
+      }
+    },
+    "Slower closes pass through without blurring." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slower closes pass through without blurring."
+          }
+        }
+      }
+    },
+    "Smoke" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smoke"
+          }
+        }
+      }
+    },
+    "Smoke %lld%%" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smoke %lld%%"
+          }
+        }
+      }
+    },
+    "Smoke: dark glass over the screen." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smoke: dark glass over the screen."
+          }
+        }
+      }
+    },
+    "Snap of at least" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snap of at least"
+          }
+        }
+      }
+    },
+    "Snap speed" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snap speed"
+          }
+        }
+      }
+    },
+    "Snap the lid down into the zone and every screen frosts at once. Typing, touching the trackpad or mouse, or pushing the lid back up clears it." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snap the lid down into the zone and every screen frosts at once. Typing, touching the trackpad or mouse, or pushing the lid back up clears it."
+          }
+        }
+      }
+    },
+    "Snap to blur" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snap to blur"
+          }
+        }
+      }
+    },
+    "snap zone" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "snap zone"
+          }
+        }
+      }
+    },
+    "Snap zone" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snap zone"
+          }
+        }
+      }
+    },
+    "Snap zone high edge" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snap zone high edge"
+          }
+        }
+      }
+    },
+    "Snap zone low edge" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snap zone low edge"
+          }
+        }
+      }
+    },
+    "Start using Dimmer" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start using Dimmer"
+          }
+        }
+      }
+    },
+    "Starting…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting…"
+          }
+        }
+      }
+    },
+    "The Dimmer icon lives in the menu bar. Choose Settings there to adjust the ranges. Opening Dimmer from Applications or Spotlight brings Settings back, even if the icon is hidden." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Dimmer icon lives in the menu bar. Choose Settings there to adjust the ranges. Opening Dimmer from Applications or Spotlight brings Settings back, even if the icon is hidden."
+          }
+        }
+      }
+    },
+    "The display returned an invalid brightness value." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The display returned an invalid brightness value."
+          }
+        }
+      }
+    },
+    "The keyboard backlight automatic mode could not be changed safely." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The keyboard backlight automatic mode could not be changed safely."
+          }
+        }
+      }
+    },
+    "The keyboard backlight did not reach the requested brightness." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The keyboard backlight did not reach the requested brightness."
+          }
+        }
+      }
+    },
+    "The keyboard backlight returned an invalid brightness value." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The keyboard backlight returned an invalid brightness value."
+          }
+        }
+      }
+    },
+    "The lid angle sensor returned an invalid reading." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The lid angle sensor returned an invalid reading."
+          }
+        }
+      }
+    },
+    "The Mac sleeps as usual." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Mac sleeps as usual."
+          }
+        }
+      }
+    },
+    "The screen already dims inside the snap zone." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The screen already dims inside the snap zone."
+          }
+        }
+      }
+    },
+    "This shortcut is used by printing, applications or accessibility. Choose another combination." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This shortcut is used by printing, applications or accessibility. Choose another combination."
+          }
+        }
+      }
+    },
+    "Tint" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tint"
+          }
+        }
+      }
+    },
+    "Unavailable readout" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "—"
+          }
+        }
+      }
+    },
+    "Unbundled" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbundled"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo"
+          }
+        }
+      }
+    },
+    "Uninstall Dimmer" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uninstall Dimmer"
+          }
+        }
+      }
+    },
+    "Uninstall Dimmer…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uninstall Dimmer…"
+          }
+        }
+      }
+    },
+    "Unknown" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        }
+      }
+    },
+    "Until" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Until"
+          }
+        }
+      }
+    },
+    "Until %@." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Until %@."
+          }
+        }
+      }
+    },
+    "Until a time" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Until a time"
+          }
+        }
+      }
+    },
+    "Until a time…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Until a time…"
+          }
+        }
+      }
+    },
+    "untouched" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "untouched"
+          }
+        }
+      }
+    },
+    "Version %@ · Build %@" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %1$@ · Build %2$@"
+          }
+        }
+      }
+    },
+    "View latest release…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View latest release…"
+          }
+        }
+      }
+    },
+    "Waiting for the lid sensor." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for the lid sensor."
+          }
+        }
+      }
+    },
+    "Welcome to Dimmer" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to Dimmer"
+          }
+        }
+      }
+    },
+    "Window" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window"
+          }
+        }
+      }
+    },
+    "your own brightness, untouched" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "your own brightness, untouched"
+          }
+        }
+      }
+    },
+    "Yours" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yours"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -24,7 +24,7 @@ enum StatusGlyph {
             return true
         }
         image.isTemplate = true
-        image.accessibilityDescription = paused ? "Dimmer paused" : "Dimmer active"
+        image.accessibilityDescription = paused ? L10n.string("Dimmer paused") : L10n.string("Dimmer active")
         return image
     }
 

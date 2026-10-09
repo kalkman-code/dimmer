@@ -1,3 +1,4 @@
+import KeyboardShortcuts
 import XCTest
 @testable import Dimmer
 
@@ -42,5 +43,21 @@ final class PrivacyShortcutTests: XCTestCase {
         XCTAssertFalse(lift.shouldClear(at: 115))
         XCTAssertFalse(lift.shouldClear(at: 117))
         XCTAssertTrue(lift.shouldClear(at: 118))
+    }
+
+    func testPrivacyShortcutDefaultsToControlCommandP() {
+        XCTAssertEqual(KeyboardShortcuts.Name.privacyBlur.initialShortcut, .init(.p, modifiers: [.control, .command]))
+    }
+
+    @MainActor
+    func testClearedDefaultShortcutStaysClearedAcrossLaunches() {
+        let raw = "privacyBlurTest" + UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        defer { UserDefaults.standard.removeObject(forKey: "KeyboardShortcuts_\(raw)") }
+        let initial = KeyboardShortcuts.Shortcut(.p, modifiers: [.control, .command])
+        let name = KeyboardShortcuts.Name(raw, initial: initial)
+        XCTAssertEqual(KeyboardShortcuts.getShortcut(for: name), initial)
+        KeyboardShortcuts.setShortcut(nil, for: name)
+        let relaunched = KeyboardShortcuts.Name(raw, initial: initial)
+        XCTAssertNil(KeyboardShortcuts.getShortcut(for: relaunched))
     }
 }

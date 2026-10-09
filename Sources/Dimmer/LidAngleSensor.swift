@@ -9,10 +9,10 @@ enum SensorError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .unavailable: "Built-in lid angle sensor is unavailable."
-        case .openFailed(let code): "Could not open the lid angle sensor (\(code))."
-        case .readFailed(let code): "Could not read the lid angle sensor (\(code))."
-        case .malformedReport: "The lid angle sensor returned an invalid reading."
+        case .unavailable: L10n.string("Built-in lid angle sensor is unavailable.")
+        case .openFailed(let code): L10n.string("Could not open the lid angle sensor (\(code)).")
+        case .readFailed(let code): L10n.string("Could not read the lid angle sensor (\(code)).")
+        case .malformedReport: L10n.string("The lid angle sensor returned an invalid reading.")
         }
     }
 }

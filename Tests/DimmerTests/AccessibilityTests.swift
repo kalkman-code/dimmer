@@ -3,6 +3,12 @@ import XCTest
 @testable import Dimmer
 
 final class AccessibilityTests: XCTestCase {
+    func testReducedTransparencySkipsNearMissVeilButKeepsLockedCover() {
+        XCTAssertFalse(VeilAppearance.shouldShow(level: 0.4, locked: false, reduceTransparency: true))
+        XCTAssertTrue(VeilAppearance.shouldShow(level: 0.4, locked: false, reduceTransparency: false))
+        XCTAssertTrue(VeilAppearance.shouldShow(level: 1, locked: true, reduceTransparency: true))
+        XCTAssertFalse(VeilAppearance.shouldShow(level: 0, locked: true, reduceTransparency: true))
+    }
     func testReadoutsSpeakUnitsRatherThanAmbiguousSymbols() {
         XCTAssertEqual(AccessibilityReadout.value(74.6, unit: "°"), "75 degrees")
         XCTAssertEqual(AccessibilityReadout.value(60, unit: "°/s"), "60 degrees per second")
@@ -29,7 +35,7 @@ final class AccessibilityTests: XCTestCase {
         XCTAssertEqual(GoDark.nextDarkness(1, isDark: false, elapsed: 0.3, reduceMotion: false), 0.5, accuracy: 0.001)
     }
 
-    func testReducedTransparencyCoversContentEvenAtPartialStrength() {
+    func testReducedTransparencyCoversContentEvenAtLowLockedStrength() {
         for strength in [0.01, 0.4, 1.0] {
             XCTAssertEqual(VeilAppearance.opacity(strength: strength, reduceTransparency: true), 1)
         }

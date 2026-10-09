@@ -22,7 +22,9 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
     private let popover = NSPopover()
     private var sleepObserver: NSObjectProtocol?
     private var wakeObserver: NSObjectProtocol?
+    #if DEBUG
     private var snapshotObserver: NSObjectProtocol?
+    #endif
     private var subscriptions = Set<AnyCancellable>()
     private var privacyShortcutTask: Task<Void, Never>?
     private var privacyShortcutGeneration = UUID()
@@ -88,7 +90,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
         }
         restartPrivacyShortcut()
         sleepObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
+            MainActor.assumeIsolated {
                 self?.sleeping = true
                 self?.restartPrivacyShortcut()
                 self?.features.suspend(reason: "sleep")
@@ -108,7 +110,8 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
         case .quiet: break
         case .settings, .welcome: presentSettings()
         }
-        // Used by scripts/check-settings.sh to prove the window opens in the built app.
+        #if DEBUG
+        // Used by scripts/check-settings.sh to prove the window opens in a debug build.
         if CommandLine.arguments.contains("--open-settings") { presentSettings() }
         // Design review only: with --snapshot-dir <folder>, a local "uk.co.kalkmancode.Dimmer.snapshot"
         // notification whose object is a file name writes the Settings window there.
@@ -125,6 +128,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+        #endif
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -176,16 +180,16 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
         logger.info("status item action received; eventType=\(eventType, privacy: .public)")
         if event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true {
             let menu = NSMenu()
-            menu.addItem(withTitle: "Settings…", action: #selector(showSettings), keyEquivalent: ",")
-            menu.addItem(withTitle: "About Dimmer", action: #selector(showAbout), keyEquivalent: "")
-            menu.addItem(withTitle: "Report a bug…", action: #selector(reportBug), keyEquivalent: "")
-            menu.addItem(withTitle: "View latest release…", action: #selector(viewLatestRelease), keyEquivalent: "")
+            menu.addItem(withTitle: L10n.string("Settings…"), action: #selector(showSettings), keyEquivalent: ",")
+            menu.addItem(withTitle: L10n.string("About Dimmer"), action: #selector(showAbout), keyEquivalent: "")
+            menu.addItem(withTitle: L10n.string("Report a bug…"), action: #selector(reportBug), keyEquivalent: "")
+            menu.addItem(withTitle: L10n.string("View latest release…"), action: #selector(viewLatestRelease), keyEquivalent: "")
             menu.addItem(.separator())
-            let dark = menu.addItem(withTitle: "Go dark", action: controller.paused ? nil : #selector(goDark), keyEquivalent: "")
-            dark.toolTip = "Keyboard and screen off until you type, touch the trackpad or move the lid."
-            menu.addItem(withTitle: controller.paused ? "Resume" : "Pause", action: #selector(togglePause), keyEquivalent: "")
+            let dark = menu.addItem(withTitle: L10n.string("Go dark"), action: controller.canGoDark ? #selector(goDark) : nil, keyEquivalent: "")
+            dark.toolTip = L10n.string("Keyboard and screen off until you type, touch the trackpad or move the lid.")
+            menu.addItem(withTitle: controller.paused ? L10n.string("Resume") : L10n.string("Pause"), action: #selector(togglePause), keyEquivalent: "")
             menu.addItem(.separator())
-            menu.addItem(withTitle: "Quit Dimmer", action: #selector(quit), keyEquivalent: "q")
+            menu.addItem(withTitle: L10n.string("Quit Dimmer"), action: #selector(quit), keyEquivalent: "q")
             menu.items.forEach { $0.target = self }
             menu.popUp(positioning: nil, at: NSPoint(x: 0, y: statusItem.button?.bounds.maxY ?? 0), in: statusItem.button)
         } else if popover.isShown {
@@ -209,35 +213,37 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.open(SupportDetails.issueURL)
     }
     @objc private func viewLatestRelease() { NSWorkspace.shared.open(SupportDetails.releaseURL) }
+    @objc private func uninstallDimmer() { UninstallGuide.show() }
 
     private func installAppMenu() {
         let mainMenu = NSMenu()
-        let appMenu = NSMenu(title: "Dimmer")
-        let appItem = mainMenu.addItem(withTitle: "Dimmer", action: nil, keyEquivalent: "")
+        let appMenu = NSMenu(title: L10n.string("Dimmer"))
+        let appItem = mainMenu.addItem(withTitle: L10n.string("Dimmer"), action: nil, keyEquivalent: "")
         appItem.submenu = appMenu
-        appMenu.addItem(withTitle: "About Dimmer", action: #selector(showAbout), keyEquivalent: "")
+        appMenu.addItem(withTitle: L10n.string("About Dimmer"), action: #selector(showAbout), keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Settings…", action: #selector(showSettings), keyEquivalent: ",")
+        appMenu.addItem(withTitle: L10n.string("Settings…"), action: #selector(showSettings), keyEquivalent: ",")
+        appMenu.addItem(withTitle: L10n.string("Uninstall Dimmer…"), action: #selector(uninstallDimmer), keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Quit Dimmer", action: #selector(quit), keyEquivalent: "q")
+        appMenu.addItem(withTitle: L10n.string("Quit Dimmer"), action: #selector(quit), keyEquivalent: "q")
         appMenu.items.forEach { $0.target = self }
 
-        let editMenu = NSMenu(title: "Edit")
-        mainMenu.addItem(withTitle: "Edit", action: nil, keyEquivalent: "").submenu = editMenu
+        let editMenu = NSMenu(title: L10n.string("Edit"))
+        mainMenu.addItem(withTitle: L10n.string("Edit"), action: nil, keyEquivalent: "").submenu = editMenu
         for (title, selector, key) in [
-            ("Undo", NSSelectorFromString("undo:"), "z"),
-            ("Redo", NSSelectorFromString("redo:"), "Z"),
-            ("Cut", #selector(NSText.cut(_:)), "x"),
-            ("Copy", #selector(NSText.copy(_:)), "c"),
-            ("Paste", #selector(NSText.paste(_:)), "v"),
-            ("Select All", #selector(NSText.selectAll(_:)), "a"),
+            (L10n.string("Undo"), NSSelectorFromString("undo:"), "z"),
+            (L10n.string("Redo"), NSSelectorFromString("redo:"), "Z"),
+            (L10n.string("Cut"), #selector(NSText.cut(_:)), "x"),
+            (L10n.string("Copy"), #selector(NSText.copy(_:)), "c"),
+            (L10n.string("Paste"), #selector(NSText.paste(_:)), "v"),
+            (L10n.string("Select All"), #selector(NSText.selectAll(_:)), "a"),
         ] {
             editMenu.addItem(withTitle: title, action: selector, keyEquivalent: key)
         }
 
-        let windowMenu = NSMenu(title: "Window")
-        mainMenu.addItem(withTitle: "Window", action: nil, keyEquivalent: "").submenu = windowMenu
-        windowMenu.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        let windowMenu = NSMenu(title: L10n.string("Window"))
+        mainMenu.addItem(withTitle: L10n.string("Window"), action: nil, keyEquivalent: "").submenu = windowMenu
+        windowMenu.addItem(withTitle: L10n.string("Close"), action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
         NSApp.windowsMenu = windowMenu
         NSApp.mainMenu = mainMenu
     }
@@ -254,7 +260,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateStatusItem(paused: Bool) {
         guard let button = statusItem.button else { return }
-        button.setAccessibilityLabel(paused ? "Dimmer paused" : "Dimmer active")
+        button.setAccessibilityLabel(paused ? L10n.string("Dimmer paused") : L10n.string("Dimmer active"))
         button.image = StatusGlyph.image(paused: paused, increaseContrast: DisplayAccessibility.shared.preferences.increaseContrast)
         statusItem.isVisible = shell.showMenuBarIcon
     }

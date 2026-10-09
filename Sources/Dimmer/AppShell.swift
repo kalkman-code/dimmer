@@ -3,7 +3,7 @@ import Combine
 
 enum AppShell {
     // AppKit refuses to terminate while a window has a sheet attached (the welcome, the hide-icon
-    // confirmation), so Quit, Cmd+Q and SIGTERM silently did nothing; found on Toby's Mac, 09-10-2026.
+    // confirmation), so dismiss sheets before handling Quit, Cmd+Q or SIGTERM.
     @MainActor static func quit() {
         for window in NSApp.windows {
             if let sheet = window.attachedSheet { window.endSheet(sheet) }

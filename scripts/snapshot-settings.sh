@@ -7,6 +7,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/build/Dimmer.app"
+if ! grep -a -q -- '--snapshot-dir' "$APP/Contents/MacOS/Dimmer"; then
+    printf 'This probe needs a debug build; release builds do not accept --snapshot-dir.\n' >&2
+    exit 1
+fi
 DIR="${1:?folder}"
 ACTION="${2:?launch or a file name ending .png}"
 mkdir -p "$DIR"

@@ -19,24 +19,24 @@ struct DimmerMenu: View {
                 Image(nsImage: StatusGlyph.image(paused: controller.paused)).renderingMode(.template)
                     .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
                     .accessibilityHidden(true)
-                Text("Dimmer").font(.system(size: 14, weight: .semibold))
+                Text(L10n.string("Dimmer")).font(.system(size: 14, weight: .semibold))
                 Spacer()
-                Text(controller.paused ? "Paused" : controller.errorMessage)
+                Text(controller.paused ? L10n.string("Paused") : controller.errorMessage)
                     .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
             }
 
             VStack(alignment: .leading, spacing: 7) {
-                readout("Lid", value: controller.angle.map { "\(Int($0.rounded()))°" } ?? "—")
-                readout("Keyboard", value: controller.keyboardBrightness.map { "\(Int(($0 * 100).rounded()))%" } ?? "—")
+                readout(L10n.string("Lid"), value: controller.angle.map { L10n.string("\(Int($0.rounded()))") + L10n.displayUnit("°") } ?? L10n.string("Unavailable readout"))
+                readout(L10n.string("Keyboard"), value: controller.keyboardBrightness.map { L10n.string("\(Int(($0 * 100).rounded()))") + L10n.displayUnit("%") } ?? L10n.string("Unavailable readout"))
                 let screen = controller.angle.map { $0 >= controller.screenRange.highAngle } == true
-                    ? "Yours"
-                    : controller.displayBrightness.map { "\(Int(($0 * 100).rounded()))%" } ?? "—"
-                readout("Screen", value: screen)
+                    ? L10n.string("Yours")
+                    : controller.displayBrightness.map { L10n.string("\(Int(($0 * 100).rounded()))") + L10n.displayUnit("%") } ?? L10n.string("Unavailable readout")
+                readout(L10n.string("Screen"), value: screen)
             }
 
             VStack(alignment: .leading, spacing: 5) {
-                Text("Keep awake").font(.system(size: 10)).foregroundStyle(.secondary)
-                Picker("Keep awake", selection: Binding(
+                Text(L10n.string("Keep awake")).font(.system(size: 10)).foregroundStyle(.secondary)
+                Picker(L10n.string("Keep awake"), selection: Binding(
                     get: { features.awakeDuration },
                     set: { features.setAwakeDuration($0) }
                 )) {
@@ -44,22 +44,31 @@ struct DimmerMenu: View {
                 }
                 .labelsHidden()
                 .pickerStyle(.segmented)
+                if let status = features.awakeStatus {
+                    Text(status).font(.system(size: 11)).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             Divider()
-            Button("Settings…", action: showSettings)
+            Button(L10n.string("Go dark")) { controller.goDark() }
+                .disabled(!controller.canGoDark)
+                .help(L10n.string("Fades the keyboard and screen to off. Input or moving the lid brings them back."))
+                .buttonStyle(.plain)
+            Button(L10n.string("Settings…"), action: showSettings)
                 .keyboardShortcut(",", modifiers: .command)
                 .buttonStyle(.plain)
-            Button(controller.paused ? "Resume" : "Pause") { controller.togglePaused() }
+            Button(controller.paused ? L10n.string("Resume") : L10n.string("Pause")) { controller.togglePaused() }
                 .buttonStyle(.plain)
-            Menu("More") {
-                Button("About Dimmer", action: showAbout)
-                Button("Report a bug…", action: reportBug)
-                Button("View latest release…") { NSWorkspace.shared.open(SupportDetails.releaseURL) }
+            Menu(L10n.string("More")) {
+                Button(L10n.string("About Dimmer"), action: showAbout)
+                Button(L10n.string("Report a bug…"), action: reportBug)
+                Button(L10n.string("View latest release…")) { NSWorkspace.shared.open(SupportDetails.releaseURL) }
+                Button(L10n.string("Uninstall Dimmer…")) { UninstallGuide.show() }
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
-            Button("Quit Dimmer") { AppShell.quit() }
+            Button(L10n.string("Quit Dimmer")) { AppShell.quit() }
                 .keyboardShortcut("q")
                 .buttonStyle(.plain)
         }

@@ -124,7 +124,7 @@ struct LidAxisView: View {
                     laneNames(keyboard: false)
                     rangeTags(size: size, screen: true)
                     if features.privacyEnabled {
-                        laneName("Privacy", colour: privacyColour, live: privacyLive, top: privacyTop, height: privacyHeight)
+                        laneName(L10n.string("Privacy"), colour: privacyColour, live: privacyLive, top: privacyTop, height: privacyHeight)
                         ForEach([AxisTag.zoneLow, .zoneHigh], id: \.self) { tag in
                             tagView(tag).position(tagPosition(tag, size: size))
                         }
@@ -149,10 +149,10 @@ struct LidAxisView: View {
             .focusEffectDisabled()
 
             HStack(alignment: .top, spacing: 12) {
-                Text("Drag an end sideways for its angle, up or down for its brightness. Tab selects a value; Return edits it and Escape cancels.")
+                Text(L10n.string("Drag an end sideways for its angle, up or down for its brightness. Tab selects a value; Return edits it and Escape cancels."))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("← → 1° · ↑ ↓ 5%")
+                Text(L10n.string("← → 1° · ↑ ↓ 5%"))
                     .font(.system(size: 11).monospacedDigit())
                     .fixedSize()
             }
@@ -161,13 +161,13 @@ struct LidAxisView: View {
 
             if features.privacyEnabled && controller.dimsScreen && features.snap.zoneLow < controller.screenRange.highAngle {
                 HStack(spacing: 5) {
-                    Text("The screen already dims inside the snap zone.")
+                    Text(L10n.string("The screen already dims inside the snap zone."))
                         .font(.system(size: 11))
                         .foregroundStyle(secondary)
                     Button {
                         moveScreenBelowZone()
                     } label: {
-                        Text("Move screen range below the zone")
+                        Text(L10n.string("Move screen range below the zone"))
                             .font(.system(size: 11))
                             .foregroundStyle(privacyColour)
                             .underline()
@@ -191,10 +191,10 @@ struct LidAxisView: View {
         let height = keyboard ? keyboardHeight : screenHeight
         return Group {
             HStack(spacing: 4) {
-                Text(keyboard ? "Keyboard" : "Screen")
+                Text(keyboard ? L10n.string("Keyboard") : L10n.string("Screen"))
                     .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(keyboard ? keyboardColour : screenColour)
-                Toggle(keyboard ? "Dim the keyboard" : "Dim the screen too",
+                Toggle(keyboard ? L10n.string("Dim the keyboard") : L10n.string("Dim the screen too"),
                        isOn: keyboard ? $controller.dimsKeyboard : $controller.dimsScreen)
                     .toggleStyle(.switch)
                     .controlSize(.mini)
@@ -224,20 +224,20 @@ struct LidAxisView: View {
 
     private var currentAngle: Double { controller.angle ?? 0 }
     private var keyboardLive: String {
-        guard controller.dimsKeyboard else { return "off" }
-        return "now \(Int((controller.keyboardRange.level(at: currentAngle) * 100).rounded()))%"
+        guard controller.dimsKeyboard else { return L10n.string("off") }
+        return L10n.string("now \(Int((controller.keyboardRange.level(at: currentAngle) * 100).rounded()))%")
     }
     private var screenLive: String {
-        guard controller.dimsScreen else { return "off" }
-        guard controller.angle != nil else { return "now untouched" }
+        guard controller.dimsScreen else { return L10n.string("off") }
+        guard controller.angle != nil else { return L10n.string("now untouched") }
         return currentAngle >= controller.screenRange.highAngle
-            ? "now untouched"
-            : "now \(Int((controller.screenRange.level(at: currentAngle) * 100).rounded()))%"
+            ? L10n.string("now untouched")
+            : L10n.string("now \(Int((controller.screenRange.level(at: currentAngle) * 100).rounded()))%")
     }
     private var privacyLive: String {
-        guard features.privacyEnabled else { return "off" }
-        guard controller.angle != nil else { return "snap zone" }
-        return currentAngle >= features.snap.zoneLow && currentAngle <= features.snap.zoneHigh ? "lid in zone" : "snap zone"
+        guard features.privacyEnabled else { return L10n.string("off") }
+        guard controller.angle != nil else { return L10n.string("snap zone") }
+        return currentAngle >= features.snap.zoneLow && currentAngle <= features.snap.zoneHigh ? L10n.string("lid in zone") : L10n.string("snap zone")
     }
 
     private func drawAxis(in context: inout GraphicsContext, size: CGSize) {
@@ -265,7 +265,7 @@ struct LidAxisView: View {
                 return !labelRect.intersects(CGRect(x: centre.x - width / 2, y: centre.y - 10, width: width, height: 20))
             }
             if zoneRect.width > 68 && labelClear {
-                context.draw(Text("Snap zone").font(.system(size: 11, weight: .medium)).foregroundColor(privacyColour),
+                context.draw(Text(L10n.string("Snap zone")).font(.system(size: 11, weight: .medium)).foregroundColor(privacyColour),
                              at: CGPoint(x: zoneRect.midX, y: zoneRect.midY))
             }
             for angle in [features.snap.zoneLow, features.snap.zoneHigh] {
@@ -300,7 +300,7 @@ struct LidAxisView: View {
             }
             let capsule = CGRect(x: markerX - 26, y: axisY + 7, width: 52, height: 17)
             context.fill(Path(roundedRect: capsule, cornerRadius: 8.5), with: .color(.white))
-            context.draw(Text("Lid \(Int(angle.rounded()))°").font(.system(size: 11, weight: .semibold).monospacedDigit())
+            context.draw(Text(L10n.string("Lid \(Int(angle.rounded()))°")).font(.system(size: 11, weight: .semibold).monospacedDigit())
                 .foregroundColor(Color(hex: 0x141416)), at: CGPoint(x: markerX, y: capsule.midY))
         }
         // Above its top end the screen is left at the user's own brightness; say so in words, sized to fit.
@@ -318,7 +318,7 @@ struct LidAxisView: View {
             return [gap(start, lidX - 6), gap(lidX + 6, end)].compactMap { $0 }
         }()
         let choice: (words: String, width: CGFloat, gap: ClosedRange<CGFloat>)? = [
-            ("your own brightness, untouched", CGFloat(184)), ("untouched", CGFloat(62)),
+            (L10n.string("your own brightness, untouched"), CGFloat(184)), (L10n.string("untouched"), CGFloat(62)),
         ].lazy.compactMap { option in
             gaps.max { ($0.upperBound - $0.lowerBound) < ($1.upperBound - $1.lowerBound) }
                 .flatMap { $0.upperBound - $0.lowerBound >= option.1 ? (option.0, option.1, $0) : nil }
@@ -381,7 +381,7 @@ struct LidAxisView: View {
 
     private func drawScale(in context: inout GraphicsContext, x: (Double) -> CGFloat,
                            left: CGFloat, top: CGFloat, height: CGFloat, opacity: Double) {
-        for (text, y) in [("100%", top + 4), ("0%", top + height - 1)] {
+        for (text, y) in [(L10n.string("100%"), top + 4), (L10n.string("0%"), top + height - 1)] {
             context.draw(Text(text).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary.opacity(opacity)),
                          at: CGPoint(x: left - 8, y: y), anchor: .trailing)
         }
@@ -407,7 +407,7 @@ struct LidAxisView: View {
             tick.addLine(to: CGPoint(x: x(angle), y: axisY + tickHeight))
             context.stroke(tick, with: .color(Color(hex: 0x4A4D55)), lineWidth: 0.7)
             if major && !underLidCapsule(x(angle), x: x) {
-                context.draw(Text("\(Int(angle))°").font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
+                context.draw(Text(L10n.string("\(Int(angle))°")).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
                              at: CGPoint(x: x(angle), y: axisY + 18))
             }
         }
@@ -417,10 +417,10 @@ struct LidAxisView: View {
         context.stroke(finalTick, with: .color(Color(hex: 0x4A4D55)), lineWidth: 0.7)
         // Anchored on its right edge so the last label stays inside the window rather than being clipped.
         if !underLidCapsule(x(LidAxis.maximum) - 12, x: x) {
-            context.draw(Text("130°").font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
+            context.draw(Text(L10n.string("130°")).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
                          at: CGPoint(x: x(LidAxis.maximum) + 4, y: axisY + 18), anchor: .trailing)
         }
-        context.draw(Text("Lid angle").font(.system(size: 11)).foregroundColor(secondary),
+        context.draw(Text(L10n.string("Lid angle")).font(.system(size: 11)).foregroundColor(secondary),
                      at: CGPoint(x: 0, y: axisY + 18), anchor: .leading)
     }
 
@@ -485,12 +485,12 @@ struct LidAxisView: View {
 
     private func angleField(_ tag: AxisTag, width: CGFloat) -> some View {
         numberCell(angleBinding(tag), field: .angle(tag), unit: "°", alignment: .trailing,
-                   name: "\(tagLabel(tag)) angle", width: width)
+                   name: L10n.string("\(tagLabel(tag)) angle"), width: width)
     }
 
     private func levelField(_ tag: AxisTag, width: CGFloat) -> some View {
         numberCell(levelBinding(tag), field: .level(tag), unit: "%", alignment: .leading,
-                   name: "\(tagLabel(tag)) brightness", width: width)
+                   name: L10n.string("\(tagLabel(tag)) brightness"), width: width)
     }
 
     // A plain text field sat several points below the capsule's baseline (it keeps its own 22 pt cell),
@@ -510,7 +510,7 @@ struct LidAxisView: View {
                     if restoringFocus { DispatchQueue.main.async { focusedField = field } }
                 }
                 .frame(height: 14)
-                Text(unit).foregroundStyle(secondary)
+                Text(L10n.displayUnit(unit)).foregroundStyle(secondary)
             }
             .frame(width: width)
             .overlay(RoundedRectangle(cornerRadius: 3).stroke(privacyColour, lineWidth: 2).padding(-2))
@@ -519,11 +519,12 @@ struct LidAxisView: View {
                 focusedField = nil
                 editing = field
             } label: {
-                (Text("\(Int(value.wrappedValue.rounded()))") + Text(unit).foregroundColor(secondary))
+                (Text(L10n.string("\(Int(value.wrappedValue.rounded()))")) + Text(L10n.displayUnit(unit)).foregroundColor(secondary))
                     .frame(width: width, alignment: alignment)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .focusable(interactions: .edit)
             .focused($focusedField, equals: field)
             .focusEffectDisabled()
             .overlay {
@@ -546,8 +547,7 @@ struct LidAxisView: View {
             }
             .accessibilityLabel(name)
             .accessibilityValue(AccessibilityReadout.value(value.wrappedValue, unit: unit))
-            .accessibilityHint(AccessibilityReadout.range(numberRange(field), unit: unit)
-                               + " Activate to type an exact value.")
+            .accessibilityHint(AccessibilityReadout.rangeForActivation(numberRange(field), unit: unit))
             .accessibilityAdjustableAction { direction in
                 switch direction {
                 case .increment: value.wrappedValue += 1
@@ -569,12 +569,12 @@ struct LidAxisView: View {
 
     private func tagLabel(_ tag: AxisTag) -> String {
         switch tag {
-        case .keyboardLow: "Keyboard low end"
-        case .keyboardHigh: "Keyboard high end"
-        case .screenLow: "Screen low end"
-        case .screenHigh: "Screen high end"
-        case .zoneLow: "Snap zone low edge"
-        case .zoneHigh: "Snap zone high edge"
+        case .keyboardLow: L10n.string("Keyboard low end")
+        case .keyboardHigh: L10n.string("Keyboard high end")
+        case .screenLow: L10n.string("Screen low end")
+        case .screenHigh: L10n.string("Screen high end")
+        case .zoneLow: L10n.string("Snap zone low edge")
+        case .zoneHigh: L10n.string("Snap zone high edge")
         }
     }
 
@@ -713,8 +713,7 @@ struct LidAxisView: View {
         let top = handle.isScreen ? screenTop : keyboardTop
         let height = handle.isScreen ? screenHeight : keyboardHeight
         let level = (min(max(1 - Double((location.y - top) / height), 0), 1) * 100).rounded() / 100
-        let name = (handle.isScreen ? "Screen" : "Keyboard") + (handle.isLow ? " low end" : " high end")
-        setRange(name: name, angle: min(max(angle, 0), LidAxis.maximum), level: level)
+        setRange(tag(for: handle), angle: min(max(angle, 0), LidAxis.maximum), level: level)
     }
 
     private func cursor(for handle: AxisHandle, dragging: Bool) -> NSCursor {
@@ -731,13 +730,13 @@ struct LidAxisView: View {
             return tag.handle.isLow ? range.lowAngle : range.highAngle
         }, set: { value in
             if tag.handle.isZone { setZone(isLow: tag.handle.isLow, angle: value) }
-            else { setRange(name: tagLabel(tag), angle: value, level: currentLevel(tag)) }
+            else { setRange(tag, angle: value, level: currentLevel(tag)) }
         })
     }
 
     private func levelBinding(_ tag: AxisTag) -> Binding<Double> {
         Binding(get: { currentLevel(tag) * 100 }, set: { value in
-            setRange(name: tagLabel(tag), angle: currentAngleForTag(tag), level: value / 100)
+            setRange(tag, angle: currentAngleForTag(tag), level: value / 100)
         })
     }
 
@@ -754,7 +753,7 @@ struct LidAxisView: View {
 
     private func move(_ tag: AxisTag, direction: MoveCommandDirection) {
         if tag.handle.isZone { adjustZone(isLow: tag.handle.isLow, direction: direction) }
-        else { adjustRange(name: tagLabel(tag), direction: direction) }
+        else { adjustRange(tag, direction: direction) }
     }
 
     private func setZone(isLow: Bool, angle: Double) {
@@ -777,9 +776,9 @@ struct LidAxisView: View {
         logger.info("screen range moved below snap zone: \(String(describing: old), privacy: .public) -> \(String(describing: moved), privacy: .public)")
     }
 
-    private func setRange(name: String, angle: Double, level: Double) {
-        let isScreen = name.hasPrefix("Screen")
-        let isLow = name.contains("low")
+    private func setRange(_ tag: AxisTag, angle: Double, level: Double) {
+        let isScreen = tag.handle.isScreen
+        let isLow = tag.handle.isLow
         var range = isScreen ? controller.screenRange : controller.keyboardRange
         range = isLow
             ? range.settingLow(angle: angle, level: level, maximum: LidAxis.maximum)
@@ -787,9 +786,9 @@ struct LidAxisView: View {
         if isScreen { controller.screenRange = range } else { controller.keyboardRange = range }
     }
 
-    private func adjustRange(name: String, direction: MoveCommandDirection) {
-        let isScreen = name.hasPrefix("Screen")
-        let isLow = name.contains("low")
+    private func adjustRange(_ tag: AxisTag, direction: MoveCommandDirection) {
+        let isScreen = tag.handle.isScreen
+        let isLow = tag.handle.isLow
         var range = isScreen ? controller.screenRange : controller.keyboardRange
         var angle = isLow ? range.lowAngle : range.highAngle
         var level = isLow ? range.lowLevel : range.highLevel
@@ -828,13 +827,5 @@ private extension AxisTag {
         case .zoneLow: self = .zoneLow
         case .zoneHigh: self = .zoneHigh
         }
-    }
-}
-
-private extension Color {
-    init(hex: UInt32) {
-        self.init(red: Double((hex >> 16) & 0xFF) / 255,
-                  green: Double((hex >> 8) & 0xFF) / 255,
-                  blue: Double(hex & 0xFF) / 255)
     }
 }

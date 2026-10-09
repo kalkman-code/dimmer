@@ -6,7 +6,9 @@ import os
 @MainActor
 protocol PrivacyBlurOverlay: AnyObject {
     func update(privacyBlur: Bool, strength: Double, smoke: Double, reduceTransparency: Bool)
+    #if DEBUG
     func describe() -> String
+    #endif
     func stop()
 }
 
@@ -82,9 +84,9 @@ final class DimmerFeatures: ObservableObject {
         guard awakeDuration != .off else { return nil }
         if let awakeDeadline {
             let deadline = awakeDeadline
-            return "Keeps the Mac awake until \(deadline.formatted(date: .omitted, time: .shortened))."
+            return L10n.string("Keeps the Mac awake until \(deadline.formatted(date: .omitted, time: .shortened)).")
         }
-        return "Keeps the Mac awake indefinitely."
+        return L10n.string("Keeps the Mac awake indefinitely.")
     }
 
     func update(sample: LidSample) {
@@ -132,18 +134,20 @@ final class DimmerFeatures: ObservableObject {
         blurredAt = time
         self.inputGrace = inputGrace
         startInputTimer()
-        // A locked snap must show at full strength at once; fading in left the veil invisible on Toby's Mac.
+        // A locked snap must show at full strength at once; fading in can leave a brief snap invisible.
         veilTimer?.invalidate()
         veilTimer = nil
         veilClearStartedAt = nil
         veilTarget = 1
         veilLevel = 1
         updateOverlay()
+        #if DEBUG
         logger.info("veil overlay \(self.overlay.describe(), privacy: .public)")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self else { return }
             self.logger.info("veil overlay +0.5s \(self.overlay.describe(), privacy: .public)")
         }
+        #endif
     }
 
     // The veil eases in over 180 ms and out over the requested duration (350 ms for near misses).
@@ -271,7 +275,9 @@ final class DimmerFeatures: ObservableObject {
     }
 
     private func updateOverlay() {
-        overlay.update(privacyBlur: veilLevel > 0, strength: snap.blurStrength * veilLevel, smoke: snap.smoke,
+        overlay.update(privacyBlur: VeilAppearance.shouldShow(level: veilLevel, locked: privacyBlurActive,
+                                                            reduceTransparency: accessibilityPreferences.reduceTransparency),
+                       strength: snap.blurStrength * veilLevel, smoke: snap.smoke,
                        reduceTransparency: accessibilityPreferences.reduceTransparency)
         // The pointer is hidden only while the veil is up; a crash needs nothing here, because the window
         // server drops a connection's hidden cursor when the process exits.
@@ -304,16 +310,16 @@ final class DimmerFeatures: ObservableObject {
         var newAssertion: IOPMAssertionID = 0
         let result = IOPMAssertionCreateWithDescription(
             type,
-            "Dimmer keep awake" as CFString,
-            "Selected in the Dimmer menu bar panel" as CFString,
-            "Keep the Mac awake" as CFString,
+            L10n.string("Dimmer keep awake") as CFString,
+            L10n.string("Selected in the Dimmer menu bar panel") as CFString,
+            L10n.string("Keep the Mac awake") as CFString,
             nil,
             0,
             nil,
             &newAssertion
         )
         guard result == kIOReturnSuccess else {
-            awakeError = "Could not create a keep-awake assertion (\(result))."
+            awakeError = L10n.string("Could not create a keep-awake assertion (\(result)).")
             awakeDuration = .off
             return
         }
@@ -375,6 +381,7 @@ private final class DimmerBlurOverlayManager: PrivacyBlurOverlay {
         }
     }
 
+    #if DEBUG
     // For the log: what is really on screen, so a snap that shows nothing can be told apart from a
     // detector that never fired.
     func describe() -> String {
@@ -390,6 +397,7 @@ private final class DimmerBlurOverlayManager: PrivacyBlurOverlay {
         }
         .joined(separator: "; ").ifEmpty("no windows")
     }
+    #endif
 
     func dismiss() {
         windows.values.forEach {
@@ -458,7 +466,9 @@ final class DimmerBlurView: NSVisualEffectView {
         fatalError("init(coder:) is not used")
     }
 
+    #if DEBUG
     var tintAlpha: CGFloat { tint.alphaValue }
+    #endif
 
     func update(smoke: Double, reduceTransparency: Bool) {
         tint.layer?.backgroundColor = reduceTransparency ? VeilAppearance.opaqueColour(smoke: smoke).cgColor : NSColor.black.cgColor
@@ -466,9 +476,11 @@ final class DimmerBlurView: NSVisualEffectView {
     }
 }
 
+#if DEBUG
 private extension String {
     func ifEmpty(_ fallback: String) -> String { isEmpty ? fallback : self }
 }
+#endif
 
 private extension NSScreen {
     var displayID: CGDirectDisplayID? {

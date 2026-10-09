@@ -11,7 +11,6 @@ struct SettingsView: View {
     @State private var hasPrivacyShortcut = KeyboardShortcuts.getShortcut(for: .privacyBlur) != nil
 
     private let bodyColour = Color(hex: 0x141416)
-    private let raisedColour = Color(hex: 0x1C1C20)
     private let secondaryText = Color(hex: 0x9A9EA7)
     private let controlWidth: CGFloat = 300
 
@@ -33,70 +32,78 @@ struct SettingsView: View {
                 .padding(.vertical, 4)
             }
 
-            Section("Snap to blur") {
+            Section(L10n.string("Snap to blur")) {
                 Toggle(isOn: $features.privacyEnabled) {
-                    settingLabel("Blur when the lid is snapped into the zone",
-                                 detail: "Snap the lid down into the zone and every screen frosts at once. Typing, touching the trackpad or mouse, or pushing the lid back up clears it.")
+                    settingLabel(L10n.string("Blur when the lid is snapped into the zone"),
+                                 detail: L10n.string("Snap the lid down into the zone and every screen frosts at once. Typing, touching the trackpad or mouse, or pushing the lid back up clears it."))
                 }
                 .toggleStyle(.switch)
+                .accessibilityLabel(L10n.string("Blur when the lid is snapped into the zone"))
                 .padding(.vertical, 2)
 
-                KeyboardShortcuts.Recorder(for: .privacyBlur, onChange: { shortcut in
-                    hasPrivacyShortcut = shortcut != nil
-                    NotificationCenter.default.post(name: .dimmerPrivacyShortcutDidChange, object: nil)
-                }) {
-                    settingLabel("Privacy shortcut", detail: "Optional. Blur every screen from any app on release. Type, move the pointer or lift the lid to clear. Works with snap off.")
-                }
-                .shortcutValidation { shortcut in
-                    let blocked: [NSEvent.ModifierFlags] = [
-                        [.command], [.command, .shift], [.control, .option, .command],
-                        [.command, .shift, .option], [.control, .option, .shift, .command]
-                    ]
-                    if shortcut.key == .p && blocked.contains(shortcut.modifiers) {
-                        return .disallow(reason: "This shortcut is used by printing, applications or accessibility. Choose another combination.")
+                HStack(spacing: 12) {
+                    settingLabel(L10n.string("Privacy shortcut"), detail: L10n.string("Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own."))
+                    Spacer(minLength: 8)
+                    // The recorder's own field is a borderless grey placeholder that read as disabled text;
+                    // in testing it was not found. The outline makes it read as a control.
+                    KeyboardShortcuts.Recorder(for: .privacyBlur, onChange: { shortcut in
+                        hasPrivacyShortcut = shortcut != nil
+                        NotificationCenter.default.post(name: .dimmerPrivacyShortcutDidChange, object: nil)
+                    })
+                    .shortcutValidation { shortcut in
+                        let blocked: [NSEvent.ModifierFlags] = [
+                            [.command], [.command, .shift], [.control, .option, .command],
+                            [.command, .shift, .option], [.control, .option, .shift, .command]
+                        ]
+                        if shortcut.key == .p && blocked.contains(shortcut.modifiers) {
+                            return .disallow(reason: L10n.string("This shortcut is used by printing, applications or accessibility. Choose another combination."))
+                        }
+                        return .allow
                     }
-                    return .allow
+                    .accessibilityLabel(L10n.string("Privacy shortcut"))
+                    .frame(width: 150)
+                    .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color(hex: 0x8EA2C9), lineWidth: 1))
                 }
                 .padding(.vertical, 4)
 
-                settingRow("Snap of at least", detail: "How far the lid must drop into the zone.",
+                settingRow(L10n.string("Snap of at least"), detail: L10n.string("How far the lid must drop into the zone."),
                            value: snapBinding(\.snapDegrees), range: 1...40, unit: "°")
-                settingRow("Snap speed", detail: "Slower closes pass through without blurring.",
+                settingRow(L10n.string("Snap speed"), detail: L10n.string("Slower closes pass through without blurring."),
                            value: snapBinding(\.minimumSpeed), range: 10...300, unit: "°/s", step: 5)
-                settingRow("Clear speed", detail: "How soon the screen returns as the lid lifts.",
+                settingRow(L10n.string("Clear speed"), detail: L10n.string("How long the veil takes to fade once it clears."),
                            value: Binding(get: { features.snap.clearSeconds * 1000 },
                                           set: { setSnap(\.clearSeconds, $0 / 1000) }),
-                           range: 0...600, unit: "ms", step: 10, sliderEnds: ("Instant", "Slow"))
-                settingRow("Blur strength", detail: strengthNote,
+                           range: 0...600, unit: "ms", step: 10, sliderEnds: (L10n.string("Instant"), L10n.string("Slow")), available: features.privacyEnabled || hasPrivacyShortcut)
+                settingRow(L10n.string("Blur strength"), detail: strengthNote,
                            value: Binding(get: { features.snap.blurStrength * 100 },
                                           set: { setSnap(\.blurStrength, $0 / 100) }),
                            range: 0...100, unit: "%", available: features.privacyEnabled || hasPrivacyShortcut)
-                settingRow("Tint", detail: smokeNote,
+                settingRow(L10n.string("Tint"), detail: smokeNote,
                            value: Binding(get: { features.snap.smoke * 100 },
                                           set: { setSnap(\.smoke, $0 / 100) }),
-                           range: 0...100, unit: "%", sliderEnds: ("Frost", "Smoke"), available: features.privacyEnabled || hasPrivacyShortcut)
+                           range: 0...100, unit: "%", sliderEnds: (L10n.string("Frost"), L10n.string("Smoke")), available: features.privacyEnabled || hasPrivacyShortcut)
 
                 previewRow
             }
 
-            Section("Keep awake") {
+            Section(L10n.string("Keep awake")) {
                 HStack(spacing: 10) {
-                    settingLabel("Keep the Mac awake", detail: awakeStatus)
+                    settingLabel(L10n.string("Keep the Mac awake"), detail: awakeStatus)
                     Spacer(minLength: 8)
                     HStack(spacing: 8) {
-                        Picker("Keep the Mac awake", selection: Binding(
+                        Picker(L10n.string("Keep the Mac awake"), selection: Binding(
                             get: { features.awakeDuration },
                             set: { features.setAwakeDuration($0) }
                         )) {
                             ForEach(AwakeDuration.allCases) { duration in
-                                Text(duration == .untilTime ? "Until a time" : duration.title).tag(duration)
+                                Text(duration == .untilTime ? L10n.string("Until a time") : duration.title).tag(duration)
                             }
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
                         .fixedSize()
                         if features.awakeDuration == .untilTime {
-                            DatePicker("Until", selection: $features.awakeUntilTime, displayedComponents: .hourAndMinute)
+                            DatePicker(L10n.string("Until"), selection: $features.awakeUntilTime, displayedComponents: .hourAndMinute)
                                 .labelsHidden()
                                 .fixedSize()
                         }
@@ -105,9 +112,9 @@ struct SettingsView: View {
                 .frame(minHeight: 42)
 
                 HStack {
-                    Text("Keep the display awake too").font(.system(size: 13))
+                    Text(L10n.string("Keep the display awake too")).font(.system(size: 13))
                     Spacer()
-                    Toggle("Keep the display awake too", isOn: $features.keepsDisplayAwake)
+                    Toggle(L10n.string("Keep the display awake too"), isOn: $features.keepsDisplayAwake)
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .disabled(features.awakeDuration == .off)
@@ -123,14 +130,15 @@ struct SettingsView: View {
                         else { confirmHideMenuBarIcon = true }
                     }
                 )) {
-                    settingLabel("Show in menu bar", detail: "Open Dimmer from Applications or Spotlight to return to Settings.")
+                    settingLabel(L10n.string("Show in menu bar"), detail: L10n.string("Open Dimmer from Applications or Spotlight to return to Settings."))
                 }
                 .toggleStyle(.switch)
+                .accessibilityLabel(L10n.string("Show in menu bar"))
                 .frame(minHeight: 42)
                 HStack {
-                    Text("Launch at Login").font(.system(size: 13))
+                    Text(L10n.string("Launch at Login")).font(.system(size: 13))
                     Spacer()
-                    Toggle("Launch at Login", isOn: Binding(
+                    Toggle(L10n.string("Launch at Login"), isOn: Binding(
                         get: { login.isOn },
                         set: { login.setEnabled($0) }
                     ))
@@ -143,7 +151,7 @@ struct SettingsView: View {
                     .foregroundStyle(login.errorMessage == nil ? secondaryText : Color.red)
                     .fixedSize(horizontal: false, vertical: true)
                 if login.status == .requiresApproval {
-                    Button("Open Login Items…") { login.openLoginItems() }
+                    Button(L10n.string("Open Login Items…")) { login.openLoginItems() }
                 }
             }
         }
@@ -155,22 +163,22 @@ struct SettingsView: View {
         .frame(width: 680)
         .sheet(isPresented: $shell.showWelcome) {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Welcome to Dimmer").font(.title2.weight(.semibold))
-                Text("Dimmer follows your MacBook’s lid angle to dim the keyboard and screen as it closes.")
-                Text("The Dimmer icon lives in the menu bar. Choose Settings there to adjust the ranges. Opening Dimmer from Applications or Spotlight brings Settings back, even if the icon is hidden.")
-                Text("Pause and Quit hand brightness back to you. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake.")
-                Toggle("Launch at Login", isOn: Binding(
+                Text(L10n.string("Welcome to Dimmer")).font(.title2.weight(.semibold))
+                Text(L10n.string("Dimmer follows your MacBook’s lid angle to dim the keyboard and screen as it closes."))
+                Text(L10n.string("The Dimmer icon lives in the menu bar. Choose Settings there to adjust the ranges. Opening Dimmer from Applications or Spotlight brings Settings back, even if the icon is hidden."))
+                Text(L10n.string("Pause and Quit hand brightness back to you. Wake an idle-dimmed keyboard before quitting to restore it immediately. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake."))
+                Toggle(L10n.string("Launch at Login"), isOn: Binding(
                     get: { login.isOn },
                     set: { login.setEnabled($0) }
                 ))
                 Text(login.message)
                     .font(.callout).foregroundStyle(.secondary)
                 if login.status == .requiresApproval {
-                    Button("Open Login Items…") { login.openLoginItems() }
+                    Button(L10n.string("Open Login Items…")) { login.openLoginItems() }
                 }
                 HStack {
                     Spacer()
-                    Button("Start using Dimmer") { shell.showWelcome = false }
+                    Button(L10n.string("Start using Dimmer")) { shell.showWelcome = false }
                         .keyboardShortcut(.defaultAction)
                 }
             }
@@ -178,11 +186,11 @@ struct SettingsView: View {
             .padding(24)
             .frame(width: 460)
         }
-        .alert("Hide Dimmer from the menu bar?", isPresented: $confirmHideMenuBarIcon) {
-            Button("Hide icon") { shell.showMenuBarIcon = false }
-            Button("Cancel", role: .cancel) { }
+        .alert(L10n.string("Hide Dimmer from the menu bar?"), isPresented: $confirmHideMenuBarIcon) {
+            Button(L10n.string("Hide icon")) { shell.showMenuBarIcon = false }
+            Button(L10n.string("Cancel"), role: .cancel) { }
         } message: {
-            Text("Dimming keeps running. Open Dimmer from Applications or Spotlight to bring Settings back, where Show in menu bar puts the icon back.")
+            Text(L10n.string("Dimming keeps running. Open Dimmer from Applications or Spotlight to bring Settings back, where Show in menu bar puts the icon back."))
         }
     }
 
@@ -211,20 +219,20 @@ struct SettingsView: View {
     }
 
     private var statusTitle: String {
-        if controller.paused { return "Paused" }
-        return controller.errorMessage == "Active" ? "Active" : controller.errorMessage
+        if controller.paused { return L10n.string("Paused") }
+        return controller.errorMessage
     }
 
     private var statusDescription: String {
-        if controller.paused { return "Dimming is paused. Resume from the menu bar." }
-        if controller.errorMessage != "Active" {
-            return controller.angle == nil ? "Waiting for the lid sensor." : "Dimmer has stopped controlling brightness."
+        if controller.paused { return L10n.string("Dimming is paused. Resume from the menu bar.") }
+        if controller.errorMessage != L10n.string("Active") {
+            return controller.angle == nil ? L10n.string("Waiting for the lid sensor.") : L10n.string("Screen and privacy control continue. Pause and resume to reconnect the keyboard.")
         }
         return switch (controller.dimsKeyboard, controller.dimsScreen) {
-        case (true, true): "Dimming the keyboard and the screen as the lid closes."
-        case (true, false): "Dimming the keyboard as the lid closes."
-        case (false, true): "Dimming the screen as the lid closes."
-        case (false, false): "Dimming is off."
+        case (true, true): L10n.string("Dimming the keyboard and the screen as the lid closes.")
+        case (true, false): L10n.string("Dimming the keyboard as the lid closes.")
+        case (false, true): L10n.string("Dimming the screen as the lid closes.")
+        case (false, false): L10n.string("Dimming is off.")
         }
     }
 
@@ -253,11 +261,10 @@ struct SettingsView: View {
                 .labelsHidden()
                 .frame(width: 196)
                 .tint(Color(hex: 0x8EA2C9))
-                .accessibilityLabel(title)
                 .accessibilityValue(AccessibilityReadout.value(value.wrappedValue, unit: unit))
                 .accessibilityHint(AccessibilityReadout.range(range, unit: unit))
                 numberField(title: title, value: value, range: range, step: step, unit: unit)
-                Text(unit)
+                Text(L10n.displayUnit(unit))
                     .font(.system(size: 11).monospacedDigit())
                     .foregroundStyle(secondaryText)
                     .frame(width: 24, alignment: .leading)
@@ -289,8 +296,8 @@ struct SettingsView: View {
     private var previewRow: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Preview").font(.system(size: 13))
-                Text("A page, as the veil leaves it.")
+                Text(L10n.string("Preview")).font(.system(size: 13))
+                Text(L10n.string("A page, as the veil leaves it."))
                     .font(.system(size: 11))
                     .foregroundStyle(secondaryText)
                     .lineLimit(1)
@@ -306,31 +313,31 @@ struct SettingsView: View {
 
     private var strengthNote: String {
         let strength = features.snap.blurStrength * 100
-        if strength == 0 { return "None: the zone does nothing visible." }
-        if strength < 50 { return "Light: large text is still readable." }
-        if strength < 90 { return "Medium: shapes show, words do not." }
-        return "Full: nothing on screen is readable."
+        if strength == 0 { return L10n.string("None: the zone does nothing visible.") }
+        if strength < 50 { return L10n.string("Light: large text is still readable.") }
+        if strength < 90 { return L10n.string("Medium: shapes show, words do not.") }
+        return L10n.string("Full: nothing on screen is readable.")
     }
 
     private var smokeNote: String {
         switch features.snap.smoke {
-        case ..<0.05: "Frost: a light veil."
-        case ..<0.5: "Light smoke: darker, the room sees less glow."
-        case ..<0.95: "Smoke: dark glass over the screen."
-        default: "Deep smoke: shapes only, nearly dark."
+        case ..<0.05: L10n.string("Frost: a light veil.")
+        case ..<0.5: L10n.string("Light smoke: darker, the room sees less glow.")
+        case ..<0.95: L10n.string("Smoke: dark glass over the screen.")
+        default: L10n.string("Deep smoke: shapes only, nearly dark.")
         }
     }
 
     private var awakeStatus: String {
         if let error = features.awakeError { return error }
         switch features.awakeDuration {
-        case .off: return "The Mac sleeps as usual."
-        case .indefinitely: return "Awake until you turn this off."
+        case .off: return L10n.string("The Mac sleeps as usual.")
+        case .indefinitely: return L10n.string("Awake until you turn this off.")
         case .untilTime:
-            return "Until \(features.awakeUntilTime.formatted(date: .omitted, time: .shortened))."
+            return L10n.string("Until \(features.awakeUntilTime.formatted(date: .omitted, time: .shortened)).")
         default:
             let deadline = features.awakeDeadline ?? Date()
-            return "Until \(deadline.formatted(date: .omitted, time: .shortened))."
+            return L10n.string("Until \(deadline.formatted(date: .omitted, time: .shortened)).")
         }
     }
 
@@ -365,7 +372,7 @@ private struct PrivacyNumberField: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        TextField(title, text: $draft)
+        TextField(String(), text: $draft)
             .textFieldStyle(.roundedBorder)
             .font(.system(size: 11).monospacedDigit())
             .multilineTextAlignment(.trailing)
@@ -373,9 +380,9 @@ private struct PrivacyNumberField: View {
             .frame(width: 56, height: 22)
             .fixedSize()
             .focused($focused)
-            .accessibilityLabel("\(title) exact value")
+            .accessibilityLabel(L10n.string("\(title) exact value"))
             .accessibilityValue(AccessibilityReadout.value(Double(draft) ?? value, unit: unit))
-            .accessibilityHint(AccessibilityReadout.range(range, unit: unit) + " Return applies. Escape cancels.")
+            .accessibilityHint(AccessibilityReadout.rangeForNumberEntry(range, unit: unit))
             .onAppear(perform: resetDraft)
             .onSubmit { commit() }
             .onExitCommand {
@@ -404,7 +411,7 @@ private struct BlurPreview: View {
     @ObservedObject private var accessibility = DisplayAccessibility.shared
 
     private var tintReadout: String {
-        smoke < 0.05 ? "Frost" : "Smoke \(Int((smoke * 100).rounded()))%"
+        smoke < 0.05 ? L10n.string("Frost") : L10n.string("Smoke \(Int((smoke * 100).rounded()))%")
     }
 
     var body: some View {
@@ -425,8 +432,8 @@ private struct BlurPreview: View {
         .background(Color(hex: 0xF3F4F6))
         .clipShape(RoundedRectangle(cornerRadius: 7))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Blur preview, \(Int((strength * 100).rounded())) percent, \(tintReadout)")
-        .accessibilityValue(accessibility.preferences.reduceTransparency && strength > 0 ? "Opaque cover" : "Frosted veil")
+        .accessibilityLabel(L10n.string("Blur preview, \(Int((strength * 100).rounded())) percent, \(tintReadout)"))
+        .accessibilityValue(accessibility.preferences.reduceTransparency && strength > 0 ? L10n.string("Opaque cover") : L10n.string("Frosted veil"))
     }
 }
 
@@ -448,7 +455,7 @@ private struct PreviewFrost: NSViewRepresentable {
     }
 }
 
-private extension Color {
+extension Color {
     init(hex: UInt32) {
         self.init(red: Double((hex >> 16) & 0xFF) / 255,
                   green: Double((hex >> 8) & 0xFF) / 255,

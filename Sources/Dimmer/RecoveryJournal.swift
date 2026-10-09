@@ -1,24 +1,27 @@
 import Foundation
 
 struct RecoveryJournal: Codable {
+    // Keyboard keys move on a 1/16 grid; a wider tolerance can swallow the smallest key step.
+    static let ownershipTolerance = 0.005
+
     let originalBrightness: Double
     let originalAutomatic: Bool
     var lastWritten: Double
     var pendingBrightness: Double? = nil
 
     func owns(_ brightness: Double) -> Bool {
-        abs(brightness - lastWritten) <= 0.035 ||
-        (pendingBrightness.map { abs(brightness - $0) <= 0.035 } ?? false)
+        abs(brightness - lastWritten) <= Self.ownershipTolerance ||
+        (pendingBrightness.map { abs(brightness - $0) <= Self.ownershipTolerance } ?? false)
     }
 
-    private static var url: URL {
+    static var url: URL {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let directory = support.appendingPathComponent("Dimmer", isDirectory: true)
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory.appendingPathComponent("keyboard-recovery.json")
     }
 
     func save(to destination: URL? = nil) throws {
+        try FileManager.default.createDirectory(at: (destination ?? Self.url).deletingLastPathComponent(), withIntermediateDirectories: true)
         let data = try JSONEncoder().encode(self)
         try data.write(to: destination ?? Self.url, options: .atomic)
     }
