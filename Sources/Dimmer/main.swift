@@ -12,7 +12,7 @@ enum DimmerMain {
         // applicationWillTerminate, leaving the backlight at Dimmer's level until the next launch.
         signal(SIGTERM, SIG_IGN)
         let terminate = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
-        terminate.setEventHandler { NSApplication.shared.terminate(nil) }
+        terminate.setEventHandler { AppShell.quit() }
         terminate.resume()
         app.run()
         _ = terminate

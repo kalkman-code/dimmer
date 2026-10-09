@@ -39,13 +39,23 @@ enum DisplayBrightnessTarget {
 }
 
 enum DisplayGammaFade {
-    static func factor(angle: Double, offAt: Double, fullAt: Double) -> Double {
-        guard fullAt > offAt else { return angle > offAt ? 1 : 0 }
-        let fadeStart = offAt + (fullAt - offAt) * 0.2
-        guard angle > offAt else { return 0 }
+    static func factor(angle: Double, range: DimRange) -> Double {
+        guard range.lowLevel <= 0 else { return 1 }
+        let fadeStart = range.lowAngle + (range.highAngle - range.lowAngle) * 0.2
+        guard angle > range.lowAngle else { return 0 }
         guard angle < fadeStart else { return 1 }
-        let progress = (angle - offAt) / (fadeStart - offAt)
+        let progress = (angle - range.lowAngle) / (fadeStart - range.lowAngle)
         return progress * progress * (3 - 2 * progress)
+    }
+
+    // Go dark lowers the backlight first and only closes the gamma over its last 40%, so the screen
+    // reaches true black without the two curves multiplying into an early cliff.
+    static func factor(angle: Double, range: DimRange, darkness: Double) -> Double {
+        let lid = angle >= range.highAngle ? 1 : factor(angle: angle, range: range)
+        let dark = min(max(darkness, 0), 1)
+        guard dark > 0.6 else { return lid }
+        let progress = (1 - dark) / 0.4
+        return min(lid, progress * progress * (3 - 2 * progress))
     }
 }
 
@@ -75,15 +85,19 @@ struct DisplayDimmingLogic {
     private var overrideLogged = false
     private var lastWritten: Double?
 
-    mutating func update(angle: Double, current: Double, offAt: Double, fullAt: Double) -> Decision {
-        if angle >= fullAt {
+    mutating func update(angle: Double, current: Double, range: DimRange, darkness: Double = 0) -> Decision {
+        if angle >= range.highAngle && darkness <= 0 {
             guard !isDimming else { return .idle }
             baseline = current
             return .capture(current)
         }
+        // Go dark can start with the lid fully open or with screen dimming off, before anything was
+        // captured; nothing of ours is on the screen yet, so the current value is the user's own.
+        if darkness > 0 && baseline == nil { baseline = current }
 
         guard let baseline else { return .waitForOpen }
-        let factor = BrightnessCurve.output(angle: angle, offAt: offAt, fullAt: fullAt)
+        let lidLevel = angle >= range.highAngle ? 1 : range.level(at: angle)
+        let factor = GoDark.level(lidLevel, darkness: darkness)
         let target = DisplayBrightnessTarget.value(captured: baseline, factor: factor)
         let outsideChange = lastWritten.map { !DisplayBrightnessTarget.owns(current: current, lastWritten: $0) } ?? false
         let shouldLogOverride = outsideChange && !overrideLogged
@@ -129,17 +143,17 @@ struct DisplayRecoveryJournal: Codable {
         return directory.appendingPathComponent("display-recovery.json")
     }
 
-    func save() throws {
-        try JSONEncoder().encode(self).write(to: Self.url, options: .atomic)
+    func save(to destination: URL? = nil) throws {
+        try JSONEncoder().encode(self).write(to: destination ?? Self.url, options: .atomic)
     }
 
-    static func load() -> DisplayRecoveryJournal? {
-        guard let data = try? Data(contentsOf: url) else { return nil }
+    static func load(from source: URL? = nil) -> DisplayRecoveryJournal? {
+        guard let data = try? Data(contentsOf: source ?? url) else { return nil }
         return try? JSONDecoder().decode(DisplayRecoveryJournal.self, from: data)
     }
 
-    static func clear() {
-        try? FileManager.default.removeItem(at: url)
+    static func clear(at destination: URL? = nil) {
+        try? FileManager.default.removeItem(at: destination ?? url)
     }
 }
 

@@ -26,6 +26,12 @@ install -m 755 "$BIN" "$APP/Contents/MacOS/Dimmer"
 strip -S -x "$APP/Contents/MacOS/Dimmer"
 install -m 644 "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 install -m 644 "$ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+install -m 644 "$ROOT/.build/checkouts/KeyboardShortcuts/license" "$APP/Contents/Resources/KeyboardShortcuts-LICENSE.txt"
+BIN_DIR="$(dirname "$BIN")"
+for bundle in "$BIN_DIR"/*.bundle; do
+    [ -d "$bundle" ] || continue
+    cp -R "$bundle" "$APP/Contents/Resources/"
+done
 
 codesign --force --deep --options runtime --sign - "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"

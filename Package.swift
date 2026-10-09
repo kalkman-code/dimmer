@@ -5,9 +5,13 @@ let package = Package(
     name: "Dimmer",
     platforms: [.macOS(.v14)],
     products: [.executable(name: "Dimmer", targets: ["Dimmer"])],
+    dependencies: [
+        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", exact: "3.1.0")
+    ],
     targets: [
         .executableTarget(
             name: "Dimmer",
+            dependencies: [.product(name: "KeyboardShortcuts", package: "KeyboardShortcuts")],
             path: "Sources/Dimmer",
             linkerSettings: [
                 .linkedFramework("AppKit"),

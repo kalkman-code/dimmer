@@ -2,72 +2,77 @@ import SwiftUI
 
 struct DimmerMenu: View {
     @ObservedObject var controller: DimmerController
-    let launchAtLogin: Bool
+    @ObservedObject var features: DimmerFeatures
+    let showSettings: () -> Void
+    var showAbout: () -> Void = {}
+    var reportBug: () -> Void = {}
+
+    private var quickDurations: [AwakeDuration] {
+        var durations: [AwakeDuration] = [.off, .oneHour, .indefinitely]
+        if !durations.contains(features.awakeDuration) { durations.append(features.awakeDuration) }
+        return durations
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Dimmer").font(.system(size: 17, weight: .semibold))
-                    Text(controller.paused ? "Paused" : controller.errorMessage)
-                        .font(.system(size: 11)).foregroundStyle(.secondary)
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Image(nsImage: StatusGlyph.image(paused: controller.paused)).renderingMode(.template)
+                    .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
+                    .accessibilityHidden(true)
+                Text("Dimmer").font(.system(size: 14, weight: .semibold))
                 Spacer()
-                Image(systemName: controller.paused ? "pause.circle" : "circle.lefthalf.filled")
-                    .font(.system(size: 20)).foregroundStyle(controller.paused ? .secondary : .primary)
+                Text(controller.paused ? "Paused" : controller.errorMessage)
+                    .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
             }
-            Divider()
-            HStack {
-                Label("Lid angle", systemImage: "laptopcomputer")
-                Spacer()
-                Text(controller.angle.map { "\(Int($0.rounded()))°" } ?? "—")
-                    .monospacedDigit().foregroundStyle(.secondary)
-            }.font(.system(size: 12))
-            HStack {
-                Label("Keyboard", systemImage: "keyboard")
-                Spacer()
-                Text(controller.keyboardBrightness.map { "\(Int(($0 * 100).rounded()))%" } ?? "—")
-                    .monospacedDigit().foregroundStyle(.secondary)
-            }.font(.system(size: 12))
-            HStack {
-                Label("Screen", systemImage: "sun.max")
-                Spacer()
-                Text(controller.displayBrightness.map { "\(Int(($0 * 100).rounded()))%" } ?? "—")
-                    .monospacedDigit().foregroundStyle(.secondary)
-            }.font(.system(size: 12))
-            VStack(alignment: .leading, spacing: 5) {
-                HStack { Text("Off when lid is at"); Spacer(); Text("\(Int(controller.offAt))°") }
-                Slider(value: $controller.offAt, in: 5...80, step: 1)
-            }.font(.system(size: 12))
-            VStack(alignment: .leading, spacing: 5) {
-                HStack { Text("Full brightness at"); Spacer(); Text("\(Int(controller.fullAt))°") }
-                Slider(value: $controller.fullAt, in: 35...140, step: 1)
-            }.font(.system(size: 12))
-            Toggle("Dim screen too", isOn: $controller.dimsScreen)
-                .font(.system(size: 12))
-            Text("Dims below full-open and restores on reopening.")
-                .font(.system(size: 10)).foregroundStyle(.secondary)
-            Text(controller.displayStatus)
-                .font(.system(size: 10)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Divider()
-            Toggle("Launch at Login", isOn: Binding(
-                get: { launchAtLogin },
-                set: { NotificationCenter.default.post(name: .dimmerLaunchAtLogin, object: $0) }
-            )).font(.system(size: 12))
-            HStack {
-                Button(controller.paused ? "Resume" : "Pause") {
-                    controller.togglePaused()
-                }
-                Spacer()
-                Button("Quit") { NSApplication.shared.terminate(nil) }
-                    .keyboardShortcut("q")
-            }.buttonStyle(.bordered)
-        }
-        .padding(16)
-        .frame(width: 280)
-    }
-}
 
-extension Notification.Name {
-    static let dimmerLaunchAtLogin = Notification.Name("dimmerLaunchAtLogin")
+            VStack(alignment: .leading, spacing: 7) {
+                readout("Lid", value: controller.angle.map { "\(Int($0.rounded()))°" } ?? "—")
+                readout("Keyboard", value: controller.keyboardBrightness.map { "\(Int(($0 * 100).rounded()))%" } ?? "—")
+                let screen = controller.angle.map { $0 >= controller.screenRange.highAngle } == true
+                    ? "Yours"
+                    : controller.displayBrightness.map { "\(Int(($0 * 100).rounded()))%" } ?? "—"
+                readout("Screen", value: screen)
+            }
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Keep awake").font(.system(size: 10)).foregroundStyle(.secondary)
+                Picker("Keep awake", selection: Binding(
+                    get: { features.awakeDuration },
+                    set: { features.setAwakeDuration($0) }
+                )) {
+                    ForEach(quickDurations) { duration in Text(duration.title).tag(duration) }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+            }
+
+            Divider()
+            Button("Settings…", action: showSettings)
+                .keyboardShortcut(",", modifiers: .command)
+                .buttonStyle(.plain)
+            Button(controller.paused ? "Resume" : "Pause") { controller.togglePaused() }
+                .buttonStyle(.plain)
+            Menu("More") {
+                Button("About Dimmer", action: showAbout)
+                Button("Report a bug…", action: reportBug)
+                Button("View latest release…") { NSWorkspace.shared.open(SupportDetails.releaseURL) }
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            Button("Quit Dimmer") { AppShell.quit() }
+                .keyboardShortcut("q")
+                .buttonStyle(.plain)
+        }
+        .padding(14)
+        .frame(width: 260)
+    }
+
+    private func readout(_ label: String, value: String) -> some View {
+        HStack {
+            Text(label).foregroundStyle(.secondary)
+            Spacer()
+            Text(value).monospacedDigit()
+        }
+        .font(.system(size: 11))
+    }
 }

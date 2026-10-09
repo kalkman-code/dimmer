@@ -18,17 +18,17 @@ struct RecoveryJournal: Codable {
         return directory.appendingPathComponent("keyboard-recovery.json")
     }
 
-    func save() throws {
+    func save(to destination: URL? = nil) throws {
         let data = try JSONEncoder().encode(self)
-        try data.write(to: Self.url, options: .atomic)
+        try data.write(to: destination ?? Self.url, options: .atomic)
     }
 
-    static func load() -> RecoveryJournal? {
-        guard let data = try? Data(contentsOf: url) else { return nil }
+    static func load(from source: URL? = nil) -> RecoveryJournal? {
+        guard let data = try? Data(contentsOf: source ?? url) else { return nil }
         return try? JSONDecoder().decode(RecoveryJournal.self, from: data)
     }
 
-    static func clear() {
-        try? FileManager.default.removeItem(at: url)
+    static func clear(at destination: URL? = nil) {
+        try? FileManager.default.removeItem(at: destination ?? url)
     }
 }
