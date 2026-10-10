@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey" alt="Platform: macOS 14 or later">
 </p>
 
-<p align="center"><img src=".github/readme/hero.webp" width="520" alt="A MacBook lid closes and its screen and keyboard fade to dark, then it opens and they come back; a quick snap of the lid frosts the screen."></p>
+<p align="center"><img src=".github/readme/hero.webp" width="520" alt="A MacBook lid closes and its screen and keyboard fade to dark, then it opens and they come back; a quick snap of the lid frosts the screen, and lifting it clears the frost."></p>
 
 <p align="center">
   <a href="https://github.com/kalkman-code/dimmer/releases/download/v1.2.1/Dimmer-1.2.1.dmg"><b>Download Dimmer 1.2.1</b></a><br>
