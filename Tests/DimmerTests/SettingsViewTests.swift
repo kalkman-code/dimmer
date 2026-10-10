@@ -118,4 +118,40 @@ final class SettingsViewTests: XCTestCase {
         let view = DimmerMenu(controller: DimmerController(defaults: defaults), features: DimmerFeatures(defaults: defaults), showSettings: {})
         XCTAssertNotNil(render(view, size: NSSize(width: 260, height: 360)))
     }
+
+    func testMenuPanelIsFixedAt320Points() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsViewTests-\(UUID().uuidString)"))
+        let view = DimmerMenu(controller: DimmerController(defaults: defaults), features: DimmerFeatures(defaults: defaults), showSettings: {})
+        let width = NSHostingController(rootView: view).view.fittingSize.width
+        XCTAssertEqual(width, 320, accuracy: 1)
+    }
+
+    func testLocalisedPanelAndSettingsFitAvailableWidths() throws {
+        if let language = ProcessInfo.processInfo.environment["DIMMER_TEST_LANGUAGE"] {
+            XCTAssertEqual(L10n.bundle.preferredLocalizations.first, language, "The off-screen check must use the requested translation")
+        }
+        let name = "LocalisedLayoutTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let controller = DimmerController(defaults: defaults)
+        let features = DimmerFeatures(defaults: defaults)
+        features.privacyEnabled = true
+        let panel = NSHostingView(rootView: DimmerMenu(controller: controller, features: features, showSettings: {}))
+        let size = panel.fittingSize
+        XCTAssertGreaterThanOrEqual(size.width, 260)
+        XCTAssertLessThanOrEqual(size.width, 440)
+        panel.frame = NSRect(origin: .zero, size: size)
+        panel.layoutSubtreeIfNeeded()
+        func checkSegments(_ view: NSView) {
+            if let control = view as? NSSegmentedControl {
+                XCTAssertGreaterThanOrEqual(control.bounds.width + 1, control.intrinsicContentSize.width, "Localised duration labels must fit the segmented picker")
+            }
+            view.subviews.forEach(checkSegments)
+        }
+        checkSegments(panel)
+        for width in [CGFloat(680), 760, 900] {
+            let settings = SettingsView(controller: controller, features: features, shell: ShellPreferences(defaults: defaults), login: LoginItem())
+            XCTAssertNotNil(render(settings, size: NSSize(width: width, height: 640)))
+        }
+    }
 }

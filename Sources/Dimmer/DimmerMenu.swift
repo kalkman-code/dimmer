@@ -21,9 +21,10 @@ struct DimmerMenu: View {
                     .accessibilityHidden(true)
                 Text(L10n.string("Dimmer")).font(.system(size: 14, weight: .semibold))
                 Spacer()
-                Text(controller.paused ? L10n.string("Paused") : controller.errorMessage)
-                    .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
             }
+            Text(controller.paused ? L10n.string("Paused") : controller.errorMessage)
+                .font(.system(size: 10)).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 7) {
                 readout(L10n.string("Lid"), value: controller.angle.map { L10n.string("\(Int($0.rounded()))") + L10n.displayUnit("°") } ?? L10n.string("Unavailable readout"))
@@ -36,14 +37,12 @@ struct DimmerMenu: View {
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(L10n.string("Keep awake")).font(.system(size: 10)).foregroundStyle(.secondary)
-                Picker(L10n.string("Keep awake"), selection: Binding(
-                    get: { features.awakeDuration },
-                    set: { features.setAwakeDuration($0) }
-                )) {
-                    ForEach(quickDurations) { duration in Text(duration.title).tag(duration) }
+                ViewThatFits(in: .horizontal) {
+                    durationPicker
+                        .pickerStyle(.segmented)
+                        .fixedSize(horizontal: true, vertical: false)
+                    durationPicker.pickerStyle(.menu)
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
                 if let status = features.awakeStatus {
                     Text(status).font(.system(size: 11)).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -73,7 +72,17 @@ struct DimmerMenu: View {
                 .buttonStyle(.plain)
         }
         .padding(14)
-        .frame(width: 260)
+        .frame(width: 320)
+    }
+
+    private var durationPicker: some View {
+        Picker(L10n.string("Keep awake"), selection: Binding(
+            get: { features.awakeDuration },
+            set: { features.setAwakeDuration($0) }
+        )) {
+            ForEach(quickDurations) { duration in Text(duration.title).tag(duration) }
+        }
+        .labelsHidden()
     }
 
     private func readout(_ label: String, value: String) -> some View {

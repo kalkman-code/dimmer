@@ -61,7 +61,7 @@ struct SettingsView: View {
                         return .allow
                     }
                     .accessibilityLabel(L10n.string("Privacy shortcut"))
-                    .frame(width: 150)
+                    .frame(minWidth: 150)
                     .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color(hex: 0x8EA2C9), lineWidth: 1))
                 }
                 .padding(.vertical, 4)
@@ -160,31 +160,14 @@ struct SettingsView: View {
         .background(bodyColour)
         .tint(Color(hex: 0x6F84AD))
         .padding(.horizontal, 4)
-        .frame(width: 680)
+        .frame(minWidth: 680, idealWidth: 760, maxWidth: .infinity)
         .sheet(isPresented: $shell.showWelcome) {
-            VStack(alignment: .leading, spacing: 18) {
-                Text(L10n.string("Welcome to Dimmer")).font(.title2.weight(.semibold))
-                Text(L10n.string("Dimmer follows your MacBook’s lid angle to dim the keyboard and screen as it closes."))
-                Text(L10n.string("The Dimmer icon lives in the menu bar. Choose Settings there to adjust the ranges. Opening Dimmer from Applications or Spotlight brings Settings back, even if the icon is hidden."))
-                Text(L10n.string("Pause and Quit hand brightness back to you. Wake an idle-dimmed keyboard before quitting to restore it immediately. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake."))
-                Toggle(L10n.string("Launch at Login"), isOn: Binding(
-                    get: { login.isOn },
-                    set: { login.setEnabled($0) }
-                ))
-                Text(login.message)
-                    .font(.callout).foregroundStyle(.secondary)
-                if login.status == .requiresApproval {
-                    Button(L10n.string("Open Login Items…")) { login.openLoginItems() }
-                }
-                HStack {
-                    Spacer()
-                    Button(L10n.string("Start using Dimmer")) { shell.showWelcome = false }
-                        .keyboardShortcut(.defaultAction)
-                }
+            ViewThatFits(in: .vertical) {
+                welcomeContent
+                ScrollView { welcomeContent }
             }
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(24)
-            .frame(width: 460)
+            .frame(width: 520)
+            .frame(maxHeight: welcomeMaxHeight)
         }
         .alert(L10n.string("Hide Dimmer from the menu bar?"), isPresented: $confirmHideMenuBarIcon) {
             Button(L10n.string("Hide icon")) { shell.showMenuBarIcon = false }
@@ -194,8 +177,37 @@ struct SettingsView: View {
         }
     }
 
+    private var welcomeContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text(L10n.string("Welcome to Dimmer")).font(.title2.weight(.semibold))
+            Text(L10n.string("Dimmer follows your MacBook’s lid angle to dim the keyboard and screen as it closes."))
+            Text(L10n.string("The Dimmer icon lives in the menu bar. Choose Settings there to adjust the ranges. Opening Dimmer from Applications or Spotlight brings Settings back, even if the icon is hidden."))
+            Text(L10n.string("Pause and Quit hand brightness back to you. Wake an idle-dimmed keyboard before quitting to restore it immediately. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake."))
+            Toggle(L10n.string("Launch at Login"), isOn: Binding(
+                get: { login.isOn },
+                set: { login.setEnabled($0) }
+            ))
+            Text(login.message)
+                .font(.callout).foregroundStyle(.secondary)
+            if login.status == .requiresApproval {
+                Button(L10n.string("Open Login Items…")) { login.openLoginItems() }
+            }
+            HStack {
+                Spacer()
+                Button(L10n.string("Start using Dimmer")) { shell.showWelcome = false }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(24)
+    }
+
+    private var welcomeMaxHeight: CGFloat {
+        max(1, (NSScreen.main?.visibleFrame.height ?? 800) - 100)
+    }
+
     private var statusLine: some View {
-        HStack(spacing: 9) {
+        HStack(alignment: .top, spacing: 9) {
             Image(nsImage: StatusGlyph.image(paused: controller.paused))
                 .renderingMode(.template)
                 .resizable()
@@ -204,17 +216,18 @@ struct SettingsView: View {
                 .foregroundStyle(LinearGradient(colors: [Color(hex: 0xE2E5EA), Color(hex: 0xB9C8E6)],
                                                 startPoint: .top, endPoint: .bottom))
                 .accessibilityHidden(true)
-            Text(statusTitle)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(Color(hex: 0xE2E5EA))
-            Text(statusDescription)
-                .font(.system(size: 11))
-                .foregroundStyle(secondaryText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(statusTitle)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color(hex: 0xE2E5EA))
+                Text(statusDescription)
+                    .font(.system(size: 11))
+                    .foregroundStyle(secondaryText)
+            }
+            .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
-        .frame(height: 22)
+        .frame(minHeight: 22)
         .accessibilityElement(children: .combine)
     }
 
@@ -240,12 +253,11 @@ struct SettingsView: View {
                             unit: String, step: Double = 1, sliderEnds: (String, String)? = nil, available: Bool? = nil) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 13))
+                Text(title).font(.system(size: 13)).fixedSize(horizontal: false, vertical: true)
                 Text(detail)
                     .font(.system(size: 11))
                     .foregroundStyle(secondaryText)
-                    .lineLimit(1)
-                    .frame(height: 14, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
             HStack(spacing: 10) {
@@ -300,7 +312,7 @@ struct SettingsView: View {
                 Text(L10n.string("A page, as the veil leaves it."))
                     .font(.system(size: 11))
                     .foregroundStyle(secondaryText)
-                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
             BlurPreview(strength: features.snap.blurStrength, smoke: features.snap.smoke)
@@ -343,9 +355,9 @@ struct SettingsView: View {
 
     private func settingLabel(_ title: String, detail: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.system(size: 13))
+            Text(title).font(.system(size: 13)).fixedSize(horizontal: false, vertical: true)
             if !detail.isEmpty {
-                Text(detail).font(.system(size: 11)).foregroundStyle(secondaryText).lineLimit(2)
+                Text(detail).font(.system(size: 11)).foregroundStyle(secondaryText)
             }
         }
         .fixedSize(horizontal: false, vertical: true)

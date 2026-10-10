@@ -2,7 +2,7 @@
 
 ## Surfaces
 
-Dimmer has a compact menu-bar panel for live status and quick actions, plus one fixed-width Settings window for configuration. The settings window uses the dark veil body (`#141416`), raised grouped sections, native macOS typography and controls. It opens as a regular app and returns to accessory mode when closed. It cannot be minimised; its position is remembered and its height fits the available screen, with the Form scrolling on smaller displays.
+Dimmer has a compact menu-bar panel for live status and quick actions, plus one resizable Settings window for configuration. The settings window uses the dark veil body (`#141416`), raised grouped sections, native macOS typography and controls. It opens as a regular app and returns to accessory mode when closed. It cannot be minimised; its position and width are remembered and its height fits the available screen, with the Form scrolling on smaller displays. Localised descriptions wrap; the welcome scrolls within the available height. The panel is 320 points wide in every language; Keep awake becomes a pop-up menu where its segments do not fit.
 
 ## Lid axis
 
@@ -16,7 +16,7 @@ The privacy veil appears immediately on every display after a sufficiently fast 
 
 ## Menu bar panel
 
-The panel shows the current state, lid angle, keyboard level and screen level, with “Yours” when display control has been handed back. A segmented Keep awake control exposes Off, 1 hour and Indefinitely, plus the selected duration when another choice is active; its deadline or error appears below. Go dark is directly available alongside Settings…, Pause/Resume and Quit Dimmer. More contains About, support, release and uninstall guidance.
+The panel shows the current state, lid angle, keyboard level and screen level, with “Yours” when display control has been handed back. Keep awake exposes Off, 1 hour and Indefinitely, plus the selected duration when another choice is active; a segmented control uses a native menu when its translated labels exceed the available width. Its deadline or error appears below. Go dark is directly available alongside Settings…, Pause/Resume and Quit Dimmer. More contains About, support, release and uninstall guidance.
 
 ## Interaction
 

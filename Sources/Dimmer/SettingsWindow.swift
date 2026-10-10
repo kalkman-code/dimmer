@@ -31,8 +31,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             let screenHeight = (NSScreen.main?.visibleFrame.height ?? 1010) - 40
             let height = min(1046, screenHeight)
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 680, height: height),
-                styleMask: [.titled, .closable],
+                contentRect: NSRect(x: 0, y: 0, width: 760, height: height),
+                styleMask: [.titled, .closable, .resizable],
                 backing: .buffered,
                 defer: false
             )
@@ -42,16 +42,22 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             window.backgroundColor = NSColor(red: 20.0 / 255, green: 20.0 / 255, blue: 22.0 / 255, alpha: 1)
             window.contentViewController = host
             // Assigning the controller resizes the window to the controller's view, which is still empty.
-            window.setContentSize(NSSize(width: 680, height: height))
+            window.setContentSize(NSSize(width: 760, height: height))
+            window.contentMinSize = NSSize(width: 680, height: 480)
             window.delegate = self
             window.setFrameAutosaveName("DimmerSettings")
             self.window = window
         }
         guard let window else { return }
         if !hasShown {
-            if !window.setFrameUsingName("DimmerSettings") { window.center() }
-            let height = min(1046, (window.screen?.visibleFrame.height ?? 1010) - 40)
-            window.setContentSize(NSSize(width: 680, height: height))
+            if window.setFrameUsingName("DimmerSettings") {
+                let restored = window.contentLayoutRect.size
+                window.setContentSize(NSSize(width: max(680, restored.width), height: max(480, restored.height)))
+            } else {
+                window.center()
+                let height = min(1046, (window.screen?.visibleFrame.height ?? 1010) - 40)
+                window.setContentSize(NSSize(width: 760, height: height))
+            }
             window.setFrame(window.constrainFrameRect(window.frame, to: window.screen), display: false)
             hasShown = true
         }

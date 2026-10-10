@@ -11,6 +11,11 @@ final class AccessibilityTests: XCTestCase {
     }
     func testReadoutsSpeakUnitsRatherThanAmbiguousSymbols() {
         XCTAssertEqual(AccessibilityReadout.value(74.6, unit: "°"), "75 degrees")
+        XCTAssertEqual(AccessibilityReadout.value(1, unit: "°"), "1 degree")
+        XCTAssertEqual(AccessibilityReadout.value(1, unit: "°/s"), "1 degree per second")
+        XCTAssertEqual(AccessibilityReadout.value(1, unit: "ms"), "1 millisecond")
+        XCTAssertEqual(AccessibilityReadout.value(74.5, unit: "°"), "74 degrees")
+        XCTAssertEqual(AccessibilityReadout.value(-74.5, unit: "°"), "-74 degrees")
         XCTAssertEqual(AccessibilityReadout.value(60, unit: "°/s"), "60 degrees per second")
         XCTAssertEqual(AccessibilityReadout.value(350, unit: "ms"), "350 milliseconds")
         XCTAssertEqual(AccessibilityReadout.value(71, unit: "%"), "71 percent")

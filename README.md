@@ -16,6 +16,8 @@ If macOS has dimmed the keyboard for inactivity, Dimmer leaves it dark. While pa
 keyboard restoration when input wakes the backlight; quitting while idle keeps the recovery record
 for the next launch. Wake the keyboard before quitting to restore it immediately.
 
+Dimmer speaks English, Spanish, Portuguese, German, French and Japanese, following your Mac's language.
+
 It dims the built-in screen along its own range, by default from your own brightness at 100 degrees
 down to black at 68 degrees, and puts it back when you open the lid again, pause or quit. It leaves the Mac's
 automatic screen brightness setting alone. Screen dimming and keyboard dimming are both on by default;

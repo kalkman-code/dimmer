@@ -96,8 +96,13 @@ struct LidAxisView: View {
 
     private let logger = Logger(subsystem: "uk.co.kalkmancode.Dimmer", category: "settings")
     private let reach: CGFloat = 14
-    private let plotWidth: CGFloat = 604
-    private let gutter: CGFloat = 100
+    private var gutterWidth: CGFloat {
+        let headers = [L10n.string("Keyboard"), L10n.string("Screen")]
+            .map { textWidth($0, size: 12.5, weight: .medium) + 34 }
+        let readouts = [keyboardLive, screenLive, privacyLive, L10n.string("Privacy"), L10n.string("Lid angle")]
+            .map { textWidth($0, size: 12.5) }
+        return ceil(max(100, (headers + readouts).max()! + 12))
+    }
     private let rightInset: CGFloat = 10
     private let keyboardTop: CGFloat = 10
     private let screenTop: CGFloat = 78
@@ -117,27 +122,28 @@ struct LidAxisView: View {
         VStack(spacing: 8) {
             GeometryReader { geometry in
                 let size = geometry.size
+                let gutter = gutterWidth
                 ZStack(alignment: .topLeading) {
-                    Canvas { context, canvasSize in drawAxis(in: &context, size: canvasSize) }
-                    laneNames(keyboard: true)
-                    rangeTags(size: size, screen: false)
-                    laneNames(keyboard: false)
-                    rangeTags(size: size, screen: true)
+                    Canvas { context, canvasSize in drawAxis(in: &context, size: canvasSize, gutter: gutter) }
+                    laneNames(keyboard: true, gutter: gutter)
+                    rangeTags(size: size, screen: false, gutter: gutter)
+                    laneNames(keyboard: false, gutter: gutter)
+                    rangeTags(size: size, screen: true, gutter: gutter)
                     if features.privacyEnabled {
-                        laneName(L10n.string("Privacy"), colour: privacyColour, live: privacyLive, top: privacyTop, height: privacyHeight)
+                        laneName(L10n.string("Privacy"), colour: privacyColour, live: privacyLive, top: privacyTop, height: privacyHeight, gutter: gutter)
                         ForEach([AxisTag.zoneLow, .zoneHigh], id: \.self) { tag in
-                            tagView(tag).position(tagPosition(tag, size: size))
+                            tagView(tag).position(tagPosition(tag, size: size, gutter: gutter))
                         }
                     }
                 }
                 .frame(width: size.width, height: size.height)
                 .contentShape(Rectangle())
-                .simultaneousGesture(axisDrag(size: size))
+                .simultaneousGesture(axisDrag(size: size, gutter: gutter))
                 .onContinuousHover { phase in
                     guard active == nil else { return }
                     switch phase {
                     case .active(let point):
-                        hovered = handle(at: point, size: size)
+                        hovered = handle(at: point, size: size, gutter: gutter)
                         (hovered.map { cursor(for: $0, dragging: false) } ?? .arrow).set()
                     case .ended:
                         hovered = nil
@@ -145,7 +151,7 @@ struct LidAxisView: View {
                     }
                 }
             }
-            .frame(width: plotWidth, height: plotHeight)
+            .frame(height: plotHeight)
             .focusEffectDisabled()
 
             HStack(alignment: .top, spacing: 12) {
@@ -160,7 +166,7 @@ struct LidAxisView: View {
             .foregroundStyle(secondary)
 
             if features.privacyEnabled && controller.dimsScreen && features.snap.zoneLow < controller.screenRange.highAngle {
-                HStack(spacing: 5) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text(L10n.string("The screen already dims inside the snap zone."))
                         .font(.system(size: 11))
                         .foregroundStyle(secondary)
@@ -177,7 +183,7 @@ struct LidAxisView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .frame(width: plotWidth)
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
     }
 
@@ -185,7 +191,7 @@ struct LidAxisView: View {
     // so a click sets this and the field focuses itself when it appears.
     @State private var editing: AxisField?
 
-    private func laneNames(keyboard: Bool) -> some View {
+    private func laneNames(keyboard: Bool, gutter: CGFloat) -> some View {
         let enabled = keyboard ? controller.dimsKeyboard : controller.dimsScreen
         let top = keyboard ? keyboardTop : screenTop
         let height = keyboard ? keyboardHeight : screenHeight
@@ -212,7 +218,7 @@ struct LidAxisView: View {
         }
     }
 
-    private func laneName(_ title: String, colour: Color, live: String, top: CGFloat, height: CGFloat) -> some View {
+    private func laneName(_ title: String, colour: Color, live: String, top: CGFloat, height: CGFloat, gutter: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.system(size: 12.5, weight: .medium)).foregroundStyle(colour)
             Text(live).font(.system(size: 11)).foregroundStyle(secondary)
@@ -240,14 +246,14 @@ struct LidAxisView: View {
         return currentAngle >= features.snap.zoneLow && currentAngle <= features.snap.zoneHigh ? L10n.string("lid in zone") : L10n.string("snap zone")
     }
 
-    private func drawAxis(in context: inout GraphicsContext, size: CGSize) {
-        let x = xPosition(size: size)
+    private func drawAxis(in context: inout GraphicsContext, size: CGSize, gutter: CGFloat) {
+        let x = xPosition(size: size, gutter: gutter)
         drawRamp(in: &context, range: controller.keyboardRange, x: x, top: keyboardTop,
                  height: keyboardHeight, colour: keyboardColour, isScreen: false,
-                 opacity: controller.dimsKeyboard ? 1 : 0.35)
+                 opacity: controller.dimsKeyboard ? 1 : 0.35, gutter: gutter)
         drawRamp(in: &context, range: controller.screenRange, x: x, top: screenTop,
                  height: screenHeight, colour: screenColour, isScreen: true,
-                 opacity: controller.dimsScreen ? 1 : 0.35)
+                 opacity: controller.dimsScreen ? 1 : 0.35, gutter: gutter)
 
         if features.privacyEnabled {
             let well = CGRect(x: gutter, y: privacyTop, width: size.width - gutter - rightInset, height: privacyHeight)
@@ -258,14 +264,16 @@ struct LidAxisView: View {
             let zonePath = Path(roundedRect: zoneRect, cornerRadius: 2)
             context.fill(zonePath, with: .color(privacyColour.opacity(0.22)))
             context.stroke(zonePath, with: .color(privacyColour.opacity(0.55)), lineWidth: 0.5)
-            let labelRect = CGRect(x: zoneRect.midX - 34, y: zoneRect.midY - 8, width: 68, height: 16)
+            let zoneLabel = context.resolve(Text(L10n.string("Snap zone")).font(.system(size: 11, weight: .medium)).foregroundColor(privacyColour))
+            let labelWidth = zoneLabel.measure(in: CGSize(width: CGFloat.infinity, height: CGFloat.infinity)).width + 8
+            let labelRect = CGRect(x: zoneRect.midX - labelWidth / 2, y: zoneRect.midY - 8, width: labelWidth, height: 16)
             let labelClear = [AxisTag.zoneLow, .zoneHigh].allSatisfy { tag in
-                let centre = tagPosition(tag, size: size)
+                let centre = tagPosition(tag, size: size, gutter: gutter)
                 let width = tagWidth(tag)
                 return !labelRect.intersects(CGRect(x: centre.x - width / 2, y: centre.y - 10, width: width, height: 20))
             }
-            if zoneRect.width > 68 && labelClear {
-                context.draw(Text(L10n.string("Snap zone")).font(.system(size: 11, weight: .medium)).foregroundColor(privacyColour),
+            if zoneRect.width > labelWidth && labelClear {
+                context.draw(zoneLabel,
                              at: CGPoint(x: zoneRect.midX, y: zoneRect.midY))
             }
             for angle in [features.snap.zoneLow, features.snap.zoneHigh] {
@@ -280,7 +288,7 @@ struct LidAxisView: View {
                   opacity: controller.dimsKeyboard ? 1 : 0.35)
         drawScale(in: &context, x: x, left: gutter, top: screenTop, height: screenHeight,
                   opacity: controller.dimsScreen ? 1 : 0.35)
-        drawAngleAxis(in: &context, x: x)
+        drawAngleAxis(in: &context, x: x, gutter: gutter)
 
         if let angle = controller.angle {
             let markerX = x(angle)
@@ -298,10 +306,12 @@ struct LidAxisView: View {
                 context.fill(Path(ellipseIn: CGRect(x: markerX - 2.5, y: y - 2.5, width: 5, height: 5)),
                              with: .color(.white.opacity(dimmed ? 0.35 : 1)))
             }
-            let capsule = CGRect(x: markerX - 26, y: axisY + 7, width: 52, height: 17)
+            let capsuleWidth = lidCapsuleWidth(angle)
+            let capsuleX = min(max(markerX, gutter + capsuleWidth / 2), size.width - capsuleWidth / 2)
+            let capsule = CGRect(x: capsuleX - capsuleWidth / 2, y: axisY + 7, width: capsuleWidth, height: 17)
             context.fill(Path(roundedRect: capsule, cornerRadius: 8.5), with: .color(.white))
             context.draw(Text(L10n.string("Lid \(Int(angle.rounded()))°")).font(.system(size: 11, weight: .semibold).monospacedDigit())
-                .foregroundColor(Color(hex: 0x141416)), at: CGPoint(x: markerX, y: capsule.midY))
+                .foregroundColor(Color(hex: 0x141416)), at: CGPoint(x: capsule.midX, y: capsule.midY))
         }
         // Above its top end the screen is left at the user's own brightness; say so in words, sized to fit.
         // Like the tags it dodges the lid line: the long words if they fit in the stretch on either side
@@ -318,10 +328,11 @@ struct LidAxisView: View {
             return [gap(start, lidX - 6), gap(lidX + 6, end)].compactMap { $0 }
         }()
         let choice: (words: String, width: CGFloat, gap: ClosedRange<CGFloat>)? = [
-            (L10n.string("your own brightness, untouched"), CGFloat(184)), (L10n.string("untouched"), CGFloat(62)),
+            L10n.string("your own brightness, untouched"), L10n.string("untouched"),
         ].lazy.compactMap { option in
-            gaps.max { ($0.upperBound - $0.lowerBound) < ($1.upperBound - $1.lowerBound) }
-                .flatMap { $0.upperBound - $0.lowerBound >= option.1 ? (option.0, option.1, $0) : nil }
+            let width = textWidth(option, size: 11) + 8
+            return gaps.max { ($0.upperBound - $0.lowerBound) < ($1.upperBound - $1.lowerBound) }
+                .flatMap { $0.upperBound - $0.lowerBound >= width ? (option, width, $0) : nil }
         }.first
         if let (words, labelWidth, gap) = choice {
             let labelRect = CGRect(x: (gap.lowerBound + gap.upperBound) / 2 - labelWidth / 2,
@@ -341,7 +352,7 @@ struct LidAxisView: View {
     }
 
     private func drawRamp(in context: inout GraphicsContext, range: DimRange, x: (Double) -> CGFloat,
-                          top: CGFloat, height: CGFloat, colour: Color, isScreen: Bool, opacity: Double) {
+                          top: CGFloat, height: CGFloat, colour: Color, isScreen: Bool, opacity: Double, gutter: CGFloat) {
         let floor = top + height
         let y: (Double) -> CGFloat = { top + height * CGFloat(1 - min(max($0, 0), 1)) }
         let end = isScreen ? range.highAngle : LidAxis.maximum
@@ -388,12 +399,23 @@ struct LidAxisView: View {
     }
 
     // The white "Lid N°" capsule sits on the label row; a tick label under it would show through its edges.
-    private func underLidCapsule(_ labelX: CGFloat, x: (Double) -> CGFloat) -> Bool {
+    private func underLidCapsule(_ labelX: CGFloat, x: (Double) -> CGFloat, gutter: CGFloat) -> Bool {
         guard let angle = controller.angle else { return false }
-        return abs(labelX - x(angle)) < 44
+        let width = lidCapsuleWidth(angle)
+        let centre = min(max(x(angle), gutter + width / 2), x(LidAxis.maximum) + rightInset - width / 2)
+        return abs(labelX - centre) < width / 2 + 18
     }
 
-    private func drawAngleAxis(in context: inout GraphicsContext, x: (Double) -> CGFloat) {
+    private func textWidth(_ text: String, size: CGFloat, weight: NSFont.Weight = .regular) -> CGFloat {
+        (text as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: size, weight: weight)]).width
+    }
+
+    private func lidCapsuleWidth(_ angle: Double) -> CGFloat {
+        let text = L10n.string("Lid \(Int(angle.rounded()))°")
+        return ceil((text as NSString).size(withAttributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .semibold)]).width) + 12
+    }
+
+    private func drawAngleAxis(in context: inout GraphicsContext, x: (Double) -> CGFloat, gutter: CGFloat) {
         var axis = Path()
         axis.move(to: CGPoint(x: gutter, y: axisY))
         axis.addLine(to: CGPoint(x: x(LidAxis.maximum), y: axisY))
@@ -406,7 +428,7 @@ struct LidAxisView: View {
             tick.move(to: CGPoint(x: x(angle), y: axisY))
             tick.addLine(to: CGPoint(x: x(angle), y: axisY + tickHeight))
             context.stroke(tick, with: .color(Color(hex: 0x4A4D55)), lineWidth: 0.7)
-            if major && !underLidCapsule(x(angle), x: x) {
+            if major && !underLidCapsule(x(angle), x: x, gutter: gutter) {
                 context.draw(Text(L10n.string("\(Int(angle))°")).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
                              at: CGPoint(x: x(angle), y: axisY + 18))
             }
@@ -416,7 +438,7 @@ struct LidAxisView: View {
         finalTick.addLine(to: CGPoint(x: x(LidAxis.maximum), y: axisY + 6))
         context.stroke(finalTick, with: .color(Color(hex: 0x4A4D55)), lineWidth: 0.7)
         // Anchored on its right edge so the last label stays inside the window rather than being clipped.
-        if !underLidCapsule(x(LidAxis.maximum) - 12, x: x) {
+        if !underLidCapsule(x(LidAxis.maximum) - 12, x: x, gutter: gutter) {
             context.draw(Text(L10n.string("130°")).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
                          at: CGPoint(x: x(LidAxis.maximum) + 4, y: axisY + 18), anchor: .trailing)
         }
@@ -452,10 +474,10 @@ struct LidAxisView: View {
         }
     }
 
-    private func rangeTags(size: CGSize, screen: Bool) -> some View {
+    private func rangeTags(size: CGSize, screen: Bool, gutter: CGFloat) -> some View {
         ForEach(screen ? [AxisTag.screenLow, .screenHigh] : [.keyboardLow, .keyboardHigh], id: \.self) { tag in
             tagView(tag)
-                .position(tagPosition(tag, size: size))
+                .position(tagPosition(tag, size: size, gutter: gutter))
                 .opacity(tag.handle.isKeyboard && !controller.dimsKeyboard || tag.handle.isScreen && !controller.dimsScreen ? 0.35 : 1)
                 .disabled(tag.handle.isKeyboard && !controller.dimsKeyboard || tag.handle.isScreen && !controller.dimsScreen)
         }
@@ -592,8 +614,8 @@ struct LidAxisView: View {
         }
     }
 
-    private func tagPosition(_ tag: AxisTag, size: CGSize) -> CGPoint {
-        let x = xPosition(size: size)
+    private func tagPosition(_ tag: AxisTag, size: CGSize, gutter: CGFloat) -> CGPoint {
+        let x = xPosition(size: size, gutter: gutter)
         let point: CGPoint
         let lane: (top: CGFloat, height: CGFloat)
         if tag.handle.isZone {
@@ -623,7 +645,7 @@ struct LidAxisView: View {
         let inside = candidates.filter { $0.x - width / 2 >= gutter + 2 && $0.x + width / 2 <= size.width - rightInset - 2 }
         let sibling: CGRect? = tag.handle.isLow ? nil : {
             let low: AxisTag = tag.handle.isZone ? .zoneLow : (tag.handle.isScreen ? .screenLow : .keyboardLow)
-            let centre = tagPosition(low, size: size)
+            let centre = tagPosition(low, size: size, gutter: gutter)
             return CGRect(x: centre.x - tagWidth(low) / 2, y: centre.y - 10, width: tagWidth(low), height: 20)
         }()
         let lidX = controller.angle.map { x($0) }
@@ -638,45 +660,45 @@ struct LidAxisView: View {
 
     private func tagWidth(_ tag: AxisTag) -> CGFloat { tag.handle.isZone ? 42 : 91 }
 
-    private func pointIsInTag(_ point: CGPoint, size: CGSize) -> Bool {
+    private func pointIsInTag(_ point: CGPoint, size: CGSize, gutter: CGFloat) -> Bool {
         let candidates = [AxisTag.keyboardLow, .keyboardHigh, .screenLow, .screenHigh] + (features.privacyEnabled ? [.zoneLow, .zoneHigh] : [])
         return candidates.filter { tag in
             (!tag.handle.isKeyboard || controller.dimsKeyboard) && (!tag.handle.isScreen || controller.dimsScreen)
         }.contains { tag in
-            let centre = tagPosition(tag, size: size)
+            let centre = tagPosition(tag, size: size, gutter: gutter)
             let width = tagWidth(tag)
             return abs(point.x - centre.x) <= width / 2 && abs(point.y - centre.y) <= 10
         }
     }
 
-    private func axisDrag(size: CGSize) -> some Gesture {
+    private func axisDrag(size: CGSize, gutter: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
                 if active == nil {
-                    guard !pointIsInTag(value.startLocation, size: size) else { return }
+                    guard !pointIsInTag(value.startLocation, size: size, gutter: gutter) else { return }
                     focusedField = nil
-                    active = handle(at: value.startLocation, size: size)
+                    active = handle(at: value.startLocation, size: size, gutter: gutter)
                     if let active { cursor(for: active, dragging: true).set() }
                 }
                 guard let active else { return }
-                drag(active, to: value.location, size: size)
+                drag(active, to: value.location, size: size, gutter: gutter)
             }
             .onEnded { value in
                 guard let active = self.active else { return }
                 logger.info("axis drag \(String(describing: active), privacy: .public) ended at \(Int(value.location.x), privacy: .public),\(Int(value.location.y), privacy: .public): keyboard=\(String(describing: controller.keyboardRange), privacy: .public) screen=\(String(describing: controller.screenRange), privacy: .public) zone=\(features.snap.zoneLow, privacy: .public)–\(features.snap.zoneHigh, privacy: .public)")
                 self.active = nil
-                hovered = handle(at: value.location, size: size)
+                hovered = handle(at: value.location, size: size, gutter: gutter)
                 (hovered.map { cursor(for: $0, dragging: false) } ?? .arrow).set()
             }
     }
 
-    private func xPosition(size: CGSize) -> (Double) -> CGFloat {
+    private func xPosition(size: CGSize, gutter: CGFloat) -> (Double) -> CGFloat {
         let width = size.width - gutter - rightInset
         return { gutter + CGFloat(min(max($0 / LidAxis.maximum, 0), 1)) * width }
     }
 
-    private func point(of handle: AxisHandle, size: CGSize) -> CGPoint {
-        let x = xPosition(size: size)
+    private func point(of handle: AxisHandle, size: CGSize, gutter: CGFloat) -> CGPoint {
+        let x = xPosition(size: size, gutter: gutter)
         if handle.isZone {
             let angle = handle == .zoneLow ? features.snap.zoneLow : features.snap.zoneHigh
             return CGPoint(x: x(angle), y: privacyTop + privacyHeight / 2)
@@ -688,13 +710,13 @@ struct LidAxisView: View {
         return CGPoint(x: x(handle.isLow ? range.lowAngle : range.highAngle), y: top + height * CGFloat(1 - level))
     }
 
-    private func handle(at location: CGPoint, size: CGSize) -> AxisHandle? {
+    private func handle(at location: CGPoint, size: CGSize, gutter: CGFloat) -> AxisHandle? {
         AxisHandle.allCases
             .filter { !$0.isZone || features.privacyEnabled }
             .filter { !$0.isScreen || controller.dimsScreen }
             .filter { $0.isZone || $0.isScreen || controller.dimsKeyboard }
             .map { handle -> (AxisHandle, CGFloat) in
-                let point = point(of: handle, size: size)
+                let point = point(of: handle, size: size, gutter: gutter)
                 let distance = handle.isZone
                     ? (abs(location.y - point.y) <= 22 ? abs(location.x - point.x) : .infinity)
                     : hypot(location.x - point.x, location.y - point.y)
@@ -704,7 +726,7 @@ struct LidAxisView: View {
             .min { $0.1 < $1.1 }?.0
     }
 
-    private func drag(_ handle: AxisHandle, to location: CGPoint, size: CGSize) {
+    private func drag(_ handle: AxisHandle, to location: CGPoint, size: CGSize, gutter: CGFloat) {
         let angle = (Double((location.x - gutter) / (size.width - gutter - rightInset)) * LidAxis.maximum).rounded()
         if handle.isZone {
             setZone(isLow: handle.isLow, angle: angle)
