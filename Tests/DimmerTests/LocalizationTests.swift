@@ -16,6 +16,14 @@ final class LocalizationTests: XCTestCase {
 
     func testRecentlyAddedVisibleStringsHaveCatalogueEntries() throws {
         let keys = [
+            "Slow (600 ms)",
+            "Snap tint", "Privacy veil tint", "Blur tint", "Restore blur defaults", "Restore privacy veil defaults",
+            "Restores blur strength, clear speed and tint. It does not change the shortcut. Undo with Cmd+Z.",
+            "Restores the zone, snap distance, speed and tint. It does not turn snap on or off. Undo with Cmd+Z.",
+            "Sets the darkness of the snap veil",
+            "Sets the darkness of the shortcut veil",
+            "Sets the darkness of the angle blur, scaled with its blur strength.",
+            "Restores the blur range and tint to their defaults. Undo with Cmd+Z.",
             "15 minutes", "1 hour", "2 hours", "5 hours", "Could not enable Launch at Login: %@",
             "Could not disable Launch at Login: %@", "130°", "100%", "0%", "%lld°",
             "Range %@ to %@. Activate to type an exact value.",
@@ -44,6 +52,8 @@ final class LocalizationTests: XCTestCase {
         let catalogueURL = root.appending(path: "Sources/Dimmer/Resources/Localizable.xcstrings")
         let catalogue = try JSONSerialization.jsonObject(with: Data(contentsOf: catalogueURL)) as! [String: Any]
         let sourceKeys = Set((catalogue["strings"] as! [String: Any]).keys)
+        XCTAssertFalse(sourceKeys.contains("%@ darkness"))
+        XCTAssertFalse(sourceKeys.contains("Restores blur strength and clear speed. It does not change the shortcut. Undo with Cmd+Z."))
 
         let stringsURL = try XCTUnwrap(L10n.bundle.url(forResource: "Localizable", withExtension: "strings", subdirectory: "en-GB.lproj"))
         let stringsData = try Data(contentsOf: stringsURL)

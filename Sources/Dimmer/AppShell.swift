@@ -19,6 +19,23 @@ enum AppShell {
 }
 
 @MainActor
+final class QuitEventHandler: NSObject {
+    private let quit: @MainActor () -> Void
+
+    init(quit: @escaping @MainActor () -> Void = { AppShell.quit() }) {
+        self.quit = quit
+        super.init()
+    }
+
+    @objc func handle(_ event: NSAppleEventDescriptor, withReply reply: NSAppleEventDescriptor) {
+        // AppKit's own quit Apple Event handler (AppleScript, logout, restart) answers "User cancelled"
+        // while a sheet is up, before asking the delegate, so a welcome left open would block logout.
+        // Quit after returning, so the sender (loginwindow at logout) gets its reply before the process exits.
+        DispatchQueue.main.async { self.quit() }
+    }
+}
+
+@MainActor
 final class ShellPreferences: ObservableObject {
     private let defaults: UserDefaults
     @Published var showMenuBarIcon: Bool {

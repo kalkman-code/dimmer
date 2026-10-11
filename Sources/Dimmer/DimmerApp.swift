@@ -6,17 +6,20 @@ import SwiftUI
 import KeyboardShortcuts
 
 @MainActor
-final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
+final class DimmerAppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private let controller = DimmerController()
     private let features = DimmerFeatures()
     private let shell = ShellPreferences()
     private let login = LoginItem()
+    private let updates = UpdateController()
     private let aboutWindow = AboutWindowController()
+    private let quitEventHandler = QuitEventHandler()
     private lazy var settingsWindow = SettingsWindowController(
         controller: controller,
         features: features,
         shell: shell,
-        login: login
+        login: login,
+        updates: updates
     )
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
@@ -26,9 +29,8 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
     private var snapshotObserver: NSObjectProtocol?
     #endif
     private var subscriptions = Set<AnyCancellable>()
-    private var privacyShortcutTask: Task<Void, Never>?
-    private var privacyShortcutGeneration = UUID()
-    private var privacyShortcutTrigger = PrivacyShortcutTrigger()
+    private var privacyShortcut: ShortcutListener?
+    private var goDarkShortcut: ShortcutListener?
     private var shortcutInputMonitor: Any?
     private var sleeping = false
     private let logger = Logger(subsystem: "uk.co.kalkmancode.Dimmer", category: "launch")
@@ -36,7 +38,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let isLogin = LaunchPresentation.isLogin
         installAppMenu()
-        NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(handleQuitEvent(_:withReply:)),
+        NSAppleEventManager.shared().setEventHandler(quitEventHandler, andSelector: #selector(QuitEventHandler.handle(_:withReply:)),
                                                      forEventClass: AEEventClass(kCoreEventClass),
                                                      andEventID: AEEventID(kAEQuitApplication))
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -50,14 +52,21 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
             logger.error("status item has no button")
         }
         controller.$paused.sink { [weak self] paused in
-            self?.restartPrivacyShortcut()
+            self?.restartShortcuts()
             Task { @MainActor in
                 self?.updateStatusItem(paused: paused)
                 if paused { self?.features.suspend(reason: "pause") }
+                self?.features.holdAngleLanes("pause", paused)
             }
+        }.store(in: &subscriptions)
+        controller.$isDark.sink { [weak self] dark in
+            Task { @MainActor in self?.features.holdAngleLanes("dark", dark) }
         }.store(in: &subscriptions)
         shell.$showMenuBarIcon.sink { [weak self] visible in
             self?.statusItem.isVisible = visible
+        }.store(in: &subscriptions)
+        features.$privacyVeilEnabled.dropFirst().sink { [weak self] enabled in
+            self?.privacyShortcut?.restart(enabled: enabled)
         }.store(in: &subscriptions)
         DisplayAccessibility.shared.$preferences.map(\.increaseContrast).removeDuplicates().dropFirst()
             .sink { [weak self] contrast in
@@ -66,45 +75,70 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
                     self.statusItem.button?.image = StatusGlyph.image(paused: self.controller.paused, increaseContrast: contrast)
                 }
             }.store(in: &subscriptions)
-        controller.$angle.sink { [weak self] angle in
+        controller.telemetry.$angle.sink { [weak self] angle in
             Task { @MainActor in
                 if angle == nil { self?.features.angleUnavailable() }
+                self?.features.setLidAngle(angle)
             }
         }.store(in: &subscriptions)
-        controller.$rawSample.compactMap { $0 }
+        controller.telemetry.$rawSample.compactMap { $0 }
             .sink { [weak self] sample in
                 Task { @MainActor in self?.features.update(sample: sample) }
             }
             .store(in: &subscriptions)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: menuView())
-        NotificationCenter.default.publisher(for: .dimmerPrivacyShortcutDidChange)
-            .sink { [weak self] _ in self?.restartPrivacyShortcut() }
+        NotificationCenter.default.publisher(for: .dimmerShortcutDidChange)
+            .sink { [weak self] _ in self?.restartShortcuts() }
             .store(in: &subscriptions)
+
+        privacyShortcut = ShortcutListener(name: .privacyBlur) { [weak self] in
+            guard let self else { return false }
+            return !self.controller.paused && !self.sleeping && KeyboardShortcuts.getShortcut(for: .privacyBlur) != nil
+        } onTrigger: { [weak self] in
+            guard let self else { return }
+            self.features.activatePrivacyBlurFromShortcut(at: ProcessInfo.processInfo.systemUptime,
+                                                          angle: self.controller.rawSample?.angle ?? self.controller.angle)
+        }
+
+        goDarkShortcut = ShortcutListener(name: .goDark) { [weak self] in
+            guard let self else { return false }
+            return !self.controller.paused && !self.sleeping && KeyboardShortcuts.getShortcut(for: .goDark) != nil
+        } onTrigger: { [weak self] in
+            self?.controller.goDark()
+        }
+
         // Clicking or navigating to a recorder cancels a held chord even if recording ends without a change.
         shortcutInputMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown, .rightMouseDown]) { [weak self] event in
-            if event.type != .keyDown || KeyboardShortcuts.Shortcut(event: event) != KeyboardShortcuts.getShortcut(for: .privacyBlur) {
-                self?.restartPrivacyShortcut()
+            let shortcut = KeyboardShortcuts.Shortcut(event: event)
+            if event.type != .keyDown || shortcut != KeyboardShortcuts.getShortcut(for: .privacyBlur) {
+                self?.privacyShortcut?.restart(enabled: self?.features.privacyVeilEnabled ?? false)
+            }
+            if event.type != .keyDown || shortcut != KeyboardShortcuts.getShortcut(for: .goDark) {
+                self?.goDarkShortcut?.restart()
             }
             return event
         }
-        restartPrivacyShortcut()
+        restartShortcuts()
         sleepObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
                 self?.sleeping = true
-                self?.restartPrivacyShortcut()
+                self?.restartShortcuts()
                 self?.features.suspend(reason: "sleep")
+                self?.features.holdAngleLanes("sleep", true)
                 self?.controller.prepareForSleep()
             }
         }
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.sleeping = false
-                self?.restartPrivacyShortcut()
+                self?.features.holdAngleLanes("sleep", false)
+                self?.restartShortcuts()
                 self?.controller.resumeAfterWake()
             }
         }
         controller.start()
+        updates.start()
         switch LaunchPresentation.initial(isLogin: isLogin, showMenuBarIcon: shell.showMenuBarIcon,
                                            hasSeenWelcome: shell.hasSeenWelcome) {
         case .quiet: break
@@ -138,40 +172,26 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidBecomeActive(_ notification: Notification) {
         login.refresh()
-        restartPrivacyShortcut()
+        restartShortcuts()
     }
 
-    // AppKit's own quit Apple Event handler (AppleScript, logout, restart) answers "User cancelled"
-    // while a sheet is up, before asking the delegate, so a welcome left open would block logout.
-    @objc private func handleQuitEvent(_ event: NSAppleEventDescriptor, withReply reply: NSAppleEventDescriptor) {
-        // Quit after returning, so the sender (loginwindow at logout) gets its reply before the process exits.
-        DispatchQueue.main.async { AppShell.quit() }
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        guard menuItem.action == #selector(checkForUpdates) else { return true }
+        return updates.canCheckForUpdates || updates.updateAvailable
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        privacyShortcutTask?.cancel()
+        privacyShortcut?.stop()
+        goDarkShortcut?.stop()
         shortcutInputMonitor.map(NSEvent.removeMonitor)
         controller.stop()
         features.stop()
         [sleepObserver, wakeObserver].compactMap { $0 }.forEach(NSWorkspace.shared.notificationCenter.removeObserver)
     }
 
-    private func restartPrivacyShortcut() {
-        privacyShortcutTask?.cancel()
-        privacyShortcutTrigger.cancel()
-        let generation = UUID()
-        privacyShortcutGeneration = generation
-        privacyShortcutTask = Task { [weak self] in
-            for await event in KeyboardShortcuts.events(for: .privacyBlur) {
-                guard let self, !Task.isCancelled, generation == self.privacyShortcutGeneration else { return }
-                let allowed = !self.controller.paused && !self.sleeping
-                    && KeyboardShortcuts.getShortcut(for: .privacyBlur) != nil
-                if self.privacyShortcutTrigger.receive(isKeyDown: event == .keyDown, allowed: allowed) {
-                    self.features.activatePrivacyBlurFromShortcut(at: ProcessInfo.processInfo.systemUptime,
-                                                                  angle: self.controller.rawSample?.angle ?? self.controller.angle)
-                }
-            }
-        }
+    private func restartShortcuts() {
+        privacyShortcut?.restart(enabled: features.privacyVeilEnabled)
+        goDarkShortcut?.restart()
     }
 
     @objc private func statusItemClicked(_ sender: Any?) {
@@ -182,11 +202,18 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
             let menu = NSMenu()
             menu.addItem(withTitle: L10n.string("Settings…"), action: #selector(showSettings), keyEquivalent: ",")
             menu.addItem(withTitle: L10n.string("About Dimmer"), action: #selector(showAbout), keyEquivalent: "")
+            menu.addItem(withTitle: updates.updateAvailable ? L10n.string("Update available…") : L10n.string("Check for updates…"),
+                         action: updates.canCheckForUpdates || updates.updateAvailable ? #selector(checkForUpdates) : nil, keyEquivalent: "")
             menu.addItem(withTitle: L10n.string("Report a bug…"), action: #selector(reportBug), keyEquivalent: "")
             menu.addItem(withTitle: L10n.string("View latest release…"), action: #selector(viewLatestRelease), keyEquivalent: "")
             menu.addItem(.separator())
             let dark = menu.addItem(withTitle: L10n.string("Go dark"), action: controller.canGoDark ? #selector(goDark) : nil, keyEquivalent: "")
             dark.toolTip = L10n.string("Keyboard and screen off until you type, touch the trackpad or move the lid.")
+
+            if !controller.paused {
+                menu.addItem(withTitle: L10n.string("Pause for 15 minutes"), action: #selector(pause15), keyEquivalent: "")
+                menu.addItem(withTitle: L10n.string("Pause for 1 hour"), action: #selector(pause60), keyEquivalent: "")
+            }
             menu.addItem(withTitle: controller.paused ? L10n.string("Resume") : L10n.string("Pause"), action: #selector(togglePause), keyEquivalent: "")
             menu.addItem(.separator())
             menu.addItem(withTitle: L10n.string("Quit Dimmer"), action: #selector(quit), keyEquivalent: "q")
@@ -201,6 +228,8 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func togglePause() { controller.togglePaused() }
+    @objc private func pause15() { controller.pause(for: .fifteenMinutes) }
+    @objc private func pause60() { controller.pause(for: .oneHour) }
     @objc private func goDark() { controller.goDark() }
     @objc private func quit() { AppShell.quit() }
     @objc private func showSettings() { presentSettings() }
@@ -213,6 +242,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.open(SupportDetails.issueURL)
     }
     @objc private func viewLatestRelease() { NSWorkspace.shared.open(SupportDetails.releaseURL) }
+    @objc private func checkForUpdates() { updates.checkForUpdates() }
     @objc private func uninstallDimmer() { UninstallGuide.show() }
 
     private func installAppMenu() {
@@ -221,6 +251,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
         let appItem = mainMenu.addItem(withTitle: L10n.string("Dimmer"), action: nil, keyEquivalent: "")
         appItem.submenu = appMenu
         appMenu.addItem(withTitle: L10n.string("About Dimmer"), action: #selector(showAbout), keyEquivalent: "")
+        appMenu.addItem(withTitle: L10n.string("Check for updates…"), action: #selector(checkForUpdates), keyEquivalent: "")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: L10n.string("Settings…"), action: #selector(showSettings), keyEquivalent: ",")
         appMenu.addItem(withTitle: L10n.string("Uninstall Dimmer…"), action: #selector(uninstallDimmer), keyEquivalent: "")
@@ -249,7 +280,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func presentSettings() {
-        restartPrivacyShortcut()
+        restartShortcuts()
         if popover.isShown { popover.performClose(nil) }
         if !shell.hasSeenWelcome {
             shell.showWelcome = true
@@ -266,7 +297,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func menuView() -> some View {
-        DimmerMenu(controller: controller, features: features,
+        DimmerMenu(controller: controller, features: features, updates: updates,
                    showSettings: { [weak self] in self?.presentSettings() },
                    showAbout: { [weak self] in self?.showAbout() },
                    reportBug: { [weak self] in self?.reportBug() })

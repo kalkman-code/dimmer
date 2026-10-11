@@ -7,12 +7,16 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [.executable(name: "Dimmer", targets: ["Dimmer"])],
     dependencies: [
-        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", exact: "3.1.0")
+        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", exact: "3.1.0"),
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0")
     ],
     targets: [
         .executableTarget(
             name: "Dimmer",
-            dependencies: [.product(name: "KeyboardShortcuts", package: "KeyboardShortcuts")],
+            dependencies: [
+                .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts"),
+                .product(name: "Sparkle", package: "Sparkle"),
+            ],
             path: "Sources/Dimmer",
             resources: [.process("Resources")],
             linkerSettings: [

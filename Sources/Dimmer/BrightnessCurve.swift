@@ -9,6 +9,14 @@ struct DimRange: Codable, Equatable, Sendable {
     static let keyboardDefault = DimRange(lowAngle: 68, lowLevel: 0, highAngle: 100, highLevel: 1)
     static let screenDefault = DimRange(lowAngle: 68, lowLevel: 0, highAngle: 100, highLevel: 1)
 
+    // For the blur lane the level is blur strength: full at the low end, gone at the high end.
+    static let blurDefault = DimRange(lowAngle: 68, lowLevel: 1, highAngle: 100, highLevel: 0)
+
+    func clamped(maximum: Double) -> DimRange {
+        settingLow(angle: lowAngle, level: lowLevel, maximum: maximum)
+            .settingHigh(angle: highAngle, level: highLevel, maximum: maximum)
+    }
+
     func movedBelow(_ angle: Double) -> DimRange {
         var result = self
         if angle < 2 {

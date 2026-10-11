@@ -1,6 +1,25 @@
 import CoreGraphics
 import Foundation
 
+enum PauseDuration: CaseIterable {
+    case fifteenMinutes
+    case oneHour
+
+    var seconds: TimeInterval {
+        switch self {
+        case .fifteenMinutes: return 900
+        case .oneHour: return 3600
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .fifteenMinutes: return L10n.string("Pause for 15 minutes")
+        case .oneHour: return L10n.string("Pause for 1 hour")
+        }
+    }
+}
+
 enum AwakeDuration: String, CaseIterable, Identifiable {
     case off
     case indefinitely
@@ -97,6 +116,25 @@ struct SnapSettings: Codable, Equatable, Sendable {
                   blurStrength: try c.decodeIfPresent(Double.self, forKey: .blurStrength) ?? d.blurStrength,
                   smoke: try c.decodeIfPresent(Double.self, forKey: .smoke) ?? d.smoke,
                   clearSeconds: try c.decodeIfPresent(Double.self, forKey: .clearSeconds) ?? d.clearSeconds)
+    }
+
+    func restoringSnapDefaults() -> SnapSettings {
+        let defaults = SnapSettings()
+        var result = self
+        result.zoneLow = defaults.zoneLow
+        result.zoneHigh = defaults.zoneHigh
+        result.snapDegrees = defaults.snapDegrees
+        result.minimumSpeed = defaults.minimumSpeed
+        result.smoke = defaults.smoke
+        return result
+    }
+
+    func restoringPrivacyVeilDefaults() -> SnapSettings {
+        let defaults = SnapSettings()
+        var result = self
+        result.blurStrength = defaults.blurStrength
+        result.clearSeconds = defaults.clearSeconds
+        return result
     }
 
     func clamped(maximum: Double) -> SnapSettings {
@@ -245,5 +283,33 @@ enum VeilTransition {
         let rising = target > current
         let delta = elapsed / (rising ? 0.18 : fallingDuration)
         return rising ? min(target, current + delta) : max(target, current - delta)
+    }
+}
+
+enum ScreenStatus: Equatable {
+    case off, ready, active, waitingForLid, restoring, retrying, unavailable
+
+    static func from(_ message: String) -> ScreenStatus {
+        switch message {
+        case L10n.string("Screen dimming is off."): return .off
+        case L10n.string("Screen ready."),
+             L10n.string("Dimmer leaves automatic brightness unchanged."): return .ready
+        case L10n.string("Screen dimming is active."): return .active
+        case L10n.string("Screen dimming waits for the lid to open fully once."): return .waitingForLid
+        case L10n.string("Display brightness restoration is retrying."): return .restoring
+        case L10n.string("Screen dimming will retry shortly."): return .retrying
+        case L10n.string("Screen dimming is unavailable."): return .unavailable
+        default: return .unavailable
+        }
+    }
+
+    var explanation: String? {
+        switch self {
+        case .off: return L10n.string("Screen dimming is off.")
+        case .ready, .active: return nil
+        case .waitingForLid: return L10n.string("Waiting for the lid to open fully once before dimming the screen.")
+        case .restoring: return L10n.string("Restoring your screen brightness. Dimmer will keep retrying.")
+        case .retrying, .unavailable: return L10n.string("Dimmer cannot control this screen's brightness right now.")
+        }
     }
 }

@@ -12,7 +12,9 @@ enum UninstallGuide {
     @MainActor static func show() {
         let alert = NSAlert()
         alert.messageText = L10n.string("Uninstall Dimmer")
-        alert.informativeText = L10n.string("In Settings, turn off Launch at Login. Wake the keyboard with a key or trackpad input, then Quit Dimmer to restore brightness, automatic keyboard brightness and screen colour. Check that brightness has returned before moving Dimmer from Applications to the Bin in Finder.\n\nOptional cleanup after restoration and quitting: remove Dimmer’s preferences and any remaining recovery files at the paths below. If restoration failed, keep the recovery files and reopen Dimmer with the keyboard awake before trying again.\n\n\(cleanupFiles(home: FileManager.default.homeDirectoryForCurrentUser).map(\.path).joined(separator: "\n"))")
+        let text = L10n.string("In Settings, turn off Launch at Login. Quit Dimmer to restore brightness, automatic keyboard brightness and screen colour (even while macOS has dimmed the keyboard). Check that brightness has returned before moving Dimmer from Applications to the Bin in Finder.\n\nOptional cleanup after restoration and quitting: remove Dimmer’s preferences and any remaining recovery files at the paths below. If the keyboard did not come back, the recovery file stays and reopening Dimmer finishes it.")
+        let paths = cleanupFiles(home: FileManager.default.homeDirectoryForCurrentUser).map(\.path).joined(separator: "\n")
+        alert.informativeText = "\(text)\n\n\(paths)"
         alert.addButton(withTitle: L10n.string("OK"))
         if let window = NSApp.keyWindow {
             alert.beginSheetModal(for: window)

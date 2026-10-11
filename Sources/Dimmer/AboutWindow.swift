@@ -22,12 +22,14 @@ struct SupportDetails {
 
 @MainActor
 final class AboutWindowController: NSObject, NSWindowDelegate {
+    // Tall enough for the update-check privacy line in English; SettingsViewTests holds the content to it.
+    static let contentSize = NSSize(width: 440, height: 420)
     private var window: NSWindow?
 
     func show() {
         NSApp.setActivationPolicy(.regular)
         if window == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 440, height: 380),
+            let window = NSWindow(contentRect: NSRect(origin: .zero, size: Self.contentSize),
                                   styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = L10n.string("About Dimmer")
             window.isReleasedWhenClosed = false
@@ -35,7 +37,7 @@ final class AboutWindowController: NSObject, NSWindowDelegate {
             let host = NSHostingController(rootView: AboutView())
             host.sizingOptions = []
             window.contentViewController = host
-            window.setContentSize(NSSize(width: 440, height: 380))
+            window.setContentSize(Self.contentSize)
             window.delegate = self
             window.center()
             self.window = window
@@ -49,7 +51,7 @@ final class AboutWindowController: NSObject, NSWindowDelegate {
     }
 }
 
-private struct AboutView: View {
+struct AboutView: View {
     private let details = SupportDetails()
     @State private var copied = false
 
@@ -72,7 +74,7 @@ private struct AboutView: View {
                 NSPasteboard.general.setString(details.text, forType: .string)
                 copied = true
             }
-            Text(L10n.string("Include these details in your report. Nothing is sent automatically."))
+            Text(L10n.string("Include these details in your report. Dimmer never sends them anywhere. Update checks, if you allow them, send kalkmancode.co.uk only your IP address, the Dimmer and Sparkle versions and your preferred language."))
                 .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             HStack {
                 Button(L10n.string("Report a bug…")) { NSWorkspace.shared.open(SupportDetails.issueURL) }

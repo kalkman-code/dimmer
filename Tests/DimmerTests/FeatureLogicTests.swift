@@ -12,6 +12,14 @@ final class FeatureLogicTests: XCTestCase {
         XCTAssertNil(AwakeSchedule.deadline(for: .indefinitely, startedAt: start, untilTime: start))
     }
 
+    func testPanelOffersEveryPresetAndUntilTimeOnlyWhenSelected() {
+        let presets: [AwakeDuration] = [.off, .fifteenMinutes, .oneHour, .twoHours, .fiveHours, .indefinitely]
+        for selected in presets {
+            XCTAssertEqual(DimmerMenu.panelDurations(selected: selected), presets)
+        }
+        XCTAssertEqual(DimmerMenu.panelDurations(selected: .untilTime), presets + [.untilTime])
+    }
+
     func testKeepAwakeUntilTimeRollsToTomorrowWhenThatTimeHasPassed() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
@@ -173,8 +181,41 @@ final class FeatureLogicTests: XCTestCase {
             eventTime = 100.21
             await fulfillment(of: [cleared], timeout: 2)
             XCTAssertFalse(overlay.visible)
-            XCTAssertEqual(overlay.strength, 0, "Input clears immediately, without a fade")
+            XCTAssertEqual(overlay.strength, 0, "Input completes the clear without further lid samples")
         }
+    }
+
+    // A partial veil, as in the input-clearing test above: a locked one would hide the real pointer.
+    @MainActor
+    func testSnapVeilClearingOnInputLeavesTheAngleBlurUp() async throws {
+        let overlay = AngleBlurRecorder()
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString))
+        let clock = InputClock()
+        let features = DimmerFeatures(defaults: defaults, overlay: overlay,
+                                      lastInput: { (seconds: 100.31 - clock.eventTime, kind: "key") }, uptime: { 100.31 })
+        features.angleBlurEnabled = true
+        features.angleBlurRange = DimRange(lowAngle: 60, lowLevel: 0.2, highAngle: 110, highLevel: 0.2)
+        features.privacyEnabled = true
+        features.snap = SnapSettings(zoneLow: 50, zoneHigh: 101)
+        features.setLidAngle(98)
+        XCTAssertEqual(overlay.strength, 0.2, accuracy: 0.0001)
+        let rose = expectation(description: "the stronger snap veil wins while it fades in")
+        let cleared = expectation(description: "input clears the snap veil, not the angle blur")
+        overlay.onUpdate = { strength, visible in
+            if strength > 0.2 && !clock.rose {
+                clock.rose = true
+                rose.fulfill()
+                clock.eventTime = 100.21
+            } else if clock.rose && strength == 0.2 && visible && !clock.cleared {
+                clock.cleared = true
+                cleared.fulfill()
+            }
+        }
+        for (index, angle) in [104.0, 102, 99, 96].enumerated() {
+            features.update(sample: LidSample(angle: angle, time: 100 + Double(index) / 10))
+        }
+        await fulfillment(of: [rose, cleared], timeout: 3, enforceOrder: true)
+        features.stop()
     }
 
     func testSnapSettingsClampingKeepsZoneInsideAxisAndTwoDegreesWide() {
@@ -264,4 +305,162 @@ private final class RecordingPrivacyBlurOverlay: PrivacyBlurOverlay {
 
     func describe() -> String { "recording overlay" }
     func stop() {}
+}
+
+@MainActor
+final class AngleBlurTests: XCTestCase {
+    private func makeFeatures(_ overlay: AngleBlurRecorder, suite: String) throws -> (DimmerFeatures, UserDefaults) {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        return (DimmerFeatures(defaults: defaults, overlay: overlay), defaults)
+    }
+
+    func testStrengthFollowsTheRangeAndIsOffUnlessEnabled() {
+        let range = DimRange.blurDefault
+        func strength(_ angle: Double?, enabled: Bool = true, held: Bool = false, reduce: Bool = false) -> Double {
+            AngleLane.level(enabled: enabled, held: held, reduceTransparency: reduce, angle: angle, range: range)
+        }
+        XCTAssertEqual(strength(40), 1)
+        XCTAssertEqual(strength(68), 1)
+        XCTAssertEqual(strength(84), 0.5)
+        XCTAssertEqual(strength(100), 0)
+        XCTAssertEqual(strength(120), 0)
+        XCTAssertEqual(strength(40, enabled: false), 0, "off by default and when switched off")
+        XCTAssertEqual(strength(40, held: true), 0, "pause, sleep and Go dark hold it off")
+        XCTAssertEqual(strength(40, reduce: true), 0, "Reduce Transparency removes it instead of covering the screen")
+        XCTAssertEqual(strength(nil), 0, "no sensor, no blur")
+    }
+
+    func testBlurRangeAcceptsAnyLevelsAndRisingRanges() {
+        let rising = DimRange(lowAngle: 30, lowLevel: 0.2, highAngle: 90, highLevel: 0.8)
+        XCTAssertEqual(AngleLane.level(enabled: true, held: false, reduceTransparency: false, angle: 60, range: rising), 0.5)
+        let wild = DimRange(lowAngle: -5, lowLevel: 4, highAngle: 400, highLevel: -2).clamped(maximum: LidAxis.maximum)
+        XCTAssertEqual(wild.lowLevel, 1)
+        XCTAssertEqual(wild.highLevel, 0)
+        XCTAssertEqual(wild.highAngle, LidAxis.maximum)
+        XCTAssertEqual(wild.lowAngle, 0)
+    }
+
+    func testCombinedVeilTakesTheStrongerBlurAndDarkness() {
+        let alone = VeilAppearance.combined(snap: 0, smoke: 0.6, angle: 0.4, angleSmoke: 0.8)
+        XCTAssertEqual(alone.strength, 0.4)
+        XCTAssertEqual(alone.smoke, 0.8, accuracy: 1e-9)
+        let snap = VeilAppearance.combined(snap: 0.7, smoke: 0.6, angle: 0.5, angleSmoke: 0.2)
+        XCTAssertEqual(snap.strength, 0.7)
+        XCTAssertEqual(snap.smoke, 0.6)
+        let angle = VeilAppearance.combined(snap: 0.5, smoke: 0.6, angle: 1, angleSmoke: 0.8)
+        XCTAssertEqual(angle.strength, 1)
+        XCTAssertEqual(angle.smoke, 0.8)
+        let empty = VeilAppearance.combined(snap: 0, smoke: 1, angle: 0, angleSmoke: 1)
+        XCTAssertEqual(empty.strength, 0)
+        XCTAssertEqual(empty.smoke, 0)
+    }
+
+    func testEnabledLaneShowsTheSharedVeilByAngleAndHidesAtTheOpenEnd() throws {
+        let overlay = AngleBlurRecorder()
+        let (features, defaults) = try makeFeatures(overlay, suite: UUID().uuidString)
+        defer { features.stop() }
+        features.setLidAngle(80)
+        XCTAssertFalse(overlay.visible, "disabled by default")
+        XCTAssertFalse(features.angleBlurEnabled)
+        features.angleBlurEnabled = true
+        XCTAssertTrue(overlay.visible)
+        XCTAssertEqual(overlay.strength, 0.63, accuracy: 0.0001)
+        features.setLidAngle(100)
+        XCTAssertFalse(overlay.visible, "no blur at the top end leaves no window up")
+        features.setLidAngle(50)
+        XCTAssertEqual(overlay.strength, 1)
+        features.angleBlurEnabled = false
+        XCTAssertFalse(overlay.visible)
+        XCTAssertEqual(defaults.object(forKey: "angleBlurEnabled") as? Bool, false)
+    }
+
+    func testPauseSleepAndGoDarkEachHoldItOffUntilTheNextSampleAfterRelease() throws {
+        for reason in ["pause", "sleep", "dark"] {
+            let overlay = AngleBlurRecorder()
+            let (features, _) = try makeFeatures(overlay, suite: UUID().uuidString)
+            features.angleBlurEnabled = true
+            features.setLidAngle(60)
+            XCTAssertTrue(overlay.visible, reason)
+            features.holdAngleLanes(reason, true)
+            XCTAssertFalse(overlay.visible, "\(reason) clears it at once")
+            features.setLidAngle(60)
+            XCTAssertFalse(overlay.visible, "\(reason): samples arriving during the hold stay hidden")
+            features.holdAngleLanes(reason, false)
+            XCTAssertFalse(overlay.visible, "\(reason): a sample from before or during the hold is not redrawn on release")
+            features.setLidAngle(60)
+            XCTAssertTrue(overlay.visible, "\(reason): back with the next sample")
+            features.stop()
+        }
+    }
+
+    func testTwoHoldsNeedBothReleased() throws {
+        let overlay = AngleBlurRecorder()
+        let (features, _) = try makeFeatures(overlay, suite: UUID().uuidString)
+        defer { features.stop() }
+        features.angleBlurEnabled = true
+        features.holdAngleLanes("pause", true)
+        features.holdAngleLanes("dark", true)
+        features.holdAngleLanes("pause", false)
+        features.setLidAngle(60)
+        XCTAssertFalse(overlay.visible)
+        features.holdAngleLanes("dark", false)
+        XCTAssertFalse(overlay.visible, "nothing is drawn from a sample taken during a hold")
+        features.setLidAngle(60)
+        XCTAssertTrue(overlay.visible)
+    }
+
+    func testQuitClearsItAndNothingBringsItBack() throws {
+        let overlay = AngleBlurRecorder()
+        let (features, _) = try makeFeatures(overlay, suite: UUID().uuidString)
+        features.angleBlurEnabled = true
+        features.setLidAngle(60)
+        features.stop()
+        XCTAssertFalse(overlay.visible)
+        features.setLidAngle(60)
+        XCTAssertFalse(overlay.visible)
+    }
+
+    func testSettingsPersistAndReloadThroughAClampedRange() throws {
+        let suite = UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let first = DimmerFeatures(defaults: defaults, overlay: AngleBlurRecorder())
+        first.angleBlurEnabled = true
+        first.angleBlurRange = DimRange(lowAngle: 40, lowLevel: 0.9, highAngle: 90, highLevel: 0.1)
+        first.stop()
+        let second = DimmerFeatures(defaults: defaults, overlay: AngleBlurRecorder())
+        defer { second.stop() }
+        XCTAssertTrue(second.angleBlurEnabled)
+        XCTAssertEqual(second.angleBlurRange, DimRange(lowAngle: 40, lowLevel: 0.9, highAngle: 90, highLevel: 0.1))
+        let fresh = DimmerFeatures(defaults: try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString)), overlay: AngleBlurRecorder())
+        defer { fresh.stop() }
+        XCTAssertEqual(fresh.angleBlurRange, .blurDefault)
+        XCTAssertFalse(fresh.angleBlurEnabled)
+    }
+}
+
+@MainActor
+private final class AngleBlurRecorder: PrivacyBlurOverlay {
+    private(set) var visible = false
+    private(set) var strength = 0.0
+    private(set) var smoke = 0.0
+    var onUpdate: ((Double, Bool) -> Void)?
+
+    func update(privacyBlur: Bool, strength: Double, smoke: Double, reduceTransparency: Bool) {
+        defer { onUpdate?(strength, privacyBlur) }
+        visible = privacyBlur
+        self.strength = strength
+        self.smoke = smoke
+    }
+
+    #if DEBUG
+    func describe() -> String { "angle blur recorder" }
+    #endif
+    func stop() {}
+}
+
+private final class InputClock: @unchecked Sendable {
+    var eventTime = 99.0
+    var rose = false
+    var cleared = false
 }

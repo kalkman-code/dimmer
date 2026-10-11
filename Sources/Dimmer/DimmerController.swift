@@ -140,7 +140,7 @@ final class HardwareWorker: @unchecked Sendable {
                 displaySample.status, keyboardStatus)
     }
 
-    func restoreAndClose(resetKeyboardYield: Bool = true) {
+    func restoreAndClose(finalQuit: Bool = false, resetKeyboardYield: Bool = true) {
         restoreDisplay()
         if let backlight, let journal {
             var resolved = false
@@ -152,21 +152,31 @@ final class HardwareWorker: @unchecked Sendable {
                                                   now: ProcessInfo.processInfo.systemUptime)
                 let restoration = settled == .wait ? .wait : KeyboardIdleLogic.restoration(
                     idleDimmed: backlight.isIdleDimmed, ownsBrightness: journal.owns(current.brightness))
-                switch restoration {
+
+                var effectiveRestoration = restoration
+                if effectiveRestoration == .wait, finalQuit, backlight.isIdleDimmed {
+                    effectiveRestoration = .apply
+                }
+
+                switch effectiveRestoration {
                 case .wait:
                     // Keep the journal: idle attenuation is not an ownership change, and writing
                     // here would light the keyboard during the user's chosen inactivity timeout.
                     resolved = false
                 case .apply:
                     if let restored = try? backlight.write(journal.originalBrightness),
-                       abs(restored - journal.originalBrightness) <= 0.035, !backlight.isIdleDimmed {
-                        resolved = true
+                       abs(restored - journal.originalBrightness) <= 0.035 {
+                        if finalQuit && backlight.isIdleDimmed {
+                            resolved = true
+                        } else if !backlight.isIdleDimmed {
+                            resolved = true
+                        }
                     }
                 case .yield:
                     resolved = true
                 }
                 if journal.originalAutomatic && !current.automatic {
-                    if restoration == .yield {
+                    if effectiveRestoration == .yield {
                         do {
                             try enableAutomaticPreservingBrightness(current.brightness, on: backlight)
                         } catch {
@@ -180,7 +190,7 @@ final class HardwareWorker: @unchecked Sendable {
             }
             if resolved { RecoveryJournal.clear(at: keyboardJournalURL) }
         } else if let backlight, !yieldedControl, RecoveryJournal.load(from: keyboardJournalURL) != nil {
-            _ = try? recoverStaleState(with: backlight)
+            _ = try? recoverStaleState(with: backlight, finalQuit: finalQuit)
         }
         journal = nil
         sensor?.close()
@@ -193,6 +203,12 @@ final class HardwareWorker: @unchecked Sendable {
         darkKeyboardBaseline = nil
         darkDisplayBaseline = nil
         darkGammaBaseline = nil
+    }
+
+    func resumeKeyboard() {
+        if journal == nil {
+            yieldedControl = false
+        }
     }
 
     private func apply(_ angle: Double, range: DimRange, enabled: Bool, darkness: Double) throws -> Double? {
@@ -299,17 +315,24 @@ final class HardwareWorker: @unchecked Sendable {
     }
 
     @discardableResult
-    private func recoverStaleState(with client: any KeyboardBacklightControlling) throws -> Bool {
+    private func recoverStaleState(with client: any KeyboardBacklightControlling, finalQuit: Bool = false) throws -> Bool {
         guard let stale = RecoveryJournal.load(from: keyboardJournalURL) else { return true }
         let current = try client.read()
         let settled = keyboardIdle.update(idleDimmed: client.isIdleDimmed, current: current.brightness,
                                           automatic: current.automatic, lastWritten: stale.lastWritten,
                                           pendingBrightness: stale.pendingBrightness,
                                           now: ProcessInfo.processInfo.systemUptime)
-        guard settled != .wait else { return false }
-        let restoration = KeyboardIdleLogic.restoration(idleDimmed: client.isIdleDimmed,
+        var restoration = KeyboardIdleLogic.restoration(idleDimmed: client.isIdleDimmed,
                                                        ownsBrightness: stale.owns(current.brightness))
-        guard restoration != .wait else { return false }
+        // Quitting writes the original level even while macOS holds the keyboard dark, as the in-memory
+        // journal path does; a paused app that reopened the backlight reaches this one instead.
+        let forcedByQuit = finalQuit && client.isIdleDimmed && (settled == .wait || restoration == .wait)
+        if forcedByQuit {
+            restoration = .apply
+        } else {
+            guard settled != .wait else { return false }
+            guard restoration != .wait else { return false }
+        }
         var brightnessResolved = restoration == .yield
         if !brightnessResolved {
             guard let restored = try? client.write(stale.originalBrightness),
@@ -321,7 +344,7 @@ final class HardwareWorker: @unchecked Sendable {
                 }
                 throw BacklightError.writeMismatch
             }
-            guard !client.isIdleDimmed else { return false }
+            guard !client.isIdleDimmed || forcedByQuit else { return false }
             brightnessResolved = true
         }
         var automaticResolved = true
@@ -605,12 +628,68 @@ final class HardwareWorker: @unchecked Sendable {
     }
 }
 
+// Every lid sample, published for the logic that acts on each one: the features' angle lanes and snap, and tests.
+// Not an ObservableObject on purpose. Published through the controller, ten samples a second rebuilt every
+// Settings box and bar with the lid still (docs/settings-fps-diagnosis-10-10-2026.md). Views read `reading`.
+@MainActor
+final class LidTelemetry {
+    let reading = LidReading()
+    @Published fileprivate(set) var angle: Double? {
+        didSet {
+            // The exact angle, taken whenever it enters another tenth of a degree. Tenths that start at the
+            // whole and half degrees keep "Lid N°" rounding the same as the raw angle would.
+            if reading.angle.map({ floor($0 * 10) }) != angle.map({ floor($0 * 10) }) { reading.angle = angle }
+        }
+    }
+    @Published fileprivate(set) var rawSample: LidSample?
+    @Published fileprivate(set) var keyboardBrightness: Double? {
+        didSet {
+            let shown = keyboardBrightness.map { Int(($0 * 100).rounded()) }
+            if reading.keyboardPercent != shown { reading.keyboardPercent = shown }
+        }
+    }
+    @Published fileprivate(set) var displayBrightness: Double? {
+        didSet {
+            let shown = displayBrightness.map { Int(($0 * 100).rounded()) }
+            if reading.displayPercent != shown { reading.displayPercent = shown }
+        }
+    }
+}
+
+// The live lid values as the views show them: the angle per tenth of a degree, the brightnesses to a whole
+// percent. Each changes only when what is shown does, so a still lid redraws nothing.
+@MainActor
+final class LidReading: ObservableObject {
+    @Published fileprivate(set) var angle: Double?
+    @Published fileprivate(set) var keyboardPercent: Int?
+    @Published fileprivate(set) var displayPercent: Int?
+}
+
 @MainActor
 final class DimmerController: ObservableObject {
-    @Published private(set) var angle: Double?
-    @Published private(set) var rawSample: LidSample?
-    @Published private(set) var keyboardBrightness: Double?
-    @Published private(set) var displayBrightness: Double?
+    let telemetry = LidTelemetry()
+    var reading: LidReading { telemetry.reading }
+    private(set) var angle: Double? {
+        get { telemetry.angle }
+        set {
+            telemetry.angle = newValue
+            if hasLidAngle != (newValue != nil) { hasLidAngle = newValue != nil }
+        }
+    }
+    private(set) var rawSample: LidSample? {
+        get { telemetry.rawSample }
+        set { telemetry.rawSample = newValue }
+    }
+    private(set) var keyboardBrightness: Double? {
+        get { telemetry.keyboardBrightness }
+        set { telemetry.keyboardBrightness = newValue }
+    }
+    private(set) var displayBrightness: Double? {
+        get { telemetry.displayBrightness }
+        set { telemetry.displayBrightness = newValue }
+    }
+    // Whether there is a lid angle at all: the coarse fact the status line and Go dark need, published only when it flips.
+    @Published private(set) var hasLidAngle = false
     @Published private(set) var displayStatus = L10n.string("Dimmer leaves automatic brightness unchanged.")
     @Published private(set) var errorMessage = L10n.string("Starting…")
     @Published private(set) var paused = false
@@ -628,10 +707,16 @@ final class DimmerController: ObservableObject {
         didSet { defaults.set(dimsKeyboard, forKey: "dimsKeyboard") }
     }
     @Published private(set) var isDark = false
+    @Published private(set) var keyboardYielded = false
+    @Published private(set) var screenStatus: ScreenStatus = .ready
+
+    var canResumeKeyboard: Bool { keyboardYielded && !paused && !isDark }
+
     private var darkness = 0.0
     private var darkTimer: Timer?
     private var darkAt: TimeInterval = 0
     private var darkStartAngle: Double?
+    private var keyboardEpoch = 0
 
     private let work = DispatchQueue(label: "uk.co.kalkmancode.dimmer.hardware")
     private let hardware: HardwareWorker
@@ -647,9 +732,16 @@ final class DimmerController: ObservableObject {
     private var controlFailureNeedsResume = false
     private let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard, hardware: HardwareWorker = HardwareWorker()) {
+    @Published private(set) var resumeAt: Date?
+    private(set) var pauseToken: UUID?
+    private var preparingForSleep = false
+    private var pauseTimer: Timer?
+    private let now: () -> Date
+
+    init(defaults: UserDefaults = .standard, hardware: HardwareWorker = HardwareWorker(), now: @escaping () -> Date = Date.init) {
         self.defaults = defaults
         self.hardware = hardware
+        self.now = now
         let keyboardData = defaults.data(forKey: "keyboardRange")
         let screenData = defaults.data(forKey: "screenRange")
         let migrated = keyboardData == nil && screenData == nil ? DimRange.migrated(
@@ -752,10 +844,27 @@ final class DimmerController: ObservableObject {
     }
     #endif
 
-    func togglePaused() {
-        paused.toggle()
+    private func performResume() {
         cancelKeyboardRecovery()
+        resumeAt = nil
+        pauseToken = nil
+        pauseTimer?.invalidate()
+        pauseTimer = nil
+
+        paused = false
+        controlFailureNeedsResume = false
+        angle = nil
+        errorMessage = L10n.string("Reconnecting to lid sensor…")
+        start()
+    }
+
+    func togglePaused() {
         if paused {
+            performResume()
+        } else {
+            paused = true
+            keyboardYielded = false
+            cancelKeyboardRecovery()
             cancelDark()
             timer?.invalidate()
             timer = nil
@@ -764,15 +873,43 @@ final class DimmerController: ObservableObject {
             work.async { [hardware] in hardware.restoreAndClose() }
             retryPausedRecovery()
             errorMessage = L10n.string("Paused.")
-        } else {
-            controlFailureNeedsResume = false
-            angle = nil
-            errorMessage = L10n.string("Reconnecting to lid sensor…")
-            start()
         }
     }
 
+    func pause(for duration: PauseDuration) {
+        guard !paused else { return }
+        togglePaused()
+        let target = now().addingTimeInterval(duration.seconds)
+        resumeAt = target
+        let token = UUID()
+        pauseToken = token
+        armPauseTimer(until: target, token: token)
+    }
+
+    // A token that no longer matches means the pause it belonged to was resumed or replaced.
+    private func armPauseTimer(until target: Date, token: UUID) {
+        pauseTimer?.invalidate()
+        pauseTimer = Timer.scheduledTimer(withTimeInterval: max(0, target.timeIntervalSince(now())), repeats: false) { [weak self] _ in
+            Task { @MainActor in self?.pauseTimerFired(token: token) }
+        }
+    }
+
+    // A timer can fire a moment before the deadline by the clock `now` reads; re-arm rather than stay paused for good.
+    func pauseTimerFired(token: UUID) {
+        guard pauseToken == token, !preparingForSleep else { return }
+        if !resumeIfPauseExpired(), paused, let target = resumeAt { armPauseTimer(until: target, token: token) }
+    }
+
+    @discardableResult
+    func resumeIfPauseExpired() -> Bool {
+        guard paused, let target = resumeAt, now() >= target else { return false }
+        performResume()
+        return true
+    }
+
     func prepareForSleep() {
+        preparingForSleep = true
+        pauseTimer?.invalidate()
         cancelDark()
         cancelKeyboardRecovery()
         timer?.invalidate()
@@ -784,6 +921,10 @@ final class DimmerController: ObservableObject {
     }
 
     func resumeAfterWake() {
+        preparingForSleep = false
+        // Timers do not run while the Mac sleeps, so the deadline is checked on wake.
+        if resumeIfPauseExpired() { return }
+        if paused, let target = resumeAt, let token = pauseToken { armPauseTimer(until: target, token: token) }
         // Hardware failures still require Pause and Resume; a keyboard yield keeps lid polling alive.
         if paused { retryPausedRecovery() }
         guard !paused, !controlFailureNeedsResume else { return }
@@ -792,12 +933,15 @@ final class DimmerController: ObservableObject {
     }
 
     func stop() {
+        pauseTimer?.invalidate()
+        resumeAt = nil
+        pauseToken = nil
         cancelDark()
         cancelKeyboardRecovery()
         timer?.invalidate()
         timer = nil
         pollGeneration.cancel()
-        work.sync { hardware.restoreAndClose() }
+        work.sync { hardware.restoreAndClose(finalQuit: true) }
     }
 
     private func retryPausedRecovery() {
@@ -829,6 +973,41 @@ final class DimmerController: ObservableObject {
         keyboardRecoveryTimer = nil
     }
 
+    func resumeKeyboard() {
+        guard canResumeKeyboard else { return }
+        keyboardEpoch += 1
+        keyboardYielded = false
+        errorMessage = L10n.string("Active")
+        work.async { [weak self] in
+            guard let self = self else { return }
+            self.hardware.resumeKeyboard()
+        }
+        poll()
+    }
+
+    private func publish(_ sample: HardwarePoll, keyboardEpochCurrent: Bool) {
+        angle = sample.angle
+        rawSample = sample.sample
+        keyboardBrightness = sample.brightness
+        displayBrightness = sample.displayBrightness
+        // A published value fires on every assignment, equal or not, so the unchanged ones are left alone.
+        if displayStatus != sample.displayStatus { displayStatus = sample.displayStatus }
+        let newScreenStatus = ScreenStatus.from(sample.displayStatus)
+        if screenStatus != newScreenStatus {
+            screenStatus = newScreenStatus
+        }
+        if keyboardEpochCurrent {
+            if keyboardYielded != (sample.keyboardStatus != nil) { keyboardYielded = sample.keyboardStatus != nil }
+            let message = sample.keyboardStatus ?? L10n.string("Active")
+            if errorMessage != message { errorMessage = message }
+        }
+    }
+
+    #if DEBUG
+    // Tests replay a hardware poll's result through the same publishing the timer's poll uses.
+    func simulatePoll(_ sample: HardwarePoll) { publish(sample, keyboardEpochCurrent: true) }
+    #endif
+
     private func poll() {
         guard !controlFailureNeedsResume, Date() >= retryAfter else { return }
         if pollInFlight {
@@ -844,6 +1023,7 @@ final class DimmerController: ObservableObject {
         let darkness = darkness
         let generation = pollGeneration.current
         let gate = pollGeneration
+        let capturedEpoch = keyboardEpoch
         work.async { [weak self, hardware] in
             let result: Result<HardwarePoll, Error>
             do {
@@ -857,13 +1037,7 @@ final class DimmerController: ObservableObject {
                 guard !self.paused else { return }
                 switch result {
                 case .success(let sample):
-                    self.angle = sample.angle
-                    self.rawSample = sample.sample
-                    self.keyboardBrightness = sample.brightness
-                    self.displayBrightness = sample.displayBrightness
-                    self.displayStatus = sample.displayStatus
-                    self.errorMessage = sample.keyboardStatus ?? "Active"
-                    self.errorMessage = sample.keyboardStatus ?? L10n.string("Active")
+                    self.publish(sample, keyboardEpochCurrent: capturedEpoch == self.keyboardEpoch)
                     if let written = sample.written {
                         self.lastHardwareLog = Date()
                         let target = keyboardRange.level(at: sample.angle)

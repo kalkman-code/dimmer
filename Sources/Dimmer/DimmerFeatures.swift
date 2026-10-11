@@ -12,6 +12,36 @@ protocol PrivacyBlurOverlay: AnyObject {
     func stop()
 }
 
+// The angle lanes' live levels as Settings shows them, in whole percent, nil without a lid angle. Each changes only
+// when what is shown does, so a lid sample redraws only the readouts that move.
+@MainActor
+final class AngleLaneReading: ObservableObject {
+    @Published fileprivate(set) var blurPercent: Int?
+}
+
+@MainActor
+final class VeilTintSettings: ObservableObject {
+    nonisolated static let defaultValue = 0.0
+    @Published private var storedValue: Double
+    var onChange: (() -> Void)?
+
+    init(_ value: Double = defaultValue) { storedValue = Self.clamped(value) }
+
+    var value: Double {
+        get { storedValue }
+        set {
+            let next = Self.clamped(newValue)
+            guard next != storedValue else { return }
+            storedValue = next
+            onChange?()
+        }
+    }
+
+    private static func clamped(_ value: Double) -> Double {
+        value.isFinite ? min(max(value, 0), 1) : defaultValue
+    }
+}
+
 @MainActor
 final class DimmerFeatures: ObservableObject {
     @Published private(set) var awakeDuration: AwakeDuration = .off
@@ -31,13 +61,64 @@ final class DimmerFeatures: ObservableObject {
             updateOverlay()
         }
     }
-    @Published var snap: SnapSettings {
+    @Published var privacyVeilEnabled: Bool {
+        didSet {
+            defaults.set(privacyVeilEnabled, forKey: "privacyVeilEnabled")
+            if !privacyVeilEnabled && veilUsesShortcutTint
+                && (privacyBlurActive || veilLevel > 0 || veilTarget > 0) {
+                clearPrivacyBlur(fade: 0)
+            }
+        }
+    }
+    @Published private var snapValues: SnapSettings {
         didSet {
             Self.persist(snap, key: "snapSettings", defaults: defaults)
             updateOverlay()
         }
     }
+    let snapTint: VeilTintSettings
+    let angleBlurTint: VeilTintSettings
+    let privacyVeilTint: VeilTintSettings
+
+    // Tint drags publish only to their own control and restore link, not to the Settings Form.
+    var snap: SnapSettings {
+        get {
+            var value = snapValues
+            value.smoke = snapTint.value
+            return value
+        }
+        set {
+            snapTint.value = newValue.smoke
+            var values = newValue
+            values.smoke = 0
+            if snapValues != values { snapValues = values }
+        }
+    }
+    var angleBlurSmoke: Double {
+        get { angleBlurTint.value }
+        set { angleBlurTint.value = newValue }
+    }
+    var privacyVeilSmoke: Double {
+        get { privacyVeilTint.value }
+        set { privacyVeilTint.value = newValue }
+    }
     @Published private(set) var privacyBlurActive = false
+    // The fourth lane: a blur that follows the lid angle, drawn in the same veil window as the snap veil.
+    @Published var angleBlurEnabled: Bool {
+        didSet {
+            defaults.set(angleBlurEnabled, forKey: "angleBlurEnabled")
+            updateOverlay()
+        }
+    }
+    @Published var angleBlurRange: DimRange {
+        didSet {
+            Self.persist(angleBlurRange, key: "angleBlurRange", defaults: defaults)
+            updateOverlay()
+        }
+    }
+    // Set with every lid sample, so not published: Settings reads the lanes' levels from `laneReading`.
+    private(set) var lidAngle: Double?
+    let laneReading = AngleLaneReading()
 
     private var assertionID: IOPMAssertionID?
     private var expiryTask: Task<Void, Never>?
@@ -45,6 +126,7 @@ final class DimmerFeatures: ObservableObject {
     private var snapDetector = SnapDetector()
     private var blurredAt: TimeInterval?
     private var manualLift: ManualPrivacyLift?
+    private var veilUsesShortcutTint = false
     private var inputGrace = SnapDetector.inputGrace
     private var inputTimer: Timer?
     private var veilLevel = 0.0
@@ -52,6 +134,7 @@ final class DimmerFeatures: ObservableObject {
     private var veilTimer: Timer?
     private var veilFallingDuration: TimeInterval = 0.35
     private var veilClearStartedAt: TimeInterval?
+    private var angleLaneHolds = Set<String>()
     private let overlay: any PrivacyBlurOverlay
     private let lastInput: () -> (seconds: Double, kind: String)
     private let uptime: () -> TimeInterval
@@ -68,7 +151,35 @@ final class DimmerFeatures: ObservableObject {
         self.lastInput = lastInput
         self.uptime = uptime
         privacyEnabled = defaults.object(forKey: "privacyBlurEnabled") as? Bool ?? false
-        snap = Self.loadSnapSettings(defaults: defaults)
+        privacyVeilEnabled = defaults.object(forKey: "privacyVeilEnabled") as? Bool ?? true
+        let savedSnap = Self.loadSnapSettings(defaults: defaults)
+        snapTint = VeilTintSettings(savedSnap.smoke)
+        privacyVeilTint = VeilTintSettings(defaults.object(forKey: "privacyVeilSmoke") as? Double ?? savedSnap.smoke)
+        // Persist the migration immediately: a later Snap tint edit must not become the shortcut's first value.
+        defaults.set(privacyVeilTint.value, forKey: "privacyVeilSmoke")
+        var snapBase = savedSnap
+        snapBase.smoke = 0
+        snapValues = snapBase
+        angleBlurTint = VeilTintSettings(defaults.object(forKey: "angleBlurSmoke") as? Double ?? VeilTintSettings.defaultValue)
+        angleBlurEnabled = defaults.object(forKey: "angleBlurEnabled") as? Bool ?? false
+        angleBlurRange = defaults.data(forKey: "angleBlurRange")
+            .flatMap { try? JSONDecoder().decode(DimRange.self, from: $0) }?.clamped(maximum: LidAxis.maximum)
+            ?? .blurDefault
+        snapTint.onChange = { [weak self] in
+            guard let self else { return }
+            Self.persist(self.snap, key: "snapSettings", defaults: self.defaults)
+            self.updateOverlay()
+        }
+        angleBlurTint.onChange = { [weak self] in
+            guard let self else { return }
+            self.defaults.set(self.angleBlurSmoke, forKey: "angleBlurSmoke")
+            self.updateOverlay()
+        }
+        privacyVeilTint.onChange = { [weak self] in
+            guard let self else { return }
+            self.defaults.set(self.privacyVeilSmoke, forKey: "privacyVeilSmoke")
+            self.updateOverlay()
+        }
         accessibilityChanges = DisplayAccessibility.shared.$preferences.dropFirst().sink { [weak self] preferences in
             guard let self else { return }
             self.accessibilityPreferences = preferences
@@ -106,8 +217,10 @@ final class DimmerFeatures: ObservableObject {
         case .snapped:
             logger.info("snap blur on angle=\(sample.angle, privacy: .public)° zone=\(self.snap.zoneLow, privacy: .public)–\(self.snap.zoneHigh, privacy: .public) speed≥\(self.snap.minimumSpeed, privacy: .public) strength=\(self.snap.blurStrength, privacy: .public) smoke=\(self.snap.smoke, privacy: .public)")
             manualLift = nil
+            veilUsesShortcutTint = false
             lockPrivacyBlur(at: sample.time, inputGrace: SnapDetector.inputGrace)
         case .partial(let level):
+            veilUsesShortcutTint = false
             if veilTarget == 0 { logger.info("snap veil starting angle=\(sample.angle, privacy: .public)° level=\(level, privacy: .public)") }
             if blurredAt == nil {
                 blurredAt = sample.time
@@ -124,8 +237,10 @@ final class DimmerFeatures: ObservableObject {
     }
 
     func activatePrivacyBlurFromShortcut(at time: TimeInterval, angle: Double?) {
+        guard privacyVeilEnabled else { return }
         snapDetector.reset()
         manualLift = ManualPrivacyLift(angle: angle)
+        veilUsesShortcutTint = true
         lockPrivacyBlur(at: time, inputGrace: 0)
     }
 
@@ -205,6 +320,32 @@ final class DimmerFeatures: ObservableObject {
         if !privacyBlurActive { snapDetector.reset() }
     }
 
+    // The smoothed lid angle, nil when the sensor is unavailable. The snap detector keeps the raw samples.
+    func setLidAngle(_ angle: Double?) {
+        // A sample queued before a hold was placed must not survive it: the blur returns with the next one.
+        guard angleLaneHolds.isEmpty else { return }
+        lidAngle = angle
+        updateOverlay()
+    }
+
+    // Pause, sleep and Go dark drop the stale angle, so the veil returns only with the next sample
+    // once the last hold is released.
+    func holdAngleLanes(_ reason: String, _ held: Bool) {
+        if held {
+            angleLaneHolds.insert(reason)
+            lidAngle = nil
+        } else {
+            angleLaneHolds.remove(reason)
+        }
+        updateOverlay()
+    }
+
+    var angleBlurStrength: Double {
+        AngleLane.level(enabled: angleBlurEnabled, held: !angleLaneHolds.isEmpty,
+                        reduceTransparency: accessibilityPreferences.reduceTransparency,
+                        angle: lidAngle, range: angleBlurRange)
+    }
+
     func setAwakeDuration(_ duration: AwakeDuration) {
         awakeDuration = duration
         applyAwakeAssertion()
@@ -212,6 +353,7 @@ final class DimmerFeatures: ObservableObject {
 
     func stop() {
         setAwakeDuration(.off)
+        angleLaneHolds.insert("quit")
         clearPrivacyBlur(fade: 0)
         overlay.stop()
     }
@@ -257,7 +399,7 @@ final class DimmerFeatures: ObservableObject {
                                      now: uptime(),
                                      blurredAt: blurredAt, grace: inputGrace) {
             logger.info("snap blur cleared by input: \(input.kind, privacy: .public)")
-            clearPrivacyBlur(fade: 0)
+            clearPrivacyBlur(fade: snap.clearSeconds)
         }
     }
 
@@ -269,15 +411,20 @@ final class DimmerFeatures: ObservableObject {
         return settings.clamped(maximum: LidAxis.maximum)
     }
 
-    private static func persist(_ settings: SnapSettings, key: String, defaults: UserDefaults) {
+    private static func persist<Value: Encodable>(_ settings: Value, key: String, defaults: UserDefaults) {
         guard let data = try? JSONEncoder().encode(settings) else { return }
         defaults.set(data, forKey: key)
     }
 
     private func updateOverlay() {
-        overlay.update(privacyBlur: VeilAppearance.shouldShow(level: veilLevel, locked: privacyBlurActive,
-                                                            reduceTransparency: accessibilityPreferences.reduceTransparency),
-                       strength: snap.blurStrength * veilLevel, smoke: snap.smoke,
+        let blur = lidAngle == nil ? nil : Int((angleBlurStrength * 100).rounded())
+        if laneReading.blurPercent != blur { laneReading.blurPercent = blur }
+        let snapShown = VeilAppearance.shouldShow(level: veilLevel, locked: privacyBlurActive,
+                                                  reduceTransparency: accessibilityPreferences.reduceTransparency)
+        let veil = VeilAppearance.combined(snap: snapShown ? snap.blurStrength * veilLevel : 0,
+                                           smoke: veilUsesShortcutTint ? privacyVeilSmoke : snap.smoke,
+                                           angle: angleBlurStrength, angleSmoke: angleBlurSmoke)
+        overlay.update(privacyBlur: snapShown || angleBlurStrength > 0, strength: veil.strength, smoke: veil.smoke,
                        reduceTransparency: accessibilityPreferences.reduceTransparency)
         // The pointer is hidden only while the veil is up; a crash needs nothing here, because the window
         // server drops a connection's hidden cursor when the process exits.

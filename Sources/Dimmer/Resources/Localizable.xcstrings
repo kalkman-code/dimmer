@@ -3331,86 +3331,6 @@
         }
       }
     },
-    "In Settings, turn off Launch at Login. Wake the keyboard with a key or trackpad input, then Quit Dimmer to restore brightness, automatic keyboard brightness and screen colour. Check that brightness has returned before moving Dimmer from Applications to the Bin in Finder.\n\nOptional cleanup after restoration and quitting: remove Dimmer’s preferences and any remaining recovery files at the paths below. If restoration failed, keep the recovery files and reopen Dimmer with the keyboard awake before trying again.\n\n%@" : {
-      "localizations" : {
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In Settings, turn off Launch at Login. Wake the keyboard with a key or trackpad input, then Quit Dimmer to restore brightness, automatic keyboard brightness and screen colour. Check that brightness has returned before moving Dimmer from Applications to the Bin in Finder.\n\nOptional cleanup after restoration and quitting: remove Dimmer’s preferences and any remaining recovery files at the paths below. If restoration failed, keep the recovery files and reopen Dimmer with the keyboard awake before trying again.\n\n%@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En Ajustes, desactiva Abrir al iniciar sesión. Reactiva el teclado con una tecla o el trackpad y, después, sal de Dimmer para restaurar el brillo, el brillo automático del teclado y el color de la pantalla. Comprueba que se haya restaurado el brillo antes de mover Dimmer de Aplicaciones a la Papelera en el Finder.\n\nLimpieza opcional después de restaurar y salir: elimina los ajustes de Dimmer y los archivos de recuperación que queden en las rutas siguientes. Si la restauración falla, conserva los archivos de recuperación y vuelve a abrir Dimmer con el teclado activo antes de intentarlo de nuevo.\n\n%@"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Em Ajustes, desative Abrir no Início da Sessão. Ative o teclado com uma tecla ou o trackpad e, depois, encerre o Dimmer para restaurar o brilho, o brilho automático do teclado e a cor da tela. Confira se o brilho foi restaurado antes de mover o Dimmer de Aplicativos para o Lixo no Finder.\n\nLimpeza opcional após a restauração e o encerramento: remova os ajustes do Dimmer e os arquivos de recuperação restantes nos caminhos abaixo. Se a restauração falhar, mantenha os arquivos de recuperação e abra o Dimmer novamente com o teclado ativo antes de tentar outra vez.\n\n%@"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deaktiviere in den Einstellungen „Beim Anmelden öffnen“. Wecke die Tastatur mit einer Taste oder dem Trackpad auf und beende dann Dimmer, um die Helligkeit, die automatische Tastaturhelligkeit und die Bildschirmfarbe wiederherzustellen. Prüfe, ob die Helligkeit wiederhergestellt wurde, bevor du Dimmer im Finder aus „Programme“ in den Papierkorb bewegst.\n\nOptionale Bereinigung nach der Wiederherstellung und dem Beenden: Entferne Dimmers Einstellungen und alle verbliebenen Wiederherstellungsdateien unter den folgenden Pfaden. Falls die Wiederherstellung fehlgeschlagen ist, behalte die Wiederherstellungsdateien und öffne Dimmer erneut, während die Tastatur aktiv ist.\n\n%@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dans les réglages, désactivez « Ouvrir à la session ». Réveillez le clavier en appuyant sur une touche ou en touchant le trackpad, puis quittez Dimmer pour rétablir la luminosité, le réglage automatique du clavier et les couleurs de l’écran. Vérifiez que la luminosité est rétablie avant de déplacer Dimmer du dossier Applications vers la Corbeille dans le Finder.\n\nNettoyage facultatif après le rétablissement et la fermeture : supprimez les préférences de Dimmer et les éventuels fichiers de récupération restants aux emplacements ci-dessous. Si le rétablissement a échoué, conservez les fichiers de récupération et rouvrez Dimmer avec le clavier actif avant de réessayer.\n\n%@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「設定」で「ログイン時に起動」をオフにします。キーを押すかトラックパッドを操作してキーボードを復帰させてから、Dimmerを終了し、明るさ、自動キーボード輝度、画面の色を復元します。明るさが戻ったことを確認してから、Finderで「アプリケーション」内のDimmerをゴミ箱に移動してください。\n\n復元と終了後の任意の片付け：以下のパスにあるDimmerの設定と残った復旧ファイルを削除します。復元に失敗した場合は復旧ファイルを残し、キーボードのバックライトが点灯した状態でDimmerを再度開いてからやり直してください。\n\n%@"
-          }
-        }
-      }
-    },
-    "Include these details in your report. Nothing is sent automatically." : {
-      "localizations" : {
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Include these details in your report. Nothing is sent automatically."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Incluye estos detalles en tu informe. No se envía nada automáticamente."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inclua estes detalhes no seu relatório. Nada é enviado automaticamente."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Füge diese Details deinem Bericht hinzu. Es wird nichts automatisch gesendet."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Joignez ces détails à votre rapport. Rien n’est envoyé automatiquement."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "報告にこの情報を含めてください。自動送信はされません。"
-          }
-        }
-      }
-    },
     "Indefinitely" : {
       "localizations" : {
         "en-GB" : {
@@ -4932,42 +4852,42 @@
         }
       }
     },
-    "Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own." : {
+    "Works only while Privacy veil is on. Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own." : {
       "localizations" : {
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own."
+            "value" : "Works only while Privacy veil is on. Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desenfoca todas las pantallas desde cualquier app, aunque el cierre rápido esté desactivado; cualquier actividad lo quita. Haz clic para grabar tu propio atajo."
+            "value" : "Solo funciona mientras Velo de privacidad está activado. Desenfoca todas las pantallas desde cualquier app, aunque el cierre rápido esté desactivado; cualquier actividad lo quita. Haz clic para grabar tu propio atajo."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desfoca todas as telas em qualquer app, mesmo com o fechamento rápido desativado; qualquer ação remove o efeito. Clique para gravar seu próprio atalho."
+            "value" : "Funciona somente enquanto o Véu de privacidade estiver ativado. Desfoca todas as telas em qualquer app, mesmo com o fechamento rápido desativado; qualquer ação remove o efeito. Clique para gravar seu próprio atalho."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stellt jeden Bildschirm in jeder App unscharf, auch wenn „Unschärfe beim schnellen Schließen“ deaktiviert ist. Jede Eingabe hebt den Effekt auf. Klicke hier, um einen eigenen Kurzbefehl aufzuzeichnen."
+            "value" : "Funktioniert nur, wenn der Sichtschutz-Schleier eingeschaltet ist. Stellt jeden Bildschirm in jeder App unscharf, auch wenn „Unschärfe beim schnellen Schließen“ deaktiviert ist. Jede Eingabe hebt den Effekt auf. Klicke hier, um einen eigenen Kurzbefehl aufzuzeichnen."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Floute tous les écrans dans n’importe quelle app, même si la fermeture brusque est désactivée ; toute saisie l’efface. Cliquez pour enregistrer votre propre raccourci."
+            "value" : "Fonctionne uniquement lorsque le Voile de confidentialité est activé. Floute tous les écrans dans n’importe quelle app, même si la fermeture brusque est désactivée ; toute saisie l’efface. Cliquez pour enregistrer votre propre raccourci."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「ふたを素早く閉じてぼかす」がオフでも、どのアプリからでもすべての画面をぼかします。何か入力すると解除されます。クリックしてショートカットを記録してください。"
+            "value" : "プライバシーのベールがオンのときだけ機能します。「ふたを素早く閉じてぼかす」がオフでも、どのアプリからでもすべての画面をぼかします。何か入力すると解除されます。クリックしてショートカットを記録してください。"
           }
         }
       }
@@ -5048,46 +4968,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "一時停止"
-          }
-        }
-      }
-    },
-    "Pause and Quit hand brightness back to you. Wake an idle-dimmed keyboard before quitting to restore it immediately. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake." : {
-      "localizations" : {
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pause and Quit hand brightness back to you. Wake an idle-dimmed keyboard before quitting to restore it immediately. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pausar y Salir te devuelven el control del brillo. Reactiva el teclado atenuado por inactividad antes de salir para restaurarlo al instante. Mantener activo evita la suspensión por inactividad durante el tiempo elegido; no mantiene activo un MacBook cerrado."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pausar e Encerrar devolvem o controle do brilho a você. Ative o teclado escurecido por inatividade antes de encerrar para restaurá-lo imediatamente. Manter desperto impede a suspensão por inatividade pelo tempo escolhido; não mantém um MacBook fechado desperto."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mit „Pausieren“ und „Beenden“ überlässt Dimmer die Helligkeit wieder dir. Wecke eine wegen Inaktivität gedimmte Tastatur vor dem Beenden auf, damit sie sofort wiederhergestellt wird. „Wach halten“ verhindert den Ruhezustand bei Inaktivität für die gewählte Dauer; ein geschlossenes MacBook bleibt dadurch nicht wach."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suspendre ou quitter Dimmer vous rend le contrôle de la luminosité. Réveillez le clavier atténué après une période d’inactivité avant de quitter, afin de le rétablir immédiatement. « Maintenir éveillé » empêche la veille après inactivité pendant la durée choisie ; cette option ne maintient pas éveillé un MacBook fermé."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一時停止または終了すると、明るさの制御をユーザーに戻します。アイドル時に暗くなったキーボードは、終了前に起こすとすぐに復元できます。「スリープを防止」は選択した時間、アイドルスリープを防ぎますが、閉じたMacBookのスリープは防ぎません。"
           }
         }
       }
@@ -6295,42 +6175,42 @@
         }
       }
     },
-    "Slow" : {
+    "Slow (600 ms)" : {
       "localizations" : {
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Slow"
+            "value" : "Slow (600 ms)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lento"
+            "value" : "Lento (600 ms)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lento"
+            "value" : "Lento (600 ms)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Langsam"
+            "value" : "Langsam (600 ms)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lent"
+            "value" : "Lent (600 ms)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ゆっくり"
+            "value" : "ゆっくり (600 ms)"
           }
         }
       }
@@ -8335,6 +8215,2146 @@
             }
           }
         }
+      }
+    },
+    "Pause for 15 minutes" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause for 15 minutes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar durante 15 minutos"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar por 15 minutos"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 Minuten pausieren"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suspendre pendant 15 minutes"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15分間一時停止"
+          }
+        }
+      }
+    },
+    "Pause for 1 hour" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause for 1 hour"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar durante 1 hora"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar por 1 hora"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 Stunde pausieren"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suspendre pendant 1 heure"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1時間一時停止"
+          }
+        }
+      }
+    },
+    "Paused until %@" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused until %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En pausa hasta %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausado até %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausiert bis %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En pause jusqu’à %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@まで一時停止中"
+          }
+        }
+      }
+    },
+    "Pause for…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause for…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar durante…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar por…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausieren für …"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suspendre pendant…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一時停止する時間…"
+          }
+        }
+      }
+    },
+    "Resume keyboard dimming" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume keyboard dimming"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reanudar la atenuación del teclado"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retomar o escurecimento do teclado"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tastaturdimmen fortsetzen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprendre la gradation du clavier"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キーボードの調光を再開"
+          }
+        }
+      }
+    },
+    "Hands the keyboard backlight back to Dimmer. Screen dimming and privacy control are not interrupted." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hands the keyboard backlight back to Dimmer. Screen dimming and privacy control are not interrupted."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devuelve a Dimmer el control de la retroiluminación del teclado. La atenuación de la pantalla y el control de privacidad continúan."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devolve ao Dimmer o controle da retroiluminação do teclado. O escurecimento da tela e o controle de privacidade continuam."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übergibt die Tastaturbeleuchtung wieder an Dimmer. Bildschirmdimmen und Sichtschutz laufen weiter."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rend le rétroéclairage du clavier à Dimmer. L’écran et le contrôle de confidentialité continuent."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キーボードのバックライト制御をDimmerに戻します。画面の調光とプライバシー制御は中断されません。"
+          }
+        }
+      }
+    },
+    "Screen and privacy control continue. Choose Resume keyboard dimming in the menu bar panel to reconnect the keyboard." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen and privacy control continue. Choose Resume keyboard dimming in the menu bar panel to reconnect the keyboard."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El control de la pantalla y la privacidad continúa. Elige «Reanudar la atenuación del teclado» en el panel de la barra de menús para volver a conectar el teclado."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O controle da tela e da privacidade continua. Escolha “Retomar o escurecimento do teclado” no painel da barra de menus para reconectar o teclado."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirm und Sichtschutz laufen weiter. Wählen Sie im Menüleistenbereich „Tastaturdimmen fortsetzen“, um die Tastatur wieder zu verbinden."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’écran et la confidentialité restent actifs. Choisissez « Reprendre la gradation du clavier » dans le panneau de la barre des menus pour reconnecter le clavier."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面とプライバシー制御は続行します。メニューバーのパネルで「キーボードの調光を再開」を選ぶと、キーボードを再接続します。"
+          }
+        }
+      }
+    },
+    "Waiting for the lid to open fully once before dimming the screen." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for the lid to open fully once before dimming the screen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esperando a que la tapa se abra por completo una vez antes de atenuar la pantalla."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguardando a tampa abrir completamente uma vez antes de escurecer a tela."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wartet auf ein vollständiges Öffnen des Deckels, bevor der Bildschirm gedimmt wird."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En attente d’une ouverture complète du couvercle avant d’atténuer l’écran."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面を暗くする前に、ふたが一度全開になるのを待っています。"
+          }
+        }
+      }
+    },
+    "Restoring your screen brightness. Dimmer will keep retrying." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restoring your screen brightness. Dimmer will keep retrying."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restableciendo el brillo de la pantalla. Dimmer seguirá intentándolo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurando o brilho da tela. O Dimmer continuará tentando."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmhelligkeit wird wiederhergestellt. Dimmer versucht es weiter."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablissement de la luminosité. Dimmer réessaiera."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面の明るさを戻しています。Dimmerは引き続き再試行します。"
+          }
+        }
+      }
+    },
+    "Dimmer cannot control this screen's brightness right now." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer cannot control this screen's brightness right now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer no puede controlar el brillo de esta pantalla en este momento."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Dimmer não pode controlar o brilho desta tela no momento."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer kann die Helligkeit dieses Bildschirms gerade nicht steuern."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer ne peut pas régler la luminosité de cet écran pour le moment."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在、Dimmerはこの画面の明るさを調整できません。"
+          }
+        }
+      }
+    },
+    "Pause and Quit hand brightness back to you. Quitting restores the keyboard even while macOS has dimmed it. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause and Quit hand brightness back to you. Quitting restores the keyboard even while macOS has dimmed it. Keep awake prevents idle sleep for the time you choose; it does not keep a closed MacBook awake."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar y salir te devuelven el control del brillo. Al salir se restaura el teclado, aunque macOS lo haya atenuado. Mantener activo evita la suspensión por inactividad durante el tiempo que elijas; no mantiene activo un MacBook cerrado."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar e encerrar devolvem o controle do brilho a você. Ao encerrar, o teclado é restaurado mesmo que o macOS o tenha escurecido. Manter desperto evita a suspensão por inatividade pelo tempo escolhido; não mantém um MacBook fechado desperto."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausieren und Beenden geben die Helligkeitssteuerung zurück. Beim Beenden wird die Tastatur auch dann wiederhergestellt, wenn macOS sie gedimmt hat. „Wach halten“ verhindert den Ruhezustand für die gewählte Zeit, nicht bei geschlossenem MacBook."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suspendre et quitter vous rendent le contrôle de la luminosité. Quitter rétablit le clavier, même si macOS l’a atténué. « Maintenir éveillé » évite la veille pendant la durée choisie, mais pas si le MacBook est fermé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一時停止または終了すると、明るさの制御が戻ります。終了すると、macOSがキーボードを暗くしていても元に戻ります。「スリープを防止」は選んだ時間だけアイドル時のスリープを防ぎますが、MacBookを閉じた状態では防げません。"
+          }
+        }
+      }
+    },
+    "In Settings, turn off Launch at Login. Quit Dimmer to restore brightness, automatic keyboard brightness and screen colour (even while macOS has dimmed the keyboard). Check that brightness has returned before moving Dimmer from Applications to the Bin in Finder.\n\nOptional cleanup after restoration and quitting: remove Dimmer’s preferences and any remaining recovery files at the paths below. If the keyboard did not come back, the recovery file stays and reopening Dimmer finishes it." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Settings, turn off Launch at Login. Quit Dimmer to restore brightness, automatic keyboard brightness and screen colour (even while macOS has dimmed the keyboard). Check that brightness has returned before moving Dimmer from Applications to the Bin in Finder.\n\nOptional cleanup after restoration and quitting: remove Dimmer’s preferences and any remaining recovery files at the paths below. If the keyboard did not come back, the recovery file stays and reopening Dimmer finishes it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En Ajustes, desactiva «Abrir al iniciar sesión». Sal de Dimmer para restaurar el brillo, el brillo automático del teclado y el color de la pantalla (aunque macOS haya atenuado el teclado). Comprueba que se haya restaurado el brillo antes de mover Dimmer de Aplicaciones a la Papelera en Finder.\n\nLimpieza opcional después de restaurar y salir: elimina las preferencias de Dimmer y los archivos de recuperación que queden en las rutas siguientes. Si el teclado no se restauró, el archivo de recuperación permanece; vuelve a abrir Dimmer para completar el proceso."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Em Ajustes, desative “Abrir no Início da Sessão”. Encerre o Dimmer para restaurar o brilho, o brilho automático do teclado e a cor da tela (mesmo que o macOS tenha escurecido o teclado). Confira se o brilho voltou antes de mover o Dimmer de Aplicativos para o Lixo no Finder.\n\nLimpeza opcional após restaurar e encerrar: remova as preferências do Dimmer e os arquivos de recuperação restantes nos caminhos abaixo. Se o teclado não voltar, o arquivo de recuperação permanece; abra o Dimmer novamente para concluir."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deaktivieren Sie in den Einstellungen „Beim Anmelden öffnen“. Beenden Sie Dimmer, um Helligkeit, automatische Tastaturbeleuchtung und Bildschirmfarben wiederherzustellen (auch wenn macOS die Tastatur gedimmt hat). Prüfen Sie, ob die Helligkeit zurück ist, bevor Sie Dimmer im Finder aus „Programme“ in den Papierkorb bewegen.\n\nOptionale Bereinigung nach dem Wiederherstellen und Beenden: Entfernen Sie Dimmers Einstellungen und verbliebene Wiederherstellungsdateien an den unten genannten Pfaden. Falls die Tastatur nicht zurückgesetzt wurde, bleibt die Wiederherstellungsdatei erhalten. Öffnen Sie Dimmer erneut, um den Vorgang abzuschließen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans Réglages, désactivez « Ouvrir à la session ». Quittez Dimmer pour rétablir la luminosité, le réglage automatique du clavier et les couleurs de l’écran (même si macOS a atténué le clavier). Vérifiez le retour de la luminosité avant de déplacer Dimmer d’Applications vers la Corbeille dans le Finder.\n\nNettoyage facultatif après restauration et fermeture : supprimez les préférences de Dimmer et les fichiers de récupération restants aux emplacements ci-dessous. Si le clavier n’est pas rétabli, le fichier de récupération reste présent ; rouvrez Dimmer pour terminer."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「設定」で「ログイン時に起動」をオフにします。Dimmerを終了すると、明るさ、キーボードの自動輝度、画面の色が復元されます（macOSがキーボードを暗くしている場合も同様です）。明るさが戻ったことを確認してから、FinderでDimmerを「アプリケーション」からゴミ箱に移動してください。\n\n復元と終了後の任意の整理：Dimmerの設定と、以下の場所に残っている復元ファイルを削除します。キーボードが復元されなかった場合、復元ファイルは残ります。Dimmerをもう一度開くと処理が完了します。"
+          }
+        }
+      }
+    },
+    "Brightness range" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brightness range"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rango de brillo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faixa de brilho"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helligkeitsbereich"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plage de luminosité"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明るさの範囲"
+          }
+        }
+      }
+    },
+    "Fades the keyboard and screen to off from any app. Unassigned until you record one. Typing, the trackpad or moving the lid brings them back." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fades the keyboard and screen to off from any app. Unassigned until you record one. Typing, the trackpad or moving the lid brings them back."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apaga gradualmente el teclado y la pantalla desde cualquier app. No está asignado hasta que grabes un atajo. Al escribir, usar el trackpad o mover la tapa, vuelven a encenderse."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apaga gradualmente o teclado e a tela em qualquer app. Fica sem atalho até você gravar um. Digitar, usar o trackpad ou mover a tampa os acende novamente."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blendet Tastatur und Bildschirm in jeder App aus. Bis zur Aufzeichnung nicht belegt. Tippen, Trackpad oder Deckelbewegung schalten sie wieder ein."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éteint progressivement le clavier et l’écran depuis toute app. Aucun raccourci avant enregistrement. La saisie, le trackpad ou le mouvement du couvercle les rallume."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どのアプリからでもキーボードと画面を徐々に消灯します。ショートカットを記録するまで未割り当てです。入力、トラックパッドの操作、またはふたを動かすと再び点灯します。"
+          }
+        }
+      }
+    },
+    "Go dark shortcut" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go dark shortcut"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atajo para apagar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atalho para apagar"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurzbefehl zum Verdunkeln"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raccourci Tout éteindre"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "消灯のショートカット"
+          }
+        }
+      }
+    },
+    "Privacy blur" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy blur"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desenfoque de privacidad"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desfoque de privacidade"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichtschutz-Unschärfe"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flou de confidentialité"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシーぼかし"
+          }
+        }
+      }
+    },
+    "Privacy settings" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes de privacidad"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurações de privacidade"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichtschutzeinstellungen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages de confidentialité"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシー設定"
+          }
+        }
+      }
+    },
+    "Restore defaults" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore defaults"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar valores por omisión"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar padrões"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standards wiederherstellen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablir les valeurs par défaut"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デフォルトに戻す"
+          }
+        }
+      }
+    },
+    "Restore keyboard range" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore keyboard range"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar el rango del teclado"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar o intervalo do teclado"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tastaturbereich zurücksetzen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablir la plage du clavier"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キーボード範囲を元に戻す"
+          }
+        }
+      }
+    },
+    "Restore screen range" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore screen range"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar el rango de la pantalla"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar o intervalo da tela"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmbereich zurücksetzen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablir la plage de l’écran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面範囲を元に戻す"
+          }
+        }
+      }
+    },
+    "Restore snap defaults" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore snap defaults"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar valores del cierre rápido"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar padrões do fechamento rápido"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standards für schnelles Schließen wiederherstellen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablir les valeurs de fermeture brusque"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スナップのデフォルトに戻す"
+          }
+        }
+      }
+    },
+    "Restores the keyboard range to %lld° off, %lld° full. Undo with Cmd+Z." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores the keyboard range to %lld° off, %lld° full. Undo with Cmd+Z."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaura el rango del teclado: apagado a %lld°, al máximo a %lld°. Deshacer con Cmd+Z."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaura o intervalo do teclado: desligado a %lld°, máximo a %lld°. Desfaça com Cmd+Z."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tastaturbereich: aus bei %lld°, voll bei %lld°. Mit Cmd+Z widerrufen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablit la plage du clavier : éteint à %lld°, maximal à %lld°. Annuler avec Cmd+Z."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キーボード範囲をオフ %lld°、最大 %lld°に戻します。Cmd+Zで取り消せます。"
+          }
+        }
+      }
+    },
+    "Restores the screen range to %lld° off, %lld° full. Undo with Cmd+Z." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores the screen range to %lld° off, %lld° full. Undo with Cmd+Z."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaura el rango de la pantalla: apagada a %lld°, al máximo a %lld°. Deshacer con Cmd+Z."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaura o intervalo da tela: desligada a %lld°, máximo a %lld°. Desfaça com Cmd+Z."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmbereich: aus bei %lld°, voll bei %lld°. Mit Cmd+Z widerrufen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablit la plage de l’écran : éteint à %lld°, maximal à %lld°. Annuler avec Cmd+Z."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面範囲をオフ %lld°、最大 %lld°に戻します。Cmd+Zで取り消せます。"
+          }
+        }
+      }
+    },
+    "Restores the zone, snap distance, speed and tint. It does not turn snap on or off. Undo with Cmd+Z." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores the zone, snap distance, speed and tint. It does not turn snap on or off. Undo with Cmd+Z."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaura la zona, la distancia de cierre, la velocidad y el tinte. No activa ni desactiva el cierre rápido. Deshacer con Cmd+Z."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaura a zona, a distância de fechamento, a velocidade e a tonalidade. Não ativa nem desativa o fechamento rápido. Desfaça com Cmd+Z."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setzt Zone, Schnappabstand, Tempo und Farbton zurück. Schaltet das schnelle Schließen weder ein noch aus. Mit Cmd+Z widerrufen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablit la zone, la distance de fermeture, la vitesse et la teinte. N’active ni ne désactive la fermeture brusque. Annuler avec Cmd+Z."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゾーン、スナップ距離、速度、色合いを元に戻します。スナップのオン・オフは変わりません。Cmd+Zで取り消せます。"
+          }
+        }
+      }
+    },
+    "Restore privacy veil defaults" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Restore privacy veil defaults" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Restaurar el velo de privacidad" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Restaurar o véu de privacidade" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Sichtschutz zurücksetzen" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rétablir le voile de confidentialité" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プライバシーベールを初期設定に戻す" } }
+      }
+    },
+    "Restores blur strength, clear speed and tint. It does not change the shortcut. Undo with Cmd+Z." : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Restores blur strength, clear speed and tint. It does not change the shortcut. Undo with Cmd+Z." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Restaura la intensidad del desenfoque, la velocidad de borrado y el tinte. No cambia el atajo. Deshacer con Cmd+Z." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Restaura a intensidade do desfoque, a velocidade para limpar e a tonalidade. Não altera o atalho. Desfaça com Cmd+Z." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Setzt Unschärfestärke, Löschgeschwindigkeit und Farbton zurück. Der Kurzbefehl bleibt unverändert. Mit Cmd+Z rückgängig." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rétablit l’intensité du flou, la vitesse d’effacement et la teinte. Le raccourci reste inchangé. Annuler avec Cmd+Z." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ぼかしの強さ、解除速度、色合いを元に戻します。ショートカットは変わりません。Cmd+Zで取り消せます。" } }
+      }
+    },
+    "This shortcut is already used by %@. Choose another combination." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This shortcut is already used by %@. Choose another combination."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este atajo ya lo usa %@. Elige otra combinación."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este atalho já é usado por %@. Escolha outra combinação."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Kurzbefehl wird bereits von %@ verwendet. Wählen Sie eine andere Kombination."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce raccourci est déjà utilisé par %@. Choisissez une autre combinaison."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このショートカットはすでに%@で使われています。別の組み合わせを選んでください。"
+          }
+        }
+      }
+    },
+    "Check now" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprobar ahora"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar agora"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt suchen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifier"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今すぐ確認"
+          }
+        }
+      }
+    },
+    "Check for updates…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for updates…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar atualizações…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach Updates suchen …"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher des mises à jour…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップデートを確認…"
+          }
+        }
+      }
+    },
+    "Check for updates automatically" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for updates automatically"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones automáticamente"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar atualizações automaticamente"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch nach Updates suchen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher automatiquement les mises à jour"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップデートを自動で確認"
+          }
+        }
+      }
+    },
+    "Downloads and installs signed updates without asking first. Dimmer restores your keyboard and screen brightness before it quits to update." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads and installs signed updates without asking first. Dimmer restores your keyboard and screen brightness before it quits to update."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarga e instala actualizaciones firmadas sin preguntar. Dimmer restaura el brillo del teclado y la pantalla antes de cerrarse para actualizar."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixa e instala atualizações assinadas sem perguntar. O Dimmer restaura o brilho do teclado e da tela antes de encerrar para atualizar."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lädt signierte Updates ohne Nachfrage. Dimmer stellt Tastatur- und Bildschirmhelligkeit vor dem Beenden wieder her."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharge et installe les mises à jour signées sans demander. Dimmer rétablit la luminosité du clavier et de l’écran avant de quitter."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確認せずに署名済みアップデートをダウンロードしてインストールします。Dimmerはアップデート終了前にキーボードと画面の明るさを元に戻します。"
+          }
+        }
+      }
+    },
+    "Install updates automatically" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install updates automatically"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar actualizaciones automáticamente"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar atualizações automaticamente"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates automatisch installieren"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installer automatiquement les mises à jour"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップデートを自動でインストール"
+          }
+        }
+      }
+    },
+    "Update available…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update available…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualización disponible…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualização disponível…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update verfügbar …"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour disponible…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップデートがあります…"
+          }
+        }
+      }
+    },
+    "Updates" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizaciones"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizações"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mises à jour"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップデート"
+          }
+        }
+      }
+    },
+    "An update is ready to install" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An update is ready to install"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay una actualización lista para instalar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Há uma atualização pronta para instalar"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Update ist bereit zur Installation"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une mise à jour est prête à installer"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インストールできるアップデートがあります"
+          }
+        }
+      }
+    },
+    "Check for updates now" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for updates now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones ahora"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar atualizações agora"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt nach Updates suchen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher les mises à jour"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今すぐアップデートを確認します"
+          }
+        }
+      }
+    },
+    "Not checked yet." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not checked yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no se ha comprobado."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ainda não foi verificado."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nicht geprüft."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas encore vérifié."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "まだ確認していません。"
+          }
+        }
+      }
+    },
+    "Last checked %@." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last checked %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Última comprobación: %@."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Última verificação: %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuletzt geprüft: %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dernière vérification : %@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最終確認：%@。"
+          }
+        }
+      }
+    },
+    "Show update…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show update…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar actualización…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar atualização…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update anzeigen…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la mise à jour…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップデートを表示…"
+          }
+        }
+      }
+    },
+    "Blur" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desenfoque"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desfoque"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unschärfe"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flou"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ぼかし"
+          }
+        }
+      }
+    },
+    "Blur low end" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur low end"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite bajo del desenfoque"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite inferior do desfoque"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unschärfe: unterer Wert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite basse du flou"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ぼかし範囲の下端"
+          }
+        }
+      }
+    },
+    "Blur high end" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur high end"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite alto del desenfoque"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite superior do desfoque"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unschärfe: oberer Wert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite haute du flou"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ぼかし範囲の上端"
+          }
+        }
+      }
+    },
+    "%@ strength" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ strength"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intensidad: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intensidade: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stärke: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intensité : %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "強さ：%@"
+          }
+        }
+      }
+    },
+    "now none" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "now none"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ahora ninguno"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "agora nenhum"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jetzt keine"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "aucun pour l’instant"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在なし"
+          }
+        }
+      }
+    },
+    "Blur by angle" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur by angle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desenfoque según el ángulo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desfoque por ângulo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unschärfe nach Winkel"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flou selon l’angle"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "角度に応じたぼかし"
+          }
+        }
+      }
+    },
+    "Blur the screen as the lid closes" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur the screen as the lid closes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desenfocar la pantalla al cerrar la tapa"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desfocar a tela ao fechar a tampa"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirm beim Schließen des Deckels unscharf stellen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flouter l’écran en fermant le couvercle"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ふたを閉じるにつれて画面をぼかします"
+          }
+        }
+      }
+    },
+    "Blur range" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur range"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rango del desenfoque"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intervalo do desfoque"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unschärfebereich"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plage du flou"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ぼかしの範囲"
+          }
+        }
+      }
+    },
+    "Restore blur range" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore blur range"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar rango del desenfoque"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar intervalo do desfoque"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unschärfebereich wiederherstellen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablir la plage du flou"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ぼかし範囲を元に戻す"
+          }
+        }
+      }
+    },
+    "Restores the blur range to full at %lld°, none at %lld°. Undo with Cmd+Z." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores the blur range to full at %lld°, none at %lld°. Undo with Cmd+Z."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaura el rango del desenfoque a máximo en %lld° y a ninguno en %lld°. Deshazlo con Cmd+Z."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaura o intervalo do desfoque para máximo em %lld° e nenhum em %lld°. Desfaça com Cmd+Z."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setzt den Unschärfebereich zurück: voll bei %lld°, keine bei %lld°. Mit Cmd+Z rückgängig."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablit le flou maximal à %lld° et nul à %lld°. Annulez avec Cmd+Z."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ぼかし範囲を、%lld°で最大、%lld°でなしに戻します。Cmd+Zで取り消せます。"
+          }
+        }
+      }
+    },
+    "Include these details in your report. Dimmer never sends them anywhere. Update checks, if you allow them, send kalkmancode.co.uk only your IP address, the Dimmer and Sparkle versions and your preferred language." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include these details in your report. Dimmer never sends them anywhere. Update checks, if you allow them, send kalkmancode.co.uk only your IP address, the Dimmer and Sparkle versions and your preferred language."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incluye estos detalles en tu informe. Dimmer nunca los envía. Si permites buscar actualizaciones, kalkmancode.co.uk solo recibe tu dirección IP, las versiones de Dimmer y de Sparkle y tu idioma preferido."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inclua estes detalhes no seu relatório. O Dimmer nunca os envia. Se você permitir a busca por atualizações, kalkmancode.co.uk receberá apenas seu endereço IP, as versões do Dimmer e do Sparkle e seu idioma preferido."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fügen Sie diese Angaben Ihrem Bericht bei. Dimmer sendet sie nie. Bei erlaubter Update-Suche erhält kalkmancode.co.uk nur Ihre IP-Adresse, die Versionen von Dimmer und Sparkle und Ihre bevorzugte Sprache."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez ces détails à votre rapport. Dimmer ne les envoie jamais. Si vous l’autorisez, kalkmancode.co.uk reçoit uniquement votre adresse IP, les versions de Dimmer et de Sparkle et votre langue préférée pour vérifier les mises à jour."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レポートにこの情報を含めてください。Dimmerが送信することはありません。アップデート確認を許可した場合、kalkmancode.co.ukに送信されるのはIPアドレス、DimmerとSparkleのバージョン、優先言語のみです。"
+          }
+        }
+      }
+    },
+    "Once a day, Dimmer asks kalkmancode.co.uk whether a newer version exists. The request carries only your IP address, the Dimmer and Sparkle versions and your preferred language." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Once a day, Dimmer asks kalkmancode.co.uk whether a newer version exists. The request carries only your IP address, the Dimmer and Sparkle versions and your preferred language."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una vez al día, Dimmer consulta a kalkmancode.co.uk si hay una versión más reciente. La solicitud solo incluye tu dirección IP, las versiones de Dimmer y de Sparkle y el idioma que prefieres."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uma vez por dia, o Dimmer consulta kalkmancode.co.uk para saber se há uma versão mais recente. A solicitação inclui apenas seu endereço IP, as versões do Dimmer e do Sparkle e seu idioma preferido."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmer fragt einmal täglich bei kalkmancode.co.uk nach einer neueren Version. Die Anfrage enthält nur Ihre IP-Adresse, die Versionen von Dimmer und Sparkle und Ihre bevorzugte Sprache."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une fois par jour, Dimmer vérifie auprès de kalkmancode.co.uk si une nouvelle version existe. La requête transmet uniquement votre adresse IP, les versions de Dimmer et de Sparkle et votre langue préférée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimmerは1日に1回、kalkmancode.co.ukに新しいバージョンがあるか確認します。リクエストに含まれるのは、IPアドレス、DimmerとSparkleのバージョン、および優先する言語のみです。"
+          }
+        }
+      }
+    },
+    "Privacy veil" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy veil"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velo de privacidad"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Véu de privacidade"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichtschutz-Schleier"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voile de confidentialité"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシーのベール"
+          }
+        }
+      }
+    },
+    "The screen blurs more the further the lid closes, between the two ends you set on the bar. Off when Reduce Transparency is on; paused, asleep and Go dark clear it." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The screen blurs more the further the lid closes, between the two ends you set on the bar. Off when Reduce Transparency is on; paused, asleep and Go dark clear it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La pantalla se desenfoca más cuanto más se cierra la tapa, entre los dos límites que fijas en la barra. Se desactiva si Reducir transparencia está activado; al pausar, dormir o usar Apagar, se elimina el desenfoque."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tela fica mais desfocada conforme a tampa se fecha, entre os dois limites definidos na barra. Fica desativado quando Reduzir transparência está ativado; pausar, dormir ou usar Apagar remove o desfoque."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je weiter der Deckel schließt, desto unschärfer wird der Bildschirm, zwischen den beiden Werten, die du in der Leiste festlegst. Bei „Transparenz reduzieren“ deaktiviert; bei Pause, Ruhezustand und „Verdunkeln“ wird der Effekt entfernt."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’écran devient plus flou à mesure qu’il se ferme, entre les deux limites définies sur la barre. Désactivé si « Réduire la transparence » est activé ; suspendre, mettre en veille ou tout éteindre supprime le flou."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上のバーで設定した両端の間で、ふたを閉じるほど画面がぼやけます。「透明度を下げる」がオンの場合は無効です。一時停止中、スリープ中、または消灯すると、ぼかしは解除されます。"
+          }
+        }
+      }
+    },
+    "Snap tint" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Snap tint" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tinte del cierre rápido" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Tinta do fechamento rápido" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schnellschluss-Tönung" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Teinte de fermeture rapide" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スナップ時の色合い" } }
+      }
+    },
+    "Privacy veil tint" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Privacy veil tint" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tinte del velo de privacidad" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Tonalidade do véu de privacidade" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Farbton des Sichtschutz-Schleiers" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Teinte du voile de confidentialité" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プライバシーベールの色合い" } }
+      }
+    },
+    "Blur tint" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Blur tint" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tinte del desenfoque" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Tinta do desfoque" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unschärfefarbton" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Teinte du flou" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ぼかしの色合い" } }
+      }
+    },
+    "Sets the darkness of the snap veil" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Sets the darkness of the snap veil" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Define la oscuridad del velo de cierre rápido" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Define o escurecimento do véu de fechamento rápido" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Legt die Abdunklung des Schnellschluss-Schleiers fest" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Règle l’assombrissement du voile de fermeture rapide" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スナップ時のベールの暗さを設定します" } }
+      }
+    },
+    "Sets the darkness of the shortcut veil" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Sets the darkness of the shortcut veil" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Define la oscuridad del velo del atajo" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Define o escurecimento do véu do atalho" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Legt die Abdunklung des Kurzbefehls-Schleiers fest" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Règle l’assombrissement du voile du raccourci" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ショートカットのベールの暗さを設定します" } }
+      }
+    },
+    "Sets the darkness of the angle blur, scaled with its blur strength." : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Sets the darkness of the angle blur, scaled with its blur strength." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Define la oscuridad del desenfoque angular según su intensidad." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Define o escurecimento do desfoque por ângulo, proporcional à intensidade." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Legt die Abdunklung der winkelabhängigen Unschärfe entsprechend ihrer Stärke fest." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Règle l’assombrissement du flou selon l’angle, proportionnel à son intensité." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "角度に応じたぼかしの暗さを、その強さに合わせて設定します。" } }
+      }
+    },
+    "Restore blur defaults" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Restore blur defaults" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Restaurar valores del desenfoque" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Restaurar predefinições do desfoque" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unschärfe-Standardwerte wiederherstellen" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rétablir les réglages du flou" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ぼかしの初期設定に戻す" } }
+      }
+    },
+    "Restores the blur range and tint to their defaults. Undo with Cmd+Z." : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Restores the blur range and tint to their defaults. Undo with Cmd+Z." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Restaura el rango y el tinte del desenfoque a sus valores por omisión. Deshacer con Cmd+Z." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Restaura o intervalo e a tonalidade do desfoque aos valores predefinidos. Desfaça com Cmd+Z." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Setzt den Unschärfebereich und den Farbton auf die Standardwerte zurück. Mit Cmd+Z rückgängig." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rétablit les réglages par défaut de la plage et de la teinte du flou. Annuler avec Cmd+Z." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ぼかしの範囲と色合いをデフォルトに戻します。Cmd+Zで取り消せます。" } }
       }
     }
   },

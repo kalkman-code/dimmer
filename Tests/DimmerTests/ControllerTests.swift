@@ -177,7 +177,7 @@ final class ControllerTests: XCTestCase {
         var sampleCount = 0
         var screenAtYield = 0.0
         var snapVerdict = SnapDetector.Veil.none
-        let subscription = controller.$rawSample.compactMap { $0 }.prefix(2).sink { sample in
+        let subscription = controller.telemetry.$rawSample.compactMap { $0 }.prefix(2).sink { sample in
             sampleCount += 1
             snapVerdict = detector.observe(LidSample(angle: sample.angle, time: Double(sampleCount) / 10),
                                           settings: SnapSettings())
@@ -257,7 +257,7 @@ final class ControllerTests: XCTestCase {
         let controller = DimmerController(defaults: defaults, hardware: worker)
         defer { controller.stop() }
         let resumed = expectation(description: "A resumed poll publishes a lid sample")
-        let subscription = controller.$rawSample.compactMap { $0 }.prefix(1).sink { _ in resumed.fulfill() }
+        let subscription = controller.telemetry.$rawSample.compactMap { $0 }.prefix(1).sink { _ in resumed.fulfill() }
         defer { subscription.cancel() }
         controller.togglePaused()
         controller.togglePaused()
@@ -423,7 +423,7 @@ final class ControllerTests: XCTestCase {
     }
 }
 
-private final class TestHardware {
+final class TestHardware {
     final class Sensor: LidSensing {
         var angle = 110.0
         var fails = false
@@ -440,10 +440,12 @@ private final class TestHardware {
         var brightness = 0.8
         var automatic = false
         var automaticAmbientBrightness: Double?
+        var ignoresWritesWhileIdleDimmed = false
         var writes: [Double] = []
         func read() throws -> (brightness: Double, automatic: Bool) { (brightness, automatic) }
         func write(_ value: Double) throws -> Double {
             writes.append(value)
+            if isIdleDimmed && ignoresWritesWhileIdleDimmed { return brightness }
             brightness = value
             return value
         }
@@ -466,7 +468,8 @@ private final class TestHardware {
     let sensor = Sensor()
     let keyboard = Keyboard()
     let display = Display()
-    private let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    var keyboardJournal: RecoveryJournal? { RecoveryJournal.load(from: directory.appendingPathComponent("keyboard.json")) }
     private var sampleTime = 0.0
 
     func worker() -> HardwareWorker {

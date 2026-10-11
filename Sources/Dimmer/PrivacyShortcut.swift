@@ -2,16 +2,24 @@ import KeyboardShortcuts
 import Foundation
 
 extension Notification.Name {
-    static let dimmerPrivacyShortcutDidChange = Self("dimmerPrivacyShortcutDidChange")
+    static let dimmerShortcutDidChange = Self("dimmerShortcutDidChange")
 }
 
 extension KeyboardShortcuts.Name {
     // No standard macOS assignment uses Ctrl+Cmd+P (docs/research/shortcut-research.md). KeyboardShortcuts
     // stores a cleared shortcut as false once a name has an initial one, so clearing it sticks.
     static let privacyBlur = Self("privacyBlur", initial: .init(.p, modifiers: [.control, .command]))
+    static let goDark = Self("goDark")
 }
 
-struct PrivacyShortcutTrigger {
+enum ShortcutConflict {
+    static func reason(for shortcut: KeyboardShortcuts.Shortcut, other: KeyboardShortcuts.Shortcut?, otherName: String) -> String? {
+        guard shortcut == other else { return nil }
+        return L10n.string("This shortcut is already used by \(otherName). Choose another combination.")
+    }
+}
+
+struct ShortcutReleaseTrigger {
     private var pressed = false
 
     mutating func receive(isKeyDown: Bool, allowed: Bool) -> Bool {

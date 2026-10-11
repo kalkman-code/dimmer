@@ -4,7 +4,7 @@ import XCTest
 
 final class PrivacyShortcutTests: XCTestCase {
     func testPressDoesNotActivateUntilReleaseAndReleaseIsConsumedOnce() {
-        var trigger = PrivacyShortcutTrigger()
+        var trigger = ShortcutReleaseTrigger()
         XCTAssertFalse(trigger.receive(isKeyDown: true, allowed: true))
         XCTAssertFalse(trigger.receive(isKeyDown: true, allowed: true))
         XCTAssertTrue(trigger.receive(isKeyDown: false, allowed: true))
@@ -12,7 +12,7 @@ final class PrivacyShortcutTests: XCTestCase {
     }
 
     func testCancelledAndDisallowedPressCannotActivateLater() {
-        var trigger = PrivacyShortcutTrigger()
+        var trigger = ShortcutReleaseTrigger()
         XCTAssertFalse(trigger.receive(isKeyDown: true, allowed: true))
         trigger.cancel()
         XCTAssertFalse(trigger.receive(isKeyDown: false, allowed: true))

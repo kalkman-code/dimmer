@@ -9,8 +9,8 @@
 <p align="center"><img src=".github/readme/hero.webp" width="520" alt="A MacBook lid closes and its screen and keyboard fade to dark, then it opens and they come back; a quick snap of the lid frosts the screen, and lifting it clears the frost."></p>
 
 <p align="center">
-  <a href="https://github.com/kalkman-code/dimmer/releases/download/v1.2.1/Dimmer-1.2.1.dmg"><b>Download Dimmer 1.2.1</b></a><br>
-  macOS 14 or later · signed and notarised by Apple · free, GPL-3.0 · <a href="https://github.com/kalkman-code/dimmer/releases/tag/v1.2.1">release notes</a>
+  <a href="https://github.com/kalkman-code/dimmer/releases/download/v1.3.0/Dimmer-1.3.0.dmg"><b>Download Dimmer 1.3.0</b></a><br>
+  macOS 14 or later · signed and notarised by Apple · free, GPL-3.0 · <a href="https://github.com/kalkman-code/dimmer/releases/tag/v1.3.0">release notes</a>
 </p>
 
 Dimmer is a small menu bar app. It reads the lid angle from the MacBook's hinge sensor and sets the
@@ -18,12 +18,15 @@ keyboard backlight and screen from it, on ranges you set yourself.
 
 ## What it does
 
-- Fades the keyboard and screen from full with the lid at 100 degrees to off at 68 by default. Drag or type each end's angle and brightness in Settings, or switch either off.
+- Fades the keyboard and screen from full with the lid at 100 degrees to off at 68 by default. Drag or type each end's angle and brightness in Settings, where every feature has its own box and bar, or switch either off and its box folds away.
 - Puts your brightness back when you open the lid, pause or quit, and the keyboard backlight when the Mac sleeps, automatic keyboard brightness included.
-- Press Ctrl+Cmd+P in any app and every screen frosts over until you type, touch the trackpad or lift the lid. Snap to blur, off by default, does the same when you snap the lid down quickly.
-- Go dark fades the keyboard and screen off without moving the lid; Keep awake holds the Mac awake on a timer or indefinitely. Both are in the menu bar panel.
+- While Privacy veil is on, press Ctrl+Cmd+P in any app and every screen frosts over until you type, touch the trackpad or lift the lid. Snap to blur, off by default, does the same when you snap the lid down quickly.
+- Blur by angle, off by default, adds a bar that frosts the screen more the further the lid closes, between two angles you set. Its own Frost to Smoke control tints the angle veil in proportion to its blur strength. Settings can undo each control and restore the range and tint together.
+- Snap to blur has its own Frost to Smoke control, shown only while snap is on; it colours only the snap veil. Privacy veil has a separate tint for the shortcut veil. When snap and angle blur overlap, the stronger strength sets the blur and the greater strength-weighted tint sets the darkness.
+- Restore links are scoped to their boxes: Snap restores its zone, snap distance, speed and tint; Blur restores its range and tint; Privacy veil restores blur strength, clear speed and shortcut tint while leaving Snap tint and the shortcut assignment unchanged.
+- Go dark fades the keyboard and screen off without moving the lid (it can also have its own shortcut, unassigned by default); Keep awake holds the Mac awake on a timer or indefinitely. Both are in the menu bar panel.
 - Steps aside when you change the keyboard brightness yourself, and leaves the keyboard dark when macOS has dimmed it for inactivity.
-- VoiceOver can read and set every value, the axis ends move with the arrow keys, and Reduce Motion and Reduce Transparency are respected.
+- VoiceOver can read and set every value. With an endpoint focused, left and right change its angle by 1 degree and up and down change its brightness by 5 percentage points; for snap-zone endpoints, up and down change the shared blur strength while left and right still change the angle. Exact typing keeps normal caret behaviour. Reduce Motion and Reduce Transparency are respected.
 
 ## Requirements
 
@@ -35,10 +38,19 @@ Dimmer relies on interfaces Apple does not document, so a macOS update can break
 
 ## Privacy
 
-Dimmer asks for no Accessibility, Input Monitoring or Screen Recording permission, makes no network
-connections, and has no account or telemetry. It notices typing and the trackpad from macOS's idle
-counters, which say only that input happened, and the blur is a standard frosted layer, not a
-capture of your screen. Only Launch at Login may need you to allow it in System Settings.
+Dimmer asks for no Accessibility, Input Monitoring or Screen Recording permission, and has no account,
+analytics or telemetry. It notices typing and the trackpad from macOS's idle counters, which say only
+that input happened, and the blur is a standard frosted layer, not a capture of your screen. Only
+Launch at Login may need you to allow it in System Settings.
+
+Since 1.3 Dimmer can check for updates, and that is its only network connection. Checks are off until
+you agree: on its second launch Dimmer asks whether to check automatically. If you say yes, once a day
+it fetches a small signed file, `https://kalkmancode.co.uk/dimmer/appcast.xml`, that lists the latest
+version. The request carries what any web request does, your IP address, your preferred language and
+a User-Agent naming Dimmer's version and Sparkle's, and nothing about your Mac or how you use Dimmer. Downloading an update
+fetches it from GitHub. Check for updates… checks once, when you choose it. Settings → Updates turns
+automatic checks off again, and with them off Dimmer connects to nothing until you check by hand.
+Installing stays your choice unless you also turn on Install updates automatically.
 
 ## Languages
 
@@ -46,18 +58,25 @@ English, Spanish, Portuguese, German, French and Japanese, following your Mac's 
 
 ## Install
 
-1. Download [`Dimmer-1.2.1.dmg`](https://github.com/kalkman-code/dimmer/releases/download/v1.2.1/Dimmer-1.2.1.dmg).
+1. Download [`Dimmer-1.3.0.dmg`](https://github.com/kalkman-code/dimmer/releases/download/v1.3.0/Dimmer-1.3.0.dmg).
 2. Open it and drag Dimmer to Applications.
-3. Open Dimmer. Its icon, a diamond cut across by a line, appears in the menu bar: click it for the panel, right-click for Settings, Go dark, About, Pause and Quit. The diamond turns to an outline while paused. The first time, Settings opens with a short welcome and offers Launch at Login.
+3. Open Dimmer. Its icon, a diamond cut across by a line, appears in the menu bar: click it for the panel, right-click for Settings, About, Check for updates…, Go dark, Pause and Quit. The diamond turns to an outline while paused. The first time, Settings opens with a short welcome and offers Launch at Login.
 
-To check the download, compare `shasum -a 256 Dimmer-1.2.1.dmg` with
-[`SHA256SUMS`](https://github.com/kalkman-code/dimmer/releases/download/v1.2.1/SHA256SUMS) on the release.
+Dimmer 1.2.1 and earlier cannot update themselves: install 1.3 by hand once, the same way, dragging it
+over the old copy in Applications. From 1.3 on, Dimmer offers updates itself. Sparkle normally checks
+the signed feed and the downloaded app against Dimmer's update key, and checks the new app's Apple code
+signature. After 20 days of failed feed-signature checks, Sparkle may offer an update with reduced feed
+protection; the download and Apple code-signature checks still apply. Sparkle does not check notarisation
+itself; releases are notarised before they are published.
+
+To check the download, compare `shasum -a 256 Dimmer-1.3.0.dmg` with
+[`SHA256SUMS`](https://github.com/kalkman-code/dimmer/releases/download/v1.3.0/SHA256SUMS) on the release.
 
 ## Uninstall
 
 The panel's More → Uninstall Dimmer… walks you through it. In short: turn off Launch at Login in
-Settings, wake the keyboard with a key or the trackpad, choose Quit Dimmer so it puts your
-brightness back, then move Dimmer from Applications to the Bin.
+Settings, choose Quit Dimmer so it puts your brightness back (even if macOS has dimmed the
+keyboard for inactivity), then move Dimmer from Applications to the Bin.
 
 Optional leftovers, once it has quit with brightness restored:
 `~/Library/Preferences/uk.co.kalkmancode.Dimmer.plist`,
@@ -76,7 +95,9 @@ scripts/build-app.sh
 open build/Dimmer.app
 ```
 
-`scripts/build-app.sh` builds the release binary and assembles an ad hoc signed `build/Dimmer.app`.
+`scripts/build-app.sh` builds the release binary and assembles an ad hoc signed `build/Dimmer.app`,
+with Sparkle's framework and helpers embedded and signed from the inside out. Set
+`DIMMER_SIGN_IDENTITY` to a Developer ID identity to sign with the hardened runtime for notarisation.
 `swift test` runs the tests.
 
 ## Contributing and bug reports
@@ -91,7 +112,9 @@ model, with a button that copies them; the form asks for those and what the pane
 GPL-3.0. See [LICENSE](LICENSE). Dimmer is not affiliated with or endorsed by Apple.
 
 The privacy shortcut uses [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts)
-by Sindre Sorhus, under the MIT licence. Its notice is included in the app's resources.
+by Sindre Sorhus, under the MIT licence. Updates use [Sparkle](https://sparkle-project.org) 2.10.0,
+under the MIT licence with BSD and zlib component notices. Both notices are included in the app's
+resources.
 
 The angles, the privacy veil, recovery, settings carried over from earlier versions and the
 private interfaces Dimmer uses are in [How it works](HOW-IT-WORKS.md).
