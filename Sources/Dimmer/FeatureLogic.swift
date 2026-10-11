@@ -125,6 +125,7 @@ struct SnapSettings: Codable, Equatable, Sendable {
         result.zoneHigh = defaults.zoneHigh
         result.snapDegrees = defaults.snapDegrees
         result.minimumSpeed = defaults.minimumSpeed
+        result.blurStrength = defaults.blurStrength
         result.smoke = defaults.smoke
         return result
     }
@@ -132,7 +133,6 @@ struct SnapSettings: Codable, Equatable, Sendable {
     func restoringPrivacyVeilDefaults() -> SnapSettings {
         let defaults = SnapSettings()
         var result = self
-        result.blurStrength = defaults.blurStrength
         result.clearSeconds = defaults.clearSeconds
         return result
     }

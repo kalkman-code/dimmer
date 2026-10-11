@@ -19,7 +19,10 @@ final class LocalizationTests: XCTestCase {
             "Slow (600 ms)",
             "Snap tint", "Privacy veil tint", "Blur tint", "Restore blur defaults", "Restore privacy veil defaults",
             "Restores blur strength, clear speed and tint. It does not change the shortcut. Undo with Cmd+Z.",
-            "Restores the zone, snap distance, speed and tint. It does not turn snap on or off. Undo with Cmd+Z.",
+            "Restores the zone, snap distance, speed, blur strength and tint. It does not turn snap on or off. Undo with Cmd+Z.",
+            "Snap blur strength", "Privacy veil blur strength",
+            "Snap to blur preview, %lld percent, %@", "Blur by angle preview, %lld percent, %@",
+            "Privacy veil preview, %lld percent, %@", "None: the shortcut does nothing visible.",
             "Sets the darkness of the snap veil",
             "Sets the darkness of the shortcut veil",
             "Sets the darkness of the angle blur, scaled with its blur strength.",
@@ -42,6 +45,24 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(compiled["Milliseconds unit"], "ms")
         XCTAssertEqual(compiled["Degrees per second unit"], "°/s")
         XCTAssertEqual(compiled["Unavailable readout"], "—")
+    }
+
+    func testPreviewVoiceOverLabelsStaySourceSpecificInEveryLanguage() {
+        let previousLanguage = L10n.testLanguage
+        defer { L10n.testLanguage = previousLanguage }
+        for language in ["en-GB", "es", "pt-BR", "de", "fr", "ja"] {
+            L10n.testLanguage = language
+            let labels = [
+                BlurPreviewSource.snap.accessibilityLabel(strength: 0.42, tintReadout: "Smoke 20%"),
+                BlurPreviewSource.angle.accessibilityLabel(strength: 1, tintReadout: "Smoke 30%"),
+                BlurPreviewSource.privacy.accessibilityLabel(strength: 0.68, tintReadout: "Smoke 40%"),
+            ]
+            XCTAssertEqual(Set(labels).count, 3, "\(language): preview labels must identify their own box")
+            XCTAssertTrue(labels[0].contains("42"), "\(language): Snap percentage must be formatted")
+            XCTAssertTrue(labels[1].contains("100"), "\(language): angle percentage must be formatted")
+            XCTAssertTrue(labels[2].contains("68"), "\(language): Privacy percentage must be formatted")
+            XCTAssertFalse(labels.contains { $0.contains("%lld") || $0.contains("%@") }, "\(language): format tokens must be resolved")
+        }
     }
 
     func testCompiledPackageTableMatchesCatalogueKeys() throws {

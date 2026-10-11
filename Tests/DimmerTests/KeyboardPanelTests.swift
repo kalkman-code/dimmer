@@ -188,7 +188,7 @@ final class KeyboardPanelTests: XCTestCase {
         XCTAssertFalse(controller.canResumeKeyboard)
 
         let offered = expectation(description: "The yield reaches the panel")
-        let subscription = controller.$keyboardYielded.filter { $0 }.prefix(1).sink { _ in offered.fulfill() }
+        let subscription = controller.keyboardYieldedPublisher.filter { $0 }.prefix(1).sink { _ in offered.fulfill() }
         defer { subscription.cancel() }
         controller.start()
         await fulfillment(of: [offered], timeout: 3)
@@ -223,7 +223,7 @@ final class KeyboardPanelTests: XCTestCase {
         await fulfillment(of: [started], timeout: 3)
         devices.keyboard.brightness = 0.3
         let offered = expectation(description: "Yield shown")
-        let yieldSubscription = controller.$keyboardYielded.filter { $0 }.prefix(1).sink { _ in offered.fulfill() }
+        let yieldSubscription = controller.keyboardYieldedPublisher.filter { $0 }.prefix(1).sink { _ in offered.fulfill() }
         defer { yieldSubscription.cancel() }
         await fulfillment(of: [offered], timeout: 3)
 

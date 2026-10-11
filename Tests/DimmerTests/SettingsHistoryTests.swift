@@ -205,7 +205,7 @@ final class SettingsHistoryTests: XCTestCase {
         XCTAssertEqual(features.snap.blurStrength, 0.4)
 
         history.restoreSnapSettings()
-        XCTAssertEqual(features.snap, SnapSettings(blurStrength: 0.4))
+        XCTAssertEqual(features.snap, SnapSettings())
         history.restorePrivacyVeilSettings()
         XCTAssertEqual(features.snap, SnapSettings())
 
@@ -264,10 +264,9 @@ final class SettingsHistoryTests: XCTestCase {
             case "screen": history.restoreScreenRange()
             case "snap":
                 history.restoreSnapSettings()
-                wantedSnap = SnapSettings(blurStrength: 0.4, clearSeconds: 0.3)
+                wantedSnap = SnapSettings(clearSeconds: 0.3)
             case "privacy":
                 history.restorePrivacyVeilSettings()
-                wantedSnap.blurStrength = 1
                 wantedSnap.clearSeconds = 0.08
             default: history.restoreBlurRange()
             }
@@ -297,12 +296,14 @@ final class SettingsHistoryTests: XCTestCase {
         let (_, features, history, _) = try make()
         defer { features.stop() }
         features.snap.smoke = 0.6
+        features.privacyVeilBlurStrength = 0.4
         history.restoreSnapSettings()
-        features.snap.blurStrength = 0.4
         features.snap.clearSeconds = 0.3
+        features.privacyVeilBlurStrength = 0.2
         history.undo()
         XCTAssertEqual(features.snap.smoke, 0.6)
-        XCTAssertEqual(features.snap.blurStrength, 0.4)
+        XCTAssertEqual(features.snap.blurStrength, 1)
+        XCTAssertEqual(features.privacyVeilBlurStrength, 0.2)
         XCTAssertEqual(features.snap.clearSeconds, 0.3)
     }
 
@@ -349,13 +350,16 @@ final class SettingsHistoryTests: XCTestCase {
         history.setPrivacyVeilEnabled(false)
         XCTAssertFalse(features.privacyVeilEnabled)
         features.snap.blurStrength = 0.25
+        features.privacyVeilBlurStrength = 0.25
         history.restorePrivacyVeilSettings()
         XCTAssertFalse(features.privacyVeilEnabled)
-        XCTAssertEqual(features.snap.blurStrength, 1)
+        XCTAssertEqual(features.snap.blurStrength, 0.25)
+        XCTAssertEqual(features.privacyVeilBlurStrength, 1)
 
         history.undo()
         XCTAssertFalse(features.privacyVeilEnabled)
         XCTAssertEqual(features.snap.blurStrength, 0.25)
+        XCTAssertEqual(features.privacyVeilBlurStrength, 0.25)
         history.undo()
         XCTAssertTrue(features.privacyVeilEnabled)
         history.redo()

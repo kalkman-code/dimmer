@@ -62,7 +62,7 @@ final class ScreenStatusTests: XCTestCase {
         let controller = DimmerController(defaults: defaults, hardware: devices.worker())
         defer { controller.stop() }
         var published: [ScreenStatus] = []
-        let statusSubscription = controller.$screenStatus.sink { published.append($0) }
+        let statusSubscription = controller.screenStatusPublisher.sink { published.append($0) }
         defer { statusSubscription.cancel() }
         let polls = expectation(description: "Several polls complete")
         let sampleSubscription = controller.telemetry.$rawSample.compactMap { $0 }.prefix(5).sink(receiveCompletion: { _ in polls.fulfill() }, receiveValue: { _ in })

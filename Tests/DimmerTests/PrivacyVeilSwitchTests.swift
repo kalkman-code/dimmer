@@ -143,7 +143,7 @@ final class PrivacyVeilSwitchTests: XCTestCase {
         var observers = Set<AnyCancellable>()
 
         listener.restart(enabled: features.privacyVeilEnabled)
-        features.$privacyVeilEnabled.dropFirst().sink { enabled in
+        features.privacyVeilEnabledPublisher.dropFirst().sink { enabled in
             listener.restart(enabled: enabled)
         }.store(in: &observers)
         await fulfillment(of: [firstStarted], timeout: 1)

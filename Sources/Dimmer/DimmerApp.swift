@@ -51,21 +51,17 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValida
         } else {
             logger.error("status item has no button")
         }
-        controller.$paused.sink { [weak self] paused in
+        features.follow(controller).forEach { $0.store(in: &subscriptions) }
+        controller.pausedPublisher.sink { [weak self] paused in
             self?.restartShortcuts()
             Task { @MainActor in
                 self?.updateStatusItem(paused: paused)
-                if paused { self?.features.suspend(reason: "pause") }
-                self?.features.holdAngleLanes("pause", paused)
             }
-        }.store(in: &subscriptions)
-        controller.$isDark.sink { [weak self] dark in
-            Task { @MainActor in self?.features.holdAngleLanes("dark", dark) }
         }.store(in: &subscriptions)
         shell.$showMenuBarIcon.sink { [weak self] visible in
             self?.statusItem.isVisible = visible
         }.store(in: &subscriptions)
-        features.$privacyVeilEnabled.dropFirst().sink { [weak self] enabled in
+        features.privacyVeilEnabledPublisher.dropFirst().sink { [weak self] enabled in
             self?.privacyShortcut?.restart(enabled: enabled)
         }.store(in: &subscriptions)
         DisplayAccessibility.shared.$preferences.map(\.increaseContrast).removeDuplicates().dropFirst()
@@ -75,17 +71,6 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValida
                     self.statusItem.button?.image = StatusGlyph.image(paused: self.controller.paused, increaseContrast: contrast)
                 }
             }.store(in: &subscriptions)
-        controller.telemetry.$angle.sink { [weak self] angle in
-            Task { @MainActor in
-                if angle == nil { self?.features.angleUnavailable() }
-                self?.features.setLidAngle(angle)
-            }
-        }.store(in: &subscriptions)
-        controller.telemetry.$rawSample.compactMap { $0 }
-            .sink { [weak self] sample in
-                Task { @MainActor in self?.features.update(sample: sample) }
-            }
-            .store(in: &subscriptions)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: menuView())
         NotificationCenter.default.publisher(for: .dimmerShortcutDidChange)

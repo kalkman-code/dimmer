@@ -39,7 +39,8 @@ final class TintInBoxesTests: XCTestCase {
             history.restorePrivacyVeilSettings()
             XCTAssertEqual(features.privacyVeilSmoke, 0)
             XCTAssertEqual(features.snap.smoke, 0.7)
-            XCTAssertEqual(features.snap.blurStrength, 1)
+            XCTAssertEqual(features.snap.blurStrength, 0.4)
+            XCTAssertEqual(features.privacyVeilBlurStrength, 1)
             XCTAssertEqual(features.snap.clearSeconds, 0.08)
             history.undo()
             XCTAssertEqual(features.privacyVeilSmoke, 0.6)
@@ -182,6 +183,43 @@ final class TintInBoxesTests: XCTestCase {
         XCTAssertEqual(malformed.angleBlurSmoke, 0)
     }
 
+    func testEveryTintClampsPersistsAndRefreshesOverlay() throws {
+        let (features, overlay, defaults) = try make(smoke: 0)
+        defer { features.stop() }
+
+        features.snap.smoke = 0.3
+        XCTAssertEqual(overlay.updateCount, 1, "Snap tint changes must refresh the shared veil overlay")
+        features.angleBlurSmoke = 0.4
+        XCTAssertEqual(overlay.updateCount, 2, "Blur tint changes must refresh the shared veil overlay")
+        features.privacyVeilSmoke = 0.5
+        XCTAssertEqual(overlay.updateCount, 3, "Privacy veil tint changes must refresh the shared veil overlay")
+
+        let persistedSnap = try XCTUnwrap(defaults.data(forKey: "snapSettings"))
+        XCTAssertEqual(try JSONDecoder().decode(SnapSettings.self, from: persistedSnap).smoke, 0.3, accuracy: 1e-9)
+        XCTAssertEqual(defaults.double(forKey: "angleBlurSmoke"), 0.4, accuracy: 1e-9)
+        XCTAssertEqual(defaults.double(forKey: "privacyVeilSmoke"), 0.5, accuracy: 1e-9)
+
+        let tints: [(String, (Double) -> Void, () -> Double)] = [
+            ("Snap", { features.snap.smoke = $0 }, { features.snap.smoke }),
+            ("Blur", { features.angleBlurSmoke = $0 }, { features.angleBlurSmoke }),
+            ("Privacy veil", { features.privacyVeilSmoke = $0 }, { features.privacyVeilSmoke }),
+        ]
+        for (name, set, value) in tints {
+            set(2)
+            XCTAssertEqual(value(), 1, "\(name) tint clamps values above 1")
+            set(-1)
+            XCTAssertEqual(value(), 0, "\(name) tint clamps values below 0")
+            set(.nan)
+            XCTAssertEqual(value(), 0, "\(name) tint maps non-finite values to its default")
+        }
+
+        let reloaded = DimmerFeatures(defaults: defaults, overlay: TintRecorder())
+        defer { reloaded.stop() }
+        XCTAssertEqual(reloaded.snap.smoke, 0)
+        XCTAssertEqual(reloaded.angleBlurSmoke, 0)
+        XCTAssertEqual(reloaded.privacyVeilSmoke, 0)
+    }
+
     func testAngleTintDragIsOneUndoStepAndDoesNotUndoLaterSnapTint() throws {
         let (features, _, defaults) = try make(smoke: 0)
         defer { features.stop() }
@@ -205,7 +243,9 @@ private final class TintRecorder: PrivacyBlurOverlay {
     var visible = false
     var strength = 0.0
     var smoke = 0.0
+    private(set) var updateCount = 0
     func update(privacyBlur: Bool, strength: Double, smoke: Double, reduceTransparency: Bool) {
+        updateCount += 1
         visible = privacyBlur
         self.strength = strength
         self.smoke = smoke

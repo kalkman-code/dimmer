@@ -1,11 +1,12 @@
+import Observation
 import SwiftUI
 
 // One Settings box per feature: a title row with the live reading and the feature's own switch, and, only
 // while the switch is on, its bar on the lid-angle scale, its restore link and whatever else belongs to it.
 struct LaneBox<Extra: View>: View {
     let lane: AxisLane
-    @ObservedObject var controller: DimmerController
-    @ObservedObject var features: DimmerFeatures
+    @Bindable var controller: DimmerController
+    @Bindable var features: DimmerFeatures
     @ObservedObject var history: SettingsHistory
     @ViewBuilder let extra: () -> Extra
 
@@ -21,6 +22,9 @@ struct LaneBox<Extra: View>: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("LaneBox.\(lane)")
+        #endif
         Group {
             // Title and bar are one row, so the Form draws no divider between a feature and its own bar.
             VStack(alignment: .leading, spacing: 4) {
@@ -63,8 +67,8 @@ struct LaneBox<Extra: View>: View {
 struct LaneHeader: View {
     let lane: AxisLane
     let isOn: Binding<Bool>
-    @ObservedObject var controller: DimmerController
-    @ObservedObject var features: DimmerFeatures
+    let controller: DimmerController
+    let features: DimmerFeatures
     @ObservedObject var history: SettingsHistory
 
     private let secondary = Color(hex: 0x9A9EA7)
@@ -79,6 +83,9 @@ struct LaneHeader: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("LaneHeader.\(lane)")
+        #endif
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(lane.title)
@@ -134,8 +141,8 @@ struct LaneHeader: View {
 }
 
 private struct BlurRestoreLink: View {
-    @ObservedObject var features: DimmerFeatures
-    @ObservedObject var tint: VeilTintSettings
+    let features: DimmerFeatures
+    let tint: VeilTintSettings
     @ObservedObject var history: SettingsHistory
 
     private var isDefault: Bool {
@@ -143,6 +150,9 @@ private struct BlurRestoreLink: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("BlurRestoreLink")
+        #endif
         Button { history.restoreBlurRange() } label: {
             RestoreLinkLabel(title: L10n.string("Restore blur defaults"), enabled: !isDefault)
         }
@@ -157,12 +167,15 @@ private struct BlurRestoreLink: View {
 // one line rather than the box.
 private struct LaneLiveText: View {
     let lane: AxisLane
-    @ObservedObject var controller: DimmerController
-    @ObservedObject var features: DimmerFeatures
-    @ObservedObject var reading: LidReading
-    @ObservedObject var lanes: AngleLaneReading
+    let controller: DimmerController
+    let features: DimmerFeatures
+    let reading: LidReading
+    let lanes: AngleLaneReading
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("LaneLiveText.\(lane)")
+        #endif
         Text(lane.live(controller: controller, features: features, reading: reading, lanes: lanes))
             .font(.system(size: 11))
             .foregroundStyle(Color(hex: 0x9A9EA7))

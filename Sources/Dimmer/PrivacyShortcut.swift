@@ -6,8 +6,8 @@ extension Notification.Name {
 }
 
 extension KeyboardShortcuts.Name {
-    // No standard macOS assignment uses Ctrl+Cmd+P (docs/research/shortcut-research.md). KeyboardShortcuts
-    // stores a cleared shortcut as false once a name has an initial one, so clearing it sticks.
+    // No standard macOS assignment uses Ctrl+Cmd+P. KeyboardShortcuts stores a cleared shortcut as false
+    // once a name has an initial one, so clearing it sticks.
     static let privacyBlur = Self("privacyBlur", initial: .init(.p, modifiers: [.control, .command]))
     static let goDark = Self("goDark")
 }

@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import KeyboardShortcuts
 import XCTest
 @testable import Dimmer
 
@@ -7,6 +8,50 @@ import XCTest
 // either shows up here rather than on the first click in the app.
 @MainActor
 final class SettingsViewTests: XCTestCase {
+    func testPrivacyShortcutSettingsRequireAnEnabledVeilAndRecordedShortcut() throws {
+        let suite = "PrivacyShortcutSettings-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let controller = DimmerController(defaults: defaults)
+        let features = DimmerFeatures(defaults: defaults)
+        defer { features.stop() }
+        let history = SettingsHistory(controller: controller, features: features)
+        let savedShortcut = KeyboardShortcuts.getShortcut(for: .privacyBlur)
+        defer { KeyboardShortcuts.setShortcut(savedShortcut, for: .privacyBlur) }
+
+        features.privacyEnabled = true
+        features.privacyVeilEnabled = true
+        KeyboardShortcuts.setShortcut(nil, for: .privacyBlur)
+        let withoutShortcut = SettingsView(controller: controller, features: features, shell: ShellPreferences(defaults: defaults),
+                                           login: LoginItem(), history: history, updates: UpdateController())
+        XCTAssertFalse(withoutShortcut.privacyShortcutAvailable,
+                       "Snap being enabled does not make the shortcut veil's strength available")
+        XCTAssertFalse(BlurPreviewRow(source: .privacy, features: features, available: withoutShortcut.privacyShortcutAvailable).isAvailable,
+                       "the Privacy preview must be disabled without an assigned shortcut")
+
+        KeyboardShortcuts.setShortcut(.init(.k, modifiers: [.control, .option]), for: .privacyBlur)
+        let withShortcut = SettingsView(controller: controller, features: features, shell: ShellPreferences(defaults: defaults),
+                                        login: LoginItem(), history: history, updates: UpdateController())
+        XCTAssertTrue(withShortcut.privacyShortcutAvailable,
+                      "the strength row and preview are available when the enabled veil has a shortcut")
+        XCTAssertTrue(BlurPreviewRow(source: .privacy, features: features, available: withShortcut.privacyShortcutAvailable).isAvailable)
+
+        features.privacyVeilEnabled = false
+        let withVeilOff = SettingsView(controller: controller, features: features, shell: ShellPreferences(defaults: defaults),
+                                       login: LoginItem(), history: history, updates: UpdateController())
+        XCTAssertFalse(withVeilOff.privacyShortcutAvailable,
+                       "a recorded shortcut cannot activate the Privacy veil while its switch is off")
+        XCTAssertFalse(BlurPreviewRow(source: .privacy, features: features, available: withVeilOff.privacyShortcutAvailable).isAvailable)
+    }
+
+    func testPrivacyZeroStrengthNoteDescribesTheShortcut() {
+        let previousLanguage = L10n.testLanguage
+        L10n.testLanguage = "en-GB"
+        defer { L10n.testLanguage = previousLanguage }
+        XCTAssertEqual(blurStrengthNote(for: 0, source: .privacy), "None: the shortcut does nothing visible.")
+        XCTAssertEqual(blurStrengthNote(for: 0, source: .snap), "None: the zone does nothing visible.")
+    }
+
     func testActualSnapBoxOffContainsOnlyItsTitleRow() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString))
         let controller = DimmerController(defaults: defaults)
@@ -49,6 +94,116 @@ final class SettingsViewTests: XCTestCase {
         }
         let fitting = NSHostingController(rootView: view).view.fittingSize
         XCTAssertGreaterThan(fitting.height, 300)
+    }
+
+    func testEachBlurPreviewIsRenderedNamedAndCollapsedWithItsBox() throws {
+        let previousLanguage = L10n.testLanguage
+        L10n.testLanguage = "en-GB"
+        defer { L10n.testLanguage = previousLanguage }
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "BlurPreviewRows-\(UUID().uuidString)"))
+        let controller = DimmerController(defaults: defaults)
+        let features = DimmerFeatures(defaults: defaults)
+        defer { features.stop() }
+        features.privacyEnabled = true
+        features.angleBlurEnabled = true
+        features.privacyVeilEnabled = true
+        features.snapBlurStrength = 0.42
+        features.snapTint.value = 0.2
+        features.angleBlurTint.value = 0.3
+        features.privacyVeilBlurStrength = 0.68
+        features.privacyVeilTint.value = 0.4
+        let history = SettingsHistory(controller: controller, features: features)
+        let settings = SettingsView(controller: controller, features: features, shell: ShellPreferences(defaults: defaults),
+                                    login: LoginItem(), history: history, updates: UpdateController())
+        BodyCount.reset()
+        let host = NSHostingView(rootView: settings.frame(width: 680))
+        host.appearance = NSAppearance(named: .darkAqua)
+        host.frame = NSRect(x: 0, y: 0, width: 680, height: 1600)
+        let window = NSWindow(contentRect: host.frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = host
+        defer { window.close() }
+
+        func blurViews(in view: NSView) -> [DimmerBlurView] {
+            let current = (view as? DimmerBlurView).map { [$0] } ?? []
+            return current + view.subviews.flatMap(blurViews(in:))
+        }
+        func renderedBlurViews() -> [DimmerBlurView] {
+            host.layoutSubtreeIfNeeded()
+            host.displayIfNeeded()
+            return blurViews(in: host)
+        }
+
+        let openViews = renderedBlurViews()
+        XCTAssertGreaterThan(BodyCount.counts["BlurPreview.Snap", default: 0], 0,
+                             "the Snap box must render its own preview")
+        XCTAssertGreaterThan(BodyCount.counts["BlurPreview.Angle", default: 0], 0,
+                             "Blur by angle must render its own preview")
+        XCTAssertGreaterThan(BodyCount.counts["BlurPreview.Privacy", default: 0], 0,
+                             "Privacy veil must render its own preview")
+        XCTAssertEqual(openViews.count, 3, "each open box must render its own native blur output")
+        XCTAssertEqual(BlurPreviewSource.snap.accessibilityLabel(strength: 0.42, tintReadout: "Smoke 20%"),
+                       "Snap to blur preview, 42 percent, Smoke 20%")
+        XCTAssertEqual(BlurPreviewSource.angle.accessibilityLabel(strength: 1, tintReadout: "Smoke 30%"),
+                       "Blur by angle preview, 100 percent, Smoke 30%")
+        XCTAssertEqual(BlurPreviewSource.privacy.accessibilityLabel(strength: 0.68, tintReadout: "Smoke 40%"),
+                       "Privacy veil preview, 68 percent, Smoke 40%")
+        for (actual, expected) in zip(openViews.map(\.alphaValue).sorted(), [0.42, 0.68, 1]) {
+            XCTAssertEqual(actual, expected, accuracy: 0.001, "native preview alpha must use each box's strength")
+        }
+        for (actual, expected) in zip(openViews.map(\.tintAlpha).sorted(), [0.15, 0.225, 0.3]) {
+            XCTAssertEqual(actual, expected, accuracy: 0.001, "native preview tint must use each box's tint")
+        }
+        let snapOutput = try XCTUnwrap(openViews.first { abs($0.alphaValue - 0.42) < 0.001 })
+        let angleOutput = try XCTUnwrap(openViews.first { abs($0.tintAlpha - 0.225) < 0.001 })
+        let privacyOutput = try XCTUnwrap(openViews.first { abs($0.alphaValue - 0.68) < 0.001 })
+
+        features.snap.blurStrength = 0.25
+        features.snapTint.value = 0.8
+        host.layoutSubtreeIfNeeded()
+        host.displayIfNeeded()
+        XCTAssertEqual(snapOutput.alphaValue, 0.25, accuracy: 0.001, "Snap preview must render Snap strength edits")
+        XCTAssertEqual(snapOutput.tintAlpha, 0.6, accuracy: 0.001, "Snap preview must render Snap tint edits")
+        XCTAssertEqual(privacyOutput.alphaValue, 0.68, accuracy: 0.001, "Snap edits must leave Privacy output unchanged")
+        XCTAssertEqual(privacyOutput.tintAlpha, 0.3, accuracy: 0.001, "Snap edits must leave Privacy tint unchanged")
+
+        features.privacyVeilBlurStrength = 0.51
+        features.privacyVeilTint.value = 0.9
+        host.layoutSubtreeIfNeeded()
+        host.displayIfNeeded()
+        XCTAssertEqual(privacyOutput.alphaValue, 0.51, accuracy: 0.001, "Privacy preview must render Privacy strength edits")
+        XCTAssertEqual(privacyOutput.tintAlpha, 0.675, accuracy: 0.001, "Privacy preview must render Privacy tint edits")
+        XCTAssertEqual(snapOutput.alphaValue, 0.25, accuracy: 0.001, "Privacy edits must leave Snap output unchanged")
+        XCTAssertEqual(snapOutput.tintAlpha, 0.6, accuracy: 0.001, "Privacy edits must leave Snap tint unchanged")
+
+        features.angleBlurTint.value = 0.7
+        features.angleBlurRange = .blurDefault.movedBelow(72)
+        controller.simulateLid(angle: 74)
+        features.setLidAngle(74)
+        host.layoutSubtreeIfNeeded()
+        host.displayIfNeeded()
+        XCTAssertEqual(angleOutput.alphaValue, 1, accuracy: 0.001, "Angle preview stays at full strength across lid/range changes")
+        XCTAssertEqual(angleOutput.tintAlpha, 0.525, accuracy: 0.001, "Angle preview uses its own tint at full strength")
+        XCTAssertEqual(snapOutput.alphaValue, 0.25, accuracy: 0.001, "Angle changes must leave Snap output unchanged")
+        XCTAssertEqual(privacyOutput.alphaValue, 0.51, accuracy: 0.001, "Angle changes must leave Privacy output unchanged")
+
+        for (name, disable) in [
+            ("Snap", { features.privacyEnabled = false }),
+            ("Angle", { features.angleBlurEnabled = false }),
+            ("Privacy", { features.privacyVeilEnabled = false }),
+        ] {
+            disable()
+            BodyCount.reset()
+            let collapsedViews = renderedBlurViews()
+            let counter = "BlurPreview.\(name)"
+            XCTAssertEqual(BodyCount.counts[counter, default: 0], 0, "\(name)'s preview body must collapse with its box")
+            XCTAssertEqual(collapsedViews.count, 2, "\(name)'s native blur output must collapse with its box")
+            switch name {
+            case "Snap": features.privacyEnabled = true
+            case "Angle": features.angleBlurEnabled = true
+            default: features.privacyVeilEnabled = true
+            }
+        }
     }
 
     // Snap off collapses its box to the title row; snap on with the screen dimming inside the zone adds the
@@ -272,7 +427,7 @@ final class SettingsViewTests: XCTestCase {
             features.angleBlurEnabled = open
         }
 
-        struct Measure { var panel: NSSize; var openHeaders: [CGFloat]; var collapsedHeaders: [CGFloat]; var tintRows: [NSSize]; var restoreLabels: [NSSize]; var openSettings: CGFloat; var collapsedSettings: CGFloat; var about: CGFloat }
+        struct Measure { var panel: NSSize; var openHeaders: [CGFloat]; var collapsedHeaders: [CGFloat]; var tintRows: [NSSize]; var previewRows: [NSSize]; var restoreLabels: [NSSize]; var openSettings: CGFloat; var collapsedSettings: CGFloat; var about: CGFloat }
         func measure() -> Measure {
             let history = SettingsHistory(controller: controller, features: features)
             setBoxes(open: true)
@@ -306,6 +461,10 @@ final class SettingsViewTests: XCTestCase {
                     detail: L10n.string(String.LocalizationValue(detail)), tint: tint, history: history,
                     actionName: String.LocalizationValue(title), set: { _ in }).frame(width: minimumWidth - 80)).fittingSize
             }
+            let previewRows = [BlurPreviewSource.snap, .angle, .privacy].map { source in
+                NSHostingView(rootView: BlurPreviewRow(source: source, features: features)
+                    .frame(width: minimumWidth - 80)).fittingSize
+            }
             let restoreLabels = ["Restore snap defaults", "Restore privacy veil defaults"].map { title in
                 NSHostingView(rootView: RestoreLinkLabel(title: L10n.string(String.LocalizationValue(title)), enabled: true).fixedSize()).fittingSize
             }
@@ -316,7 +475,7 @@ final class SettingsViewTests: XCTestCase {
             setBoxes(open: false)
             let collapsed = settings()
             let about = NSHostingController(rootView: AboutView().frame(width: AboutWindowController.contentSize.width)).view.fittingSize.height
-            return Measure(panel: panelSize, openHeaders: openHeaders, collapsedHeaders: collapsedHeaders, tintRows: tintRows, restoreLabels: restoreLabels, openSettings: open, collapsedSettings: collapsed, about: about)
+            return Measure(panel: panelSize, openHeaders: openHeaders, collapsedHeaders: collapsedHeaders, tintRows: tintRows, previewRows: previewRows, restoreLabels: restoreLabels, openSettings: open, collapsedSettings: collapsed, about: about)
         }
 
         L10n.testLanguage = "en-GB"
@@ -338,6 +497,11 @@ final class SettingsViewTests: XCTestCase {
             for (index, row) in found.tintRows.enumerated() {
                 XCTAssertEqual(row.width, minimumWidth - 80, accuracy: 1, "\(language): tint row overflows")
                 XCTAssertLessThanOrEqual(row.height, english.tintRows[index].height + 16, "\(language): tint row wraps excessively")
+            }
+            for (index, row) in found.previewRows.enumerated() {
+                XCTAssertEqual(row.width, minimumWidth - 80, accuracy: 1, "\(language): preview row \(index) overflows")
+                XCTAssertLessThanOrEqual(row.height, english.previewRows[index].height + 16,
+                                         "\(language): preview row \(index) wraps excessively")
             }
             for label in found.restoreLabels {
                 XCTAssertLessThanOrEqual(label.width, minimumWidth - 80, "\(language): restore label overflows its box")

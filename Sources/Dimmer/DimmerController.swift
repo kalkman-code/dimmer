@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Foundation
+import Observation
 import os
 
 private struct PollCancelled: Error {}
@@ -628,9 +629,9 @@ final class HardwareWorker: @unchecked Sendable {
     }
 }
 
-// Every lid sample, published for the logic that acts on each one: the features' angle lanes and snap, and tests.
-// Not an ObservableObject on purpose. Published through the controller, ten samples a second rebuilt every
-// Settings box and bar with the lid still (docs/settings-fps-diagnosis-10-10-2026.md). Views read `reading`.
+// Every lid sample is published for the features' angle lanes, snap and tests. Keep this separate from the
+// observable controller so views that only need display readings do not rebuild the full Settings form per poll.
+// Those views read `reading`.
 @MainActor
 final class LidTelemetry {
     let reading = LidReading()
@@ -658,16 +659,21 @@ final class LidTelemetry {
 
 // The live lid values as the views show them: the angle per tenth of a degree, the brightnesses to a whole
 // percent. Each changes only when what is shown does, so a still lid redraws nothing.
+@Observable
 @MainActor
-final class LidReading: ObservableObject {
-    @Published fileprivate(set) var angle: Double?
-    @Published fileprivate(set) var keyboardPercent: Int?
-    @Published fileprivate(set) var displayPercent: Int?
+final class LidReading {
+    @ObservationIgnored private(set) var untrackedAngle: Double?
+    fileprivate(set) var angle: Double? {
+        didSet { untrackedAngle = angle }
+    }
+    fileprivate(set) var keyboardPercent: Int?
+    fileprivate(set) var displayPercent: Int?
 }
 
+@Observable
 @MainActor
-final class DimmerController: ObservableObject {
-    let telemetry = LidTelemetry()
+final class DimmerController {
+    @ObservationIgnored let telemetry = LidTelemetry()
     var reading: LidReading { telemetry.reading }
     private(set) var angle: Double? {
         get { telemetry.angle }
@@ -678,7 +684,10 @@ final class DimmerController: ObservableObject {
     }
     private(set) var rawSample: LidSample? {
         get { telemetry.rawSample }
-        set { telemetry.rawSample = newValue }
+        set {
+            telemetry.rawSample = newValue
+            if hasLidSample != (newValue != nil) { hasLidSample = newValue != nil }
+        }
     }
     private(set) var keyboardBrightness: Double? {
         get { telemetry.keyboardBrightness }
@@ -689,54 +698,68 @@ final class DimmerController: ObservableObject {
         set { telemetry.displayBrightness = newValue }
     }
     // Whether there is a lid angle at all: the coarse fact the status line and Go dark need, published only when it flips.
-    @Published private(set) var hasLidAngle = false
-    @Published private(set) var displayStatus = L10n.string("Dimmer leaves automatic brightness unchanged.")
-    @Published private(set) var errorMessage = L10n.string("Starting…")
-    @Published private(set) var paused = false
+    private(set) var hasLidAngle = false
+    // Whether there is a sample at all, for Go dark: the sample itself is not observed, so a view reading only it
+    // would never see the first one arrive.
+    private(set) var hasLidSample = false
+    private(set) var displayStatus = L10n.string("Dimmer leaves automatic brightness unchanged.")
+    private(set) var errorMessage = L10n.string("Starting…")
+    private(set) var paused = false { willSet { pausedSubject.send(newValue) } }
+    @ObservationIgnored private let pausedSubject = CurrentValueSubject<Bool, Never>(false)
+    var pausedPublisher: AnyPublisher<Bool, Never> { pausedSubject.eraseToAnyPublisher() }
+
     // UI setters clamp ranges before assignment; assigning a published value in its own observer can recurse.
-    @Published var keyboardRange: DimRange {
+    var keyboardRange: DimRange {
         didSet { Self.persist(keyboardRange, key: "keyboardRange", defaults: defaults) }
     }
-    @Published var screenRange: DimRange {
+    var screenRange: DimRange {
         didSet { Self.persist(screenRange, key: "screenRange", defaults: defaults) }
     }
-    @Published var dimsScreen: Bool {
+    var dimsScreen: Bool {
         didSet { defaults.set(dimsScreen, forKey: "dimsScreen") }
     }
-    @Published var dimsKeyboard: Bool {
+    var dimsKeyboard: Bool {
         didSet { defaults.set(dimsKeyboard, forKey: "dimsKeyboard") }
     }
-    @Published private(set) var isDark = false
-    @Published private(set) var keyboardYielded = false
-    @Published private(set) var screenStatus: ScreenStatus = .ready
+    private(set) var isDark = false { willSet { isDarkSubject.send(newValue) } }
+    @ObservationIgnored private let isDarkSubject = CurrentValueSubject<Bool, Never>(false)
+    var isDarkPublisher: AnyPublisher<Bool, Never> { isDarkSubject.eraseToAnyPublisher() }
+
+    private(set) var keyboardYielded = false { willSet { keyboardYieldedSubject.send(newValue) } }
+    @ObservationIgnored private let keyboardYieldedSubject = CurrentValueSubject<Bool, Never>(false)
+    var keyboardYieldedPublisher: AnyPublisher<Bool, Never> { keyboardYieldedSubject.eraseToAnyPublisher() }
+
+    private(set) var screenStatus: ScreenStatus = .ready { willSet { screenStatusSubject.send(newValue) } }
+    @ObservationIgnored private let screenStatusSubject = CurrentValueSubject<ScreenStatus, Never>(.ready)
+    var screenStatusPublisher: AnyPublisher<ScreenStatus, Never> { screenStatusSubject.eraseToAnyPublisher() }
 
     var canResumeKeyboard: Bool { keyboardYielded && !paused && !isDark }
 
-    private var darkness = 0.0
-    private var darkTimer: Timer?
-    private var darkAt: TimeInterval = 0
-    private var darkStartAngle: Double?
-    private var keyboardEpoch = 0
+    @ObservationIgnored private var darkness = 0.0
+    @ObservationIgnored private var darkTimer: Timer?
+    @ObservationIgnored private var darkAt: TimeInterval = 0
+    @ObservationIgnored private var darkStartAngle: Double?
+    @ObservationIgnored private var keyboardEpoch = 0
 
-    private let work = DispatchQueue(label: "uk.co.kalkmancode.dimmer.hardware")
-    private let hardware: HardwareWorker
-    private let pollGeneration = PollGeneration()
-    private let logger = Logger(subsystem: "uk.co.kalkmancode.Dimmer", category: "hardware")
-    private var timer: Timer?
-    private var keyboardRecoveryTimer: Timer?
-    private let keyboardRecoveryGate = PollGeneration()
-    private var lastHardwareLog = Date.distantPast
-    private var retryAfter = Date.distantPast
-    private var pollInFlight = false
-    private var pollPending = false
-    private var controlFailureNeedsResume = false
-    private let defaults: UserDefaults
+    @ObservationIgnored private let work = DispatchQueue(label: "uk.co.kalkmancode.dimmer.hardware")
+    @ObservationIgnored private let hardware: HardwareWorker
+    @ObservationIgnored private let pollGeneration = PollGeneration()
+    @ObservationIgnored private let logger = Logger(subsystem: "uk.co.kalkmancode.Dimmer", category: "hardware")
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var keyboardRecoveryTimer: Timer?
+    @ObservationIgnored private let keyboardRecoveryGate = PollGeneration()
+    @ObservationIgnored private var lastHardwareLog = Date.distantPast
+    @ObservationIgnored private var retryAfter = Date.distantPast
+    @ObservationIgnored private var pollInFlight = false
+    @ObservationIgnored private var pollPending = false
+    @ObservationIgnored private var controlFailureNeedsResume = false
+    @ObservationIgnored private let defaults: UserDefaults
 
-    @Published private(set) var resumeAt: Date?
-    private(set) var pauseToken: UUID?
-    private var preparingForSleep = false
-    private var pauseTimer: Timer?
-    private let now: () -> Date
+    private(set) var resumeAt: Date?
+    @ObservationIgnored private(set) var pauseToken: UUID?
+    @ObservationIgnored private var preparingForSleep = false
+    @ObservationIgnored private var pauseTimer: Timer?
+    @ObservationIgnored private let now: () -> Date
 
     init(defaults: UserDefaults = .standard, hardware: HardwareWorker = HardwareWorker(), now: @escaping () -> Date = Date.init) {
         self.defaults = defaults
@@ -778,7 +801,7 @@ final class DimmerController: ObservableObject {
         poll()
     }
 
-    var canGoDark: Bool { !paused && !isDark && rawSample != nil }
+    var canGoDark: Bool { !paused && !isDark && hasLidSample }
 
     func goDark() {
         guard canGoDark else { return }
@@ -842,6 +865,9 @@ final class DimmerController: ObservableObject {
         self.angle = angle
         rawSample = angle.map { LidSample(angle: $0, time: ProcessInfo.processInfo.systemUptime) }
     }
+
+    // The dark timer's wake check needs real input and lid motion, so tests end Go dark through here.
+    func simulateWake() { wakeFromDark() }
     #endif
 
     private func performResume() {

@@ -7,6 +7,7 @@ struct SettingsValues: Equatable {
     var keyboardRange: DimRange
     var screenRange: DimRange
     var snap: SnapSettings
+    var privacyVeilBlurStrength: Double
     var angleBlurRange: DimRange
     var angleBlurSmoke: Double
     var privacyVeilSmoke: Double
@@ -48,6 +49,7 @@ final class SettingsHistory: ObservableObject {
 
     private var current: SettingsValues {
         SettingsValues(keyboardRange: controller.keyboardRange, screenRange: controller.screenRange, snap: features.snap,
+                       privacyVeilBlurStrength: features.privacyVeilBlurStrength,
                        angleBlurRange: features.angleBlurRange, angleBlurSmoke: features.angleBlurSmoke,
                        privacyVeilSmoke: features.privacyVeilSmoke, privacyVeilEnabled: features.privacyVeilEnabled)
     }
@@ -63,6 +65,9 @@ final class SettingsHistory: ObservableObject {
             snap[keyPath: field] = target.snap[keyPath: field]
         }
         if snap != features.snap { features.snap = snap }
+        if target.privacyVeilBlurStrength != base.privacyVeilBlurStrength {
+            features.privacyVeilBlurStrength = target.privacyVeilBlurStrength
+        }
         if target.angleBlurRange != base.angleBlurRange { features.angleBlurRange = target.angleBlurRange }
         if target.angleBlurSmoke != base.angleBlurSmoke { features.angleBlurSmoke = target.angleBlurSmoke }
         if target.privacyVeilSmoke != base.privacyVeilSmoke { features.privacyVeilSmoke = target.privacyVeilSmoke }
@@ -139,11 +144,19 @@ final class SettingsHistory: ObservableObject {
     func redo() { if canRedo { burst = nil; undoManager.redo() } }
 
     // One privacy slider or number being nudged from the keyboard is one step per control, like the axis handles.
-    func setSnap(_ keyPath: WritableKeyPath<SnapSettings, Double>, _ value: Double) {
-        change(keyPath == \.smoke ? "Snap tint" : "Privacy settings", coalescing: "snap.\(keyPath)") {
+    func setSnap(_ keyPath: WritableKeyPath<SnapSettings, Double>, _ value: Double, coalescing control: String? = nil) {
+        let name: String.LocalizationValue = keyPath == \.smoke ? "Snap tint" :
+            keyPath == \.blurStrength ? "Snap blur strength" : "Privacy settings"
+        change(name, coalescing: control ?? "snap.\(keyPath)") {
             var settings = features.snap
             settings[keyPath: keyPath] = value
             features.snap = settings.clamped(maximum: LidAxis.maximum)
+        }
+    }
+
+    func setPrivacyVeilBlurStrength(_ value: Double) {
+        change("Privacy veil blur strength", coalescing: "privacyVeilBlurStrength") {
+            features.privacyVeilBlurStrength = value
         }
     }
 
@@ -173,6 +186,7 @@ final class SettingsHistory: ObservableObject {
     func restorePrivacyVeilSettings() {
         change("Restore defaults") {
             features.snap = features.snap.restoringPrivacyVeilDefaults()
+            features.privacyVeilBlurStrength = 1
             features.privacyVeilSmoke = VeilTintSettings.defaultValue
         }
     }

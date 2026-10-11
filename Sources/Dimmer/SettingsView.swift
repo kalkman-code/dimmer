@@ -1,16 +1,29 @@
 import AppKit
+import Observation
 import SwiftUI
 import KeyboardShortcuts
 
+#if DEBUG
+// Body evaluations by view, for SettingsFrameBudgetTests. Never read by the app.
+@MainActor
+enum BodyCount {
+    static var counts: [String: Int] = [:]
+    static func hit(_ name: String) { counts[name, default: 0] += 1 }
+    static func reset() { counts.removeAll() }
+}
+#endif
+
 struct SettingsView: View {
-    @ObservedObject var controller: DimmerController
-    @ObservedObject var features: DimmerFeatures
+    let controller: DimmerController
+    @Bindable var features: DimmerFeatures
     @ObservedObject var shell: ShellPreferences
     @ObservedObject var login: LoginItem
     @ObservedObject var history: SettingsHistory
     @ObservedObject var updates: UpdateController
     @State private var confirmHideMenuBarIcon = false
     @State private var hasPrivacyShortcut = KeyboardShortcuts.getShortcut(for: .privacyBlur) != nil
+
+    var privacyShortcutAvailable: Bool { features.privacyVeilEnabled && hasPrivacyShortcut }
 
     private let bodyColour = Color(hex: 0x141416)
     private let secondaryText = Color(hex: 0x9A9EA7)
@@ -26,6 +39,9 @@ struct SettingsView: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("SettingsView")
+        #endif
         Form {
             Section {
                 VStack(alignment: .leading, spacing: 10) {
@@ -40,7 +56,9 @@ struct SettingsView: View {
             }
 
             Section {
-                LaneBox(lane: .screen, controller: controller, features: features, history: history) { overlapNote }
+                LaneBox(lane: .screen, controller: controller, features: features, history: history) {
+                    OverlapNote(controller: controller, features: features, history: history)
+                }
             }
 
             snapBox
@@ -51,53 +69,58 @@ struct SettingsView: View {
                                    detail: L10n.string("Sets the darkness of the angle blur, scaled with its blur strength."),
                                    tint: features.angleBlurTint, history: history,
                                    actionName: "Blur tint", set: history.setAngleBlurSmoke)
+                    BlurPreviewRow(source: .angle, features: features)
                 }
             }
 
             Section {
-                PrivacyVeilHeader(features: features, history: history)
-                if features.privacyVeilEnabled {
-                    HStack(spacing: 12) {
-                        settingLabel(L10n.string("Privacy shortcut"), detail: L10n.string("Works only while Privacy veil is on. Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own."))
-                        Spacer(minLength: 8)
-                        // The recorder's own field is a borderless grey placeholder that read as disabled text;
-                        // in testing it was not found. The outline makes it read as a control.
-                        KeyboardShortcuts.Recorder(for: .privacyBlur, onChange: { shortcut in
-                            hasPrivacyShortcut = shortcut != nil
-                            NotificationCenter.default.post(name: .dimmerShortcutDidChange, object: nil)
-                        })
-                        .shortcutValidation { shortcut in
-                            if let conflict = ShortcutConflict.reason(for: shortcut, other: KeyboardShortcuts.getShortcut(for: .goDark), otherName: L10n.string("Go dark")) {
-                                return .disallow(reason: conflict)
+                Isolated {
+                    PrivacyVeilHeader(features: features, history: history)
+                    if features.privacyVeilEnabled {
+                        HStack(spacing: 12) {
+                            settingLabel(L10n.string("Privacy shortcut"), detail: L10n.string("Works only while Privacy veil is on. Blurs every screen from any app, even with snap off; any input clears it. Click it to record your own."))
+                            Spacer(minLength: 8)
+                            // The recorder's own field is a borderless grey placeholder that read as disabled text;
+                            // in testing it was not found. The outline makes it read as a control.
+                            KeyboardShortcuts.Recorder(for: .privacyBlur, onChange: { shortcut in
+                                hasPrivacyShortcut = shortcut != nil
+                                NotificationCenter.default.post(name: .dimmerShortcutDidChange, object: nil)
+                            })
+                            .shortcutValidation { shortcut in
+                                if let conflict = ShortcutConflict.reason(for: shortcut, other: KeyboardShortcuts.getShortcut(for: .goDark), otherName: L10n.string("Go dark")) {
+                                    return .disallow(reason: conflict)
+                                }
+                                let blocked: [NSEvent.ModifierFlags] = [
+                                    [.command], [.command, .shift], [.control, .option, .command],
+                                    [.command, .shift, .option], [.control, .option, .shift, .command]
+                                ]
+                                if shortcut.key == .p && blocked.contains(shortcut.modifiers) {
+                                    return .disallow(reason: L10n.string("This shortcut is used by printing, applications or accessibility. Choose another combination."))
+                                }
+                                return .allow
                             }
-                            let blocked: [NSEvent.ModifierFlags] = [
-                                [.command], [.command, .shift], [.control, .option, .command],
-                                [.command, .shift, .option], [.control, .option, .shift, .command]
-                            ]
-                            if shortcut.key == .p && blocked.contains(shortcut.modifiers) {
-                                return .disallow(reason: L10n.string("This shortcut is used by printing, applications or accessibility. Choose another combination."))
-                            }
-                            return .allow
+                            .accessibilityLabel(L10n.string("Privacy shortcut"))
+                            .frame(minWidth: 150)
+                            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color(hex: 0x8EA2C9), lineWidth: 1))
                         }
-                        .accessibilityLabel(L10n.string("Privacy shortcut"))
-                        .frame(minWidth: 150)
-                        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color(hex: 0x8EA2C9), lineWidth: 1))
-                    }
-                    .padding(.vertical, 4)
+                        .padding(.vertical, 4)
 
-                    settingRow(L10n.string("Clear speed"), detail: L10n.string("How long the veil takes to fade once it clears."),
-                               value: Binding(get: { features.snap.clearSeconds * 1000 },
-                                              set: { setSnap(\.clearSeconds, $0 / 1000) }),
-                               range: 0...600, unit: "ms", step: 10, sliderEnds: (L10n.string("Instant"), L10n.string("Slow (600 ms)")), available: features.privacyEnabled || hasPrivacyShortcut)
-                    settingRow(L10n.string("Blur strength"), detail: strengthNote,
-                               value: Binding(get: { features.snap.blurStrength * 100 },
-                                              set: { setSnap(\.blurStrength, $0 / 100) }),
-                               range: 0...100, unit: "%", available: features.privacyEnabled || hasPrivacyShortcut)
-                    TintSettingRow(title: L10n.string("Tint"), accessibilityTitle: L10n.string("Privacy veil tint"),
-                                   detail: L10n.string("Sets the darkness of the shortcut veil"),
-                                   tint: features.privacyVeilTint, history: history, actionName: "Privacy veil tint",
-                                   available: hasPrivacyShortcut, set: history.setPrivacyVeilSmoke)
-                    previewRow
+                        settingRow(L10n.string("Clear speed"), detail: L10n.string("How long the veil takes to fade once it clears."),
+                                   value: Binding(get: { features.snapClearSeconds * 1000 },
+                                                  set: { setSnap(\.clearSeconds, $0 / 1000) }),
+                                   range: 0...600, unit: "ms", step: 10, sliderEnds: (L10n.string("Instant"), L10n.string("Slow (600 ms)")), available: features.privacyEnabled || hasPrivacyShortcut)
+                        settingRow(L10n.string("Blur strength"), detail: blurStrengthNote(for: features.privacyVeilBlurStrength, source: .privacy),
+                                   value: Binding(get: { features.privacyVeilBlurStrength * 100 },
+                                                  set: { history.setPrivacyVeilBlurStrength($0 / 100) }),
+                                   range: 0...100, unit: "%", available: privacyShortcutAvailable,
+                                   undoName: "Privacy veil blur strength",
+                                   accessibilityTitle: L10n.string("Privacy veil blur strength"))
+                        TintSettingRow(title: L10n.string("Tint"), accessibilityTitle: L10n.string("Privacy veil tint"),
+                                       detail: L10n.string("Sets the darkness of the shortcut veil"),
+                                       tint: features.privacyVeilTint, history: history, actionName: "Privacy veil tint",
+                                       available: privacyShortcutAvailable, set: history.setPrivacyVeilSmoke)
+                        BlurPreviewRow(source: .privacy, features: features, available: privacyShortcutAvailable)
+                    }
                 }
             }
 
@@ -257,37 +280,23 @@ struct SettingsView: View {
         .foregroundStyle(secondaryText)
     }
 
-    @ViewBuilder
-    private var overlapNote: some View {
-        if features.privacyEnabled && controller.dimsScreen && features.snap.zoneLow < controller.screenRange.highAngle {
-            VStack(alignment: .leading, spacing: 5) {
-                Text(L10n.string("The screen already dims inside the snap zone."))
-                    .font(.system(size: 11))
-                    .foregroundStyle(secondaryText)
-                Button {
-                    history.change("Brightness range") {
-                        controller.screenRange = controller.screenRange.movedBelow(features.snap.zoneLow)
-                    }
-                } label: {
-                    Text(L10n.string("Move screen range below the zone"))
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color(hex: 0xB9C8E6))
-                        .underline()
-                }
-                .buttonStyle(.plain)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
     var snapBox: some View {
         Section {
             LaneBox(lane: .privacy, controller: controller, features: features, history: history) {
                 settingRow(L10n.string("Snap of at least"), detail: L10n.string("How far the lid must drop into the zone."),
-                           value: snapBinding(\.snapDegrees), range: 1...40, unit: "°")
+                           value: Binding(get: { features.snapDegrees }, set: { setSnap(\.snapDegrees, $0) }),
+                           range: 1...40, unit: "°")
                 settingRow(L10n.string("Snap speed"), detail: L10n.string("Slower closes pass through without blurring."),
-                           value: snapBinding(\.minimumSpeed), range: 10...300, unit: "°/s", step: 5)
+                           value: Binding(get: { features.snapMinimumSpeed }, set: { setSnap(\.minimumSpeed, $0) }),
+                           range: 10...300, unit: "°/s", step: 5)
+                settingRow(L10n.string("Blur strength"), detail: blurStrengthNote(for: features.snapBlurStrength, source: .snap),
+                           value: Binding(get: { features.snapBlurStrength * 100 },
+                                          set: { setSnap(\.blurStrength, $0 / 100) }),
+                           range: 0...100, unit: "%", available: features.privacyEnabled,
+                           undoName: "Snap blur strength",
+                           accessibilityTitle: L10n.string("Snap blur strength"))
                 SnapTintContent(features: features, tint: features.snapTint, history: history)
+                BlurPreviewRow(source: .snap, features: features)
             }
         }
     }
@@ -379,7 +388,9 @@ struct SettingsView: View {
     }
 
     private func settingRow(_ title: String, detail: String, value: Binding<Double>, range: ClosedRange<Double>,
-                            unit: String, step: Double = 1, sliderEnds: (String, String)? = nil, available: Bool? = nil) -> some View {
+                            unit: String, step: Double = 1, sliderEnds: (String, String)? = nil,
+                            available: Bool? = nil, undoName: String.LocalizationValue = "Privacy settings",
+                            accessibilityTitle: String? = nil) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 13)).fixedSize(horizontal: false, vertical: true)
@@ -397,8 +408,8 @@ struct SettingsView: View {
                         value.wrappedValue = min(max(rounded, range.lowerBound), range.upperBound)
                     }
                 ), in: range, step: step, onEditingChanged: { editing in
-                    if editing { history.beginGesture("Privacy settings") } else { history.endGesture() }
-                }) { Text(title) }
+                    if editing { history.beginGesture(undoName) } else { history.endGesture() }
+                }) { Text(accessibilityTitle ?? title) }
                 // In a grouped Form a Slider keeps an empty label column unless hidden, which pushed the
                 // track 88 pt right and left it 108 pt long.
                 .labelsHidden()
@@ -406,7 +417,7 @@ struct SettingsView: View {
                 .tint(Color(hex: 0x8EA2C9))
                 .accessibilityValue(AccessibilityReadout.value(value.wrappedValue, unit: unit))
                 .accessibilityHint(AccessibilityReadout.range(range, unit: unit))
-                numberField(title: title, value: value, range: range, step: step, unit: unit)
+                numberField(title: accessibilityTitle ?? title, value: value, range: range, step: step, unit: unit)
                 Text(L10n.displayUnit(unit))
                     .font(.system(size: 11).monospacedDigit())
                     .foregroundStyle(secondaryText)
@@ -436,7 +447,64 @@ struct SettingsView: View {
         PrivacyNumberField(title: title, value: value, range: range, step: step, unit: unit)
     }
 
-    private var previewRow: some View {
+}
+
+enum BlurPreviewSource: Equatable {
+    case snap
+    case angle
+    case privacy
+
+    func accessibilityLabel(strength: Double, tintReadout: String) -> String {
+        switch self {
+        case .snap: L10n.string("Snap to blur preview, \(Int((strength * 100).rounded())) percent, \(tintReadout)")
+        case .angle: L10n.string("Blur by angle preview, \(Int((strength * 100).rounded())) percent, \(tintReadout)")
+        case .privacy: L10n.string("Privacy veil preview, \(Int((strength * 100).rounded())) percent, \(tintReadout)")
+        }
+    }
+
+    var counterName: String {
+        switch self {
+        case .snap: "BlurPreview.Snap"
+        case .angle: "BlurPreview.Angle"
+        case .privacy: "BlurPreview.Privacy"
+        }
+    }
+}
+
+struct BlurPreviewRow: View {
+    let source: BlurPreviewSource
+    @Bindable var features: DimmerFeatures
+    var available = true
+    private let controlWidth: CGFloat = 300
+    private let secondaryText = Color(hex: 0x9A9EA7)
+
+    var isAvailable: Bool { source != .privacy || available }
+
+    private var strength: Double {
+        switch source {
+        case .snap: features.snapBlurStrength
+        case .angle: 1
+        case .privacy: features.privacyVeilBlurStrength
+        }
+    }
+
+    private var tint: VeilTintSettings {
+        switch source {
+        case .snap: features.snapTint
+        case .angle: features.angleBlurTint
+        case .privacy: features.privacyVeilTint
+        }
+    }
+
+    var accessibilityLabel: String {
+        source.accessibilityLabel(strength: strength, tintReadout: tintReadout)
+    }
+
+    private var tintReadout: String {
+        tint.value < 0.05 ? L10n.string("Frost") : L10n.string("Smoke \(Int((tint.value * 100).rounded()))%")
+    }
+
+    var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.string("Preview")).font(.system(size: 13))
@@ -446,22 +514,27 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
-            BlurPreview(strength: features.snap.blurStrength, tint: features.privacyVeilTint)
+            BlurPreview(strength: strength, tint: tint, accessibilityLabel: accessibilityLabel,
+                        counterName: source.counterName)
                 .frame(width: controlWidth, alignment: .leading)
         }
         .frame(minHeight: 68)
-        .disabled(!features.privacyEnabled && !hasPrivacyShortcut)
-        .opacity(features.privacyEnabled || hasPrivacyShortcut ? 1 : 0.38)
+        .disabled(!isAvailable)
+        .opacity(isAvailable ? 1 : 0.38)
     }
+}
 
-    private var strengthNote: String {
-        let strength = features.snap.blurStrength * 100
-        if strength == 0 { return L10n.string("None: the zone does nothing visible.") }
-        if strength < 50 { return L10n.string("Light: large text is still readable.") }
-        if strength < 90 { return L10n.string("Medium: shapes show, words do not.") }
-        return L10n.string("Full: nothing on screen is readable.")
+func blurStrengthNote(for value: Double, source: BlurPreviewSource) -> String {
+    if value == 0 {
+        return L10n.string(source == .privacy ? "None: the shortcut does nothing visible." : "None: the zone does nothing visible.")
     }
+    let strength = value * 100
+    if strength < 50 { return L10n.string("Light: large text is still readable.") }
+    if strength < 90 { return L10n.string("Medium: shapes show, words do not.") }
+    return L10n.string("Full: nothing on screen is readable.")
+}
 
+private extension SettingsView {
     private var awakeStatus: String {
         if let error = features.awakeError { return error }
         switch features.awakeDuration {
@@ -488,10 +561,6 @@ struct SettingsView: View {
             }
         }
         .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func snapBinding(_ keyPath: WritableKeyPath<SnapSettings, Double>) -> Binding<Double> {
-        Binding(get: { features.snap[keyPath: keyPath] }, set: { setSnap(keyPath, $0) })
     }
 
     private func setSnap(_ keyPath: WritableKeyPath<SnapSettings, Double>, _ value: Double) {
@@ -543,13 +612,16 @@ private struct PrivacyNumberField: View {
 }
 
 private struct SnapTintContent: View {
-    @ObservedObject var features: DimmerFeatures
-    @ObservedObject var tint: VeilTintSettings
+    @Bindable var features: DimmerFeatures
+    let tint: VeilTintSettings
     @ObservedObject var history: SettingsHistory
 
     private var defaults: SnapSettings { features.snap.restoringSnapDefaults() }
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("SnapTintContent")
+        #endif
         TintSettingRow(title: L10n.string("Tint"), accessibilityTitle: L10n.string("Snap tint"),
                        detail: L10n.string("Sets the darkness of the snap veil"),
                        tint: tint, history: history, actionName: "Snap tint") { value in
@@ -563,14 +635,14 @@ private struct SnapTintContent: View {
             }
             .buttonStyle(.plain)
             .disabled(features.snap == defaults)
-            .help(L10n.string("Restores the zone, snap distance, speed and tint. It does not turn snap on or off. Undo with Cmd+Z."))
+            .help(L10n.string("Restores the zone, snap distance, speed, blur strength and tint. It does not turn snap on or off. Undo with Cmd+Z."))
             .accessibilityLabel(L10n.string("Restore snap defaults"))
         }
     }
 }
 
 struct PrivacyVeilHeader: View {
-    @ObservedObject var features: DimmerFeatures
+    @Bindable var features: DimmerFeatures
     @ObservedObject var history: SettingsHistory
 
     private let secondary = Color(hex: 0x9A9EA7)
@@ -580,6 +652,9 @@ struct PrivacyVeilHeader: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("PrivacyVeilHeader")
+        #endif
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(L10n.string("Privacy veil"))
@@ -607,15 +682,19 @@ struct PrivacyVeilHeader: View {
 }
 
 private struct PrivacyVeilRestoreLink: View {
-    @ObservedObject var features: DimmerFeatures
-    @ObservedObject var tint: VeilTintSettings
+    @Bindable var features: DimmerFeatures
+    let tint: VeilTintSettings
     @ObservedObject var history: SettingsHistory
 
     private var isDefault: Bool {
-        features.snap == features.snap.restoringPrivacyVeilDefaults() && tint.value == VeilTintSettings.defaultValue
+        features.snapConfiguration == features.snapConfiguration.restoringPrivacyVeilDefaults()
+            && features.privacyVeilBlurStrength == 1 && tint.value == VeilTintSettings.defaultValue
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("PrivacyVeilRestoreLink")
+        #endif
         Button { history.restorePrivacyVeilSettings() } label: {
             RestoreLinkLabel(title: L10n.string("Restore privacy veil defaults"), enabled: !isDefault)
         }
@@ -630,7 +709,7 @@ struct TintSettingRow: View {
     let title: String
     let accessibilityTitle: String
     let detail: String
-    @ObservedObject var tint: VeilTintSettings
+    let tint: VeilTintSettings
     @ObservedObject var history: SettingsHistory
     let actionName: String.LocalizationValue
     var available = true
@@ -653,6 +732,9 @@ struct TintSettingRow: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("TintSettingRow.\(accessibilityTitle)")
+        #endif
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 13)).fixedSize(horizontal: false, vertical: true)
@@ -701,14 +783,15 @@ struct TintSettingRow: View {
 
 private struct BlurPreview: View {
     let strength: Double
-    @ObservedObject var tint: VeilTintSettings
+    let tint: VeilTintSettings
+    let accessibilityLabel: String
+    let counterName: String
     @ObservedObject private var accessibility = DisplayAccessibility.shared
 
-    private var tintReadout: String {
-        tint.value < 0.05 ? L10n.string("Frost") : L10n.string("Smoke \(Int((tint.value * 100).rounded()))%")
-    }
-
     var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit(counterName)
+        #endif
         // A neutral page: a heading and text lines as bars, so the preview shows what the veil does
         // without inventing names or figures that read as someone's data.
         ZStack(alignment: .leading) {
@@ -726,7 +809,7 @@ private struct BlurPreview: View {
         .background(Color(hex: 0xF3F4F6))
         .clipShape(RoundedRectangle(cornerRadius: 7))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(L10n.string("Blur preview, \(Int((strength * 100).rounded())) percent, \(tintReadout)"))
+        .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(accessibility.preferences.reduceTransparency && strength > 0 ? L10n.string("Opaque cover") : L10n.string("Frosted veil"))
     }
 }
@@ -754,5 +837,49 @@ extension Color {
         self.init(red: Double((hex >> 16) & 0xFF) / 255,
                   green: Double((hex >> 8) & 0xFF) / 255,
                   blue: Double(hex & 0xFF) / 255)
+    }
+}
+
+// Runs its content in its own body, so what the content reads invalidates this view, not the one that built it.
+private struct Isolated<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("Isolated")
+        #endif
+        content()
+    }
+}
+
+private struct OverlapNote: View {
+    let controller: DimmerController
+    let features: DimmerFeatures
+    @ObservedObject var history: SettingsHistory
+    private let secondaryText = Color(hex: 0x9A9EA7)
+
+    var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("OverlapNote")
+        #endif
+        if features.privacyEnabled && controller.dimsScreen && features.snapConfiguration.zoneLow < controller.screenRange.highAngle {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(L10n.string("The screen already dims inside the snap zone."))
+                    .font(.system(size: 11))
+                    .foregroundStyle(secondaryText)
+                Button {
+                    history.change("Brightness range") {
+                        controller.screenRange = controller.screenRange.movedBelow(features.snapConfiguration.zoneLow)
+                    }
+                } label: {
+                    Text(L10n.string("Move screen range below the zone"))
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color(hex: 0xB9C8E6))
+                        .underline()
+                }
+                .buttonStyle(.plain)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }

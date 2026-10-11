@@ -86,7 +86,7 @@ version_of() { plutil -extract CFBundleShortVersionString raw "$1/Contents/Info.
 stage 1.3.0 1300 "$W/old"
 stage 1.3.1 1301 "$W/new"
 stage 1.3.1 1301 "$W/future-os" 99.0
-# An untouched 1.3.0 copy for the hands-on GUI pass (docs/1.3-hardware-C.md); this script never opens it.
+# An untouched 1.3.0 copy for the hands-on GUI pass; this script never opens it.
 ditto "$W/old/Dimmer.app" "$W/gui-1.3.0/Dimmer.app"
 result ok "built 1.3.0 and 1.3.1 test bundles with nested Sparkle helpers signed ($(codesign -dvv "$W/new/Dimmer.app" 2>&1 | sed -n 's/^Authority=//p;s/^Signature=//p' | head -1))"
 

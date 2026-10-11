@@ -53,6 +53,7 @@ final class AxisKeyHandlingTests: XCTestCase {
                     controller.screenRange = range
                     features.angleBlurRange = range
                     features.snap.blurStrength = 0.5
+                    features.privacyVeilBlurStrength = 0.3
                     let beforeSnap = features.snap
                     let history = SettingsHistory(controller: controller, features: features)
                     let view = LidAxisView(lane: lane, controller: controller, features: features, history: history)
@@ -68,9 +69,17 @@ final class AxisKeyHandlingTests: XCTestCase {
                     }
                     view.moveCommand(.up, field: field)
                     XCTAssertEqual(strength(), 0.55, accuracy: 1e-9, "\(field): up changes strength")
+                    if lane == .privacy {
+                        XCTAssertEqual(features.privacyVeilBlurStrength, 0.3, accuracy: 1e-9,
+                                       "Snap zone arrows must leave Privacy veil strength unchanged")
+                        XCTAssertEqual(history.undoManager.undoActionName, L10n.string("Snap blur strength"))
+                    }
                     view.moveCommand(.down, field: field)
                     view.moveCommand(.down, field: field)
                     XCTAssertEqual(strength(), 0.45, accuracy: 1e-9, "\(field): down changes strength")
+                    if lane == .privacy {
+                        XCTAssertEqual(features.privacyVeilBlurStrength, 0.3, accuracy: 1e-9)
+                    }
                     XCTAssertEqual(features.snap.zoneLow, beforeSnap.zoneLow)
                     XCTAssertEqual(features.snap.zoneHigh, beforeSnap.zoneHigh)
                     history.undo()

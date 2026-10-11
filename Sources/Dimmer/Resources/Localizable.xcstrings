@@ -887,46 +887,6 @@
         }
       }
     },
-    "Blur preview, %lld percent, %@" : {
-      "localizations" : {
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blur preview, %1$lld percent, %2$@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vista previa del desenfoque, %lld por ciento, %@"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prévia do desfoque, %lld por cento, %@"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unschärfevorschau, %1$lld Prozent, %2$@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aperçu du flou, %1$lld pour cent, %2$@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ぼかしのプレビュー、%1$lldパーセント、%2$@"
-          }
-        }
-      }
-    },
     "Blur strength" : {
       "localizations" : {
         "en-GB" : {
@@ -965,6 +925,56 @@
             "value" : "ぼかしの強さ"
           }
         }
+      }
+    },
+    "Blur by angle preview, %lld percent, %@" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Blur by angle preview, %1$lld percent, %2$@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Vista previa del desenfoque por ángulo, %lld por ciento, %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Prévia do desfoque por ângulo, %lld por cento, %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Vorschau der Winkelunschärfe, %1$lld Prozent, %2$@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aperçu du flou par angle, %1$lld pour cent, %2$@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "角度によるぼかしのプレビュー、%1$lldパーセント、%2$@" } }
+      }
+    },
+    "Privacy veil preview, %lld percent, %@" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Privacy veil preview, %1$lld percent, %2$@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Vista previa del velo de privacidad, %lld por ciento, %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Prévia do véu de privacidade, %lld por cento, %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Vorschau des Sichtschutzes, %1$lld Prozent, %2$@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aperçu du voile de confidentialité, %1$lld pour cent, %2$@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プライバシーベールのプレビュー、%1$lldパーセント、%2$@" } }
+      }
+    },
+    "Snap to blur preview, %lld percent, %@" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Snap to blur preview, %1$lld percent, %2$@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Vista previa del desenfoque al cerrar de golpe, %lld por ciento, %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Prévia do desfoque ao fechar rapidamente, %lld por cento, %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Vorschau der Unschärfe beim schnellen Schließen, %1$lld Prozent, %2$@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aperçu du flou à la fermeture brusque, %1$lld pour cent, %2$@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ふたを素早く閉じたときのぼかしのプレビュー、%1$lldパーセント、%2$@" } }
+      }
+    },
+    "Privacy veil blur strength" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Privacy veil blur strength" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Intensidad del desenfoque del velo de privacidad" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Intensidade do desfoque do véu de privacidade" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unschärfestärke des Sichtschutzes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Intensité du flou du voile de confidentialité" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プライバシーベールのぼかしの強さ" } }
+      }
+    },
+    "Snap blur strength" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Snap blur strength" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Intensidad del desenfoque al cerrar de golpe" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Intensidade do desfoque ao fechar rapidamente" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Stärke der Unschärfe beim schnellen Zuklappen" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Intensité du flou à la fermeture brusque" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スナップ時のぼかしの強さ" } }
       }
     },
     "Blur when the lid is snapped into the zone" : {
@@ -4528,6 +4538,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "なし：ゾーン内でも画面に変化はありません。"
+          }
+        }
+      }
+    },
+    "None: the shortcut does nothing visible." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None: the shortcut does nothing visible."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ninguno: el atajo no produce ningún efecto visible."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum: o atalho não produz efeito visível."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine: Der Kurzbefehl bewirkt nichts Sichtbares."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun : le raccourci ne produit aucun effet visible."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "なし：ショートカットを使っても画面に変化はありません。"
           }
         }
       }
@@ -9137,42 +9187,42 @@
         }
       }
     },
-    "Restores the zone, snap distance, speed and tint. It does not turn snap on or off. Undo with Cmd+Z." : {
+    "Restores the zone, snap distance, speed, blur strength and tint. It does not turn snap on or off. Undo with Cmd+Z." : {
       "localizations" : {
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Restores the zone, snap distance, speed and tint. It does not turn snap on or off. Undo with Cmd+Z."
+            "value" : "Restores the zone, snap distance, speed, blur strength and tint. It does not turn snap on or off. Undo with Cmd+Z."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Restaura la zona, la distancia de cierre, la velocidad y el tinte. No activa ni desactiva el cierre rápido. Deshacer con Cmd+Z."
+            "value" : "Restaura la zona, la distancia de cierre, la velocidad, la intensidad del desenfoque y el tinte. No activa ni desactiva el cierre rápido. Deshacer con Cmd+Z."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Restaura a zona, a distância de fechamento, a velocidade e a tonalidade. Não ativa nem desativa o fechamento rápido. Desfaça com Cmd+Z."
+            "value" : "Restaura a zona, a distância de fechamento, a velocidade, a intensidade do desfoque e a tonalidade. Não ativa nem desativa o fechamento rápido. Desfaça com Cmd+Z."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setzt Zone, Schnappabstand, Tempo und Farbton zurück. Schaltet das schnelle Schließen weder ein noch aus. Mit Cmd+Z widerrufen."
+            "value" : "Setzt Zone, Schnappabstand, Tempo, Unschärfestärke und Farbton zurück. Schaltet das schnelle Schließen weder ein noch aus. Mit Cmd+Z widerrufen."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rétablit la zone, la distance de fermeture, la vitesse et la teinte. N’active ni ne désactive la fermeture brusque. Annuler avec Cmd+Z."
+            "value" : "Rétablit la zone, la distance de fermeture, la vitesse, l’intensité du flou et la teinte. N’active ni ne désactive la fermeture brusque. Annuler avec Cmd+Z."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ゾーン、スナップ距離、速度、色合いを元に戻します。スナップのオン・オフは変わりません。Cmd+Zで取り消せます。"
+            "value" : "ゾーン、スナップ距離、速度、ぼかしの強さ、色合いを元に戻します。スナップのオン・オフは変わりません。Cmd+Zで取り消せます。"
           }
         }
       }

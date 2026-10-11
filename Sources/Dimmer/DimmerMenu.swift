@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct DimmerMenu: View {
-    @ObservedObject var controller: DimmerController
-    @ObservedObject var features: DimmerFeatures
+    let controller: DimmerController
+    let features: DimmerFeatures
     @ObservedObject var updates: UpdateController
     let showSettings: () -> Void
     var showAbout: () -> Void = {}
@@ -114,8 +114,8 @@ struct DimmerMenu: View {
 // The live lid, keyboard and screen readouts. Their own view, observing the readings, so a lid sample redraws
 // these three rows rather than the panel.
 private struct MenuReadouts: View {
-    @ObservedObject var controller: DimmerController
-    @ObservedObject var reading: LidReading
+    let controller: DimmerController
+    let reading: LidReading
 
     var body: some View {
         readout(L10n.string("Lid"), value: reading.angle.map { L10n.string("\(Int($0.rounded()))") + L10n.displayUnit("°") } ?? L10n.string("Unavailable readout"))

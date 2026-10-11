@@ -1,11 +1,11 @@
 #!/bin/bash
 # Builds Dimmer's signed Sparkle appcast for one new release. It writes files only; it never uploads.
 #
-#   SPARKLE_ED_KEY=<from your secret store> scripts/make-appcast.sh <final stapled Dimmer-X.Y.Z.dmg> <notes.html> <empty output dir> [<current appcast.xml>]
+#   SPARKLE_ED_KEY=<signing key> scripts/make-appcast.sh <final stapled Dimmer-X.Y.Z.dmg> <notes.html> <empty output dir> [<current appcast.xml>]
 #
 # Run it after the DMG is notarised and stapled: any later change to the DMG invalidates its signature.
-# The key arrives through the environment, never as an argument, and reaches Sparkle's tools
-# only on standard input. Sparkle 2.10.0's tools print a key they cannot decode, so the key is checked in
+# The key arrives through the environment and reaches Sparkle's tools only on standard input. Sparkle
+# 2.10.0's tools print a key they cannot decode, so the key is checked in
 # memory first and their output is captured and withheld; this script prints only its own fixed lines.
 # Pass the live appcast as the fourth argument so earlier releases stay in the feed with their own URLs.
 # Overrides for staged tests only: DIMMER_PUBLIC_KEY, DIMMER_DOWNLOAD_PREFIX (a URL template with {version}).
@@ -17,7 +17,7 @@ DMG="${1:?final stapled DMG}"
 NOTES="${2:?release notes .html}"
 OUT="${3:?empty output directory}"
 PREVIOUS="${4:-}"
-: "${SPARKLE_ED_KEY:?SPARKLE_ED_KEY is not set; set it from your secret store}"
+: "${SPARKLE_ED_KEY:?SPARKLE_ED_KEY is not set}"
 
 BIN="$(find "$ROOT/.build/artifacts" -path '*/Sparkle/bin' -maxdepth 4 -type d 2>/dev/null | head -1 || true)"
 [ -x "$BIN/generate_appcast" ] || { echo "Sparkle tools not found; run swift package resolve" >&2; exit 1; }

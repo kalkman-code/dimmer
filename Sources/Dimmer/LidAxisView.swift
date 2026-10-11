@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 import os
 import SwiftUI
 
@@ -102,7 +103,8 @@ enum AxisLane: CaseIterable {
 
     @MainActor
     func live(controller: DimmerController, features: DimmerFeatures, reading: LidReading, lanes: AngleLaneReading) -> String {
-        let angle = reading.angle ?? 0
+        // Read per case: a lane that does not show the lid must not redraw as it moves.
+        var angle: Double { reading.angle ?? 0 }
         switch self {
         case .keyboard:
             return L10n.string("now \(Int((controller.keyboardRange.level(at: angle) * 100).rounded()))%")
@@ -111,7 +113,7 @@ enum AxisLane: CaseIterable {
             return L10n.string("now \(Int((controller.screenRange.level(at: angle) * 100).rounded()))%")
         case .privacy:
             guard reading.angle != nil else { return L10n.string("snap zone") }
-            return angle >= features.snap.zoneLow && angle <= features.snap.zoneHigh ? L10n.string("lid in zone") : L10n.string("snap zone")
+            return angle >= features.snapConfiguration.zoneLow && angle <= features.snapConfiguration.zoneHigh ? L10n.string("lid in zone") : L10n.string("snap zone")
         case .blur:
             guard let percent = lanes.blurPercent else { return L10n.string("now none") }
             return L10n.string("now \(percent)%")
@@ -148,14 +150,17 @@ private func textWidth(_ text: String, size: CGFloat, weight: NSFont.Weight = .r
 // live lid marker and the angle axis. Each Settings box holds one, so the bars share a scale and line up.
 struct LidAxisView: View {
     let lane: AxisLane
-    @ObservedObject var controller: DimmerController
-    @ObservedObject var features: DimmerFeatures
+    let controller: DimmerController
+    let features: DimmerFeatures
     @ObservedObject var history: SettingsHistory
     // The lid marker, the capsule and the tags that dodge it follow the shown angle, not every sample.
-    @ObservedObject private var reading: LidReading
+    private let reading: LidReading
     @State private var active: AxisHandle?
     @State private var hovered: AxisHandle?
     @FocusState private var focusedField: AxisField?
+    // Bumped by LidMarker when the lid line moves across a candidate tag spot. The tags read the lid untracked
+    // (so they are right on the render a range edit causes), and this is what makes the bar run again for a lid move.
+    @State private var lidCrossingEpoch = 0
 
     init(lane: AxisLane, controller: DimmerController, features: DimmerFeatures, history: SettingsHistory) {
         self.lane = lane
@@ -182,9 +187,28 @@ struct LidAxisView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            // Counted in here: the bar's state is read inside this closure, so it re-runs without `body` doing so.
+            #if DEBUG
+            let _ = BodyCount.hit("LidAxisView.\(lane)")
+            #endif
             let size = geometry.size
+            let _ = lidCrossingEpoch
             ZStack(alignment: .topLeading) {
-                Canvas { context, canvasSize in drawAxis(in: &context, size: canvasSize) }
+                Canvas { context, canvasSize in drawUnder(in: &context, size: canvasSize) }
+                LidMarker(lane: lane,
+                          range: range(for: lane),
+                          screenRange: lane == .screen ? controller.screenRange : .screenDefault,
+                          size: size,
+                          gutter: gutter,
+                          rightInset: rightInset,
+                          top: top,
+                          height: height,
+                          axisY: axisY,
+                          candidateRects: candidateTagRects(size: size),
+                          reading: reading,
+                          onCrossingsChange: { lidCrossingEpoch &+= 1 })
+                .equatable()
+                Canvas { context, canvasSize in drawOver(in: &context, size: canvasSize) }
                 ForEach(lane.handles, id: \.self) { handle in
                     tagView(handle).position(tagPosition(handle, size: size))
                 }
@@ -213,9 +237,7 @@ struct LidAxisView: View {
     // so a click sets this and the field focuses itself when it appears.
     @State private var editing: AxisField?
 
-    private var currentAngle: Double { reading.angle ?? 0 }
-
-    private func drawAxis(in context: inout GraphicsContext, size: CGSize) {
+    private func drawUnder(in context: inout GraphicsContext, size: CGSize) {
         let x = xPosition(size: size)
         if lane == .privacy {
             drawZone(in: &context, size: size, x: x)
@@ -223,26 +245,31 @@ struct LidAxisView: View {
             drawRamp(in: &context, range: range(for: lane), x: x)
             drawScale(in: &context)
         }
-        drawAngleAxis(in: &context, x: x)
+        drawAxisLineAndTicks(in: &context, x: x)
+    }
 
-        if let angle = reading.angle {
-            let markerX = x(angle)
-            var marker = Path()
-            marker.move(to: CGPoint(x: markerX, y: top - 2))
-            marker.addLine(to: CGPoint(x: markerX, y: axisY + 6))
-            context.stroke(marker, with: .color(Color.white.opacity(0.7)), lineWidth: 1)
-            if lane != .privacy, !(lane == .screen && angle >= controller.screenRange.highAngle) {
-                let y = top + height * CGFloat(1 - range(for: lane).level(at: angle))
-                context.fill(Path(ellipseIn: CGRect(x: markerX - 2.5, y: y - 2.5, width: 5, height: 5)), with: .color(.white))
-            }
-            let capsuleWidth = lidCapsuleWidth(angle)
-            let capsuleX = min(max(markerX, gutter + capsuleWidth / 2), size.width - capsuleWidth / 2)
-            let capsule = CGRect(x: capsuleX - capsuleWidth / 2, y: axisY + 7, width: capsuleWidth, height: 17)
-            context.fill(Path(roundedRect: capsule, cornerRadius: 8.5), with: .color(.white))
-            context.draw(Text(L10n.string("Lid \(Int(angle.rounded()))°")).font(.system(size: 11, weight: .semibold).monospacedDigit())
-                .foregroundColor(Color(hex: 0x141416)), at: CGPoint(x: capsule.midX, y: capsule.midY))
+    private func drawAxisLineAndTicks(in context: inout GraphicsContext, x: (Double) -> CGFloat) {
+        var axis = Path()
+        axis.move(to: CGPoint(x: gutter, y: axisY))
+        axis.addLine(to: CGPoint(x: x(LidAxis.maximum), y: axisY))
+        context.stroke(axis, with: .color(Color(hex: 0x4A4D55)), lineWidth: 1)
+        for angle in stride(from: 0.0, through: 120.0, by: 15.0) {
+            let tickHeight: CGFloat = Int(angle) % 30 == 0 ? 6 : 3
+            var tick = Path()
+            tick.move(to: CGPoint(x: x(angle), y: axisY))
+            tick.addLine(to: CGPoint(x: x(angle), y: axisY + tickHeight))
+            context.stroke(tick, with: .color(Color(hex: 0x4A4D55)), lineWidth: 0.7)
         }
-        if lane == .screen { drawUntouchedLabel(in: &context, x: x) }
+        var finalTick = Path()
+        finalTick.move(to: CGPoint(x: x(LidAxis.maximum), y: axisY))
+        finalTick.addLine(to: CGPoint(x: x(LidAxis.maximum), y: axisY + 6))
+        context.stroke(finalTick, with: .color(Color(hex: 0x4A4D55)), lineWidth: 0.7)
+        context.draw(Text(L10n.string("Lid angle")).font(.system(size: 11)).foregroundColor(secondary),
+                     at: CGPoint(x: 0, y: axisY + 18), anchor: .leading)
+    }
+
+    private func drawOver(in context: inout GraphicsContext, size: CGSize) {
+        let x = xPosition(size: size)
         if lane == .privacy {
             drawZoneHandles(in: &context, x: x)
         } else {
@@ -254,8 +281,8 @@ struct LidAxisView: View {
         let well = CGRect(x: gutter, y: top, width: size.width - gutter - rightInset, height: height)
         context.fill(Path(roundedRect: well, cornerRadius: 4), with: .color(Color(hex: 0x111113)))
         context.stroke(Path(roundedRect: well, cornerRadius: 4), with: .color(Color(hex: 0x2A2A30)), lineWidth: 0.5)
-        let zoneRect = CGRect(x: x(features.snap.zoneLow), y: top + 1,
-                              width: max(x(features.snap.zoneHigh) - x(features.snap.zoneLow), 2), height: height - 2)
+        let zoneRect = CGRect(x: x(features.snapConfiguration.zoneLow), y: top + 1,
+                              width: max(x(features.snapConfiguration.zoneHigh) - x(features.snapConfiguration.zoneLow), 2), height: height - 2)
         let zonePath = Path(roundedRect: zoneRect, cornerRadius: 2)
         context.fill(zonePath, with: .color(privacyColour.opacity(0.22)))
         context.stroke(zonePath, with: .color(privacyColour.opacity(0.55)), lineWidth: 0.5)
@@ -270,42 +297,11 @@ struct LidAxisView: View {
         if zoneRect.width > labelWidth && labelClear {
             context.draw(zoneLabel, at: CGPoint(x: zoneRect.midX, y: zoneRect.midY))
         }
-        for angle in [features.snap.zoneLow, features.snap.zoneHigh] {
+        for angle in [features.snapConfiguration.zoneLow, features.snapConfiguration.zoneHigh] {
             let bar = CGRect(x: x(angle) - 2, y: top - 3, width: 4, height: height + 6)
             let barPath = Path(roundedRect: bar, cornerRadius: 2)
             context.fill(barPath, with: .color(privacyColour))
             context.stroke(barPath, with: .color(Color(hex: 0x141416)), lineWidth: 1)
-        }
-    }
-
-    // Above its top end the screen is left at the user's own brightness; say so in words, sized to fit.
-    // Like the tags it dodges the lid line: the long words if they fit in the stretch on either side
-    // of the line, else the short word, else nothing.
-    private func drawUntouchedLabel(in context: inout GraphicsContext, x: (Double) -> CGFloat) {
-        let start = x(controller.screenRange.highAngle) + 6, end = x(LidAxis.maximum) - 6
-        let lidX = reading.angle.map { x($0) }
-        let gaps: [ClosedRange<CGFloat>] = {
-            // Swift traps on a range whose bounds are reversed, so every gap is checked before it is built:
-            // building start...(lidX - 6) unguarded crashed the app with the lid just past the screen's top end.
-            func gap(_ low: CGFloat, _ high: CGFloat) -> ClosedRange<CGFloat>? {
-                low.isFinite && high.isFinite && low < high ? low...high : nil
-            }
-            guard let lidX, lidX > start, lidX < end else { return [gap(start, end)].compactMap { $0 } }
-            return [gap(start, lidX - 6), gap(lidX + 6, end)].compactMap { $0 }
-        }()
-        let choice: (words: String, width: CGFloat, gap: ClosedRange<CGFloat>)? = [
-            L10n.string("your own brightness, untouched"), L10n.string("untouched"),
-        ].lazy.compactMap { option in
-            let width = textWidth(option, size: 11) + 8
-            return gaps.max { ($0.upperBound - $0.lowerBound) < ($1.upperBound - $1.lowerBound) }
-                .flatMap { $0.upperBound - $0.lowerBound >= width ? (option, width, $0) : nil }
-        }.first
-        if let (words, labelWidth, gap) = choice {
-            let labelRect = CGRect(x: (gap.lowerBound + gap.upperBound) / 2 - labelWidth / 2,
-                                   y: top + height / 2 - 7, width: labelWidth, height: 14)
-            context.fill(Path(roundedRect: labelRect, cornerRadius: 3), with: .color(Color(hex: 0x111113)))
-            context.draw(Text(words).font(.system(size: 11)).foregroundColor(secondary),
-                         at: CGPoint(x: labelRect.midX, y: labelRect.midY))
         }
     }
 
@@ -355,50 +351,6 @@ struct LidAxisView: View {
         }
     }
 
-    // The white "Lid N°" capsule sits on the label row; a tick label under it would show through its edges.
-    private func underLidCapsule(_ labelX: CGFloat, x: (Double) -> CGFloat) -> Bool {
-        guard let angle = reading.angle else { return false }
-        let width = lidCapsuleWidth(angle)
-        let centre = min(max(x(angle), gutter + width / 2), x(LidAxis.maximum) + rightInset - width / 2)
-        return abs(labelX - centre) < width / 2 + 18
-    }
-
-    private func lidCapsuleWidth(_ angle: Double) -> CGFloat {
-        let text = L10n.string("Lid \(Int(angle.rounded()))°")
-        return ceil((text as NSString).size(withAttributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .semibold)]).width) + 12
-    }
-
-    private func drawAngleAxis(in context: inout GraphicsContext, x: (Double) -> CGFloat) {
-        var axis = Path()
-        axis.move(to: CGPoint(x: gutter, y: axisY))
-        axis.addLine(to: CGPoint(x: x(LidAxis.maximum), y: axisY))
-        context.stroke(axis, with: .color(Color(hex: 0x4A4D55)), lineWidth: 1)
-        for angle in stride(from: 0.0, through: 120.0, by: 15.0) {
-            // 120° stays a tick without a label: beside 130° the two labels ran together.
-            let major = Int(angle) % 30 == 0 && angle < 120
-            let tickHeight: CGFloat = Int(angle) % 30 == 0 ? 6 : 3
-            var tick = Path()
-            tick.move(to: CGPoint(x: x(angle), y: axisY))
-            tick.addLine(to: CGPoint(x: x(angle), y: axisY + tickHeight))
-            context.stroke(tick, with: .color(Color(hex: 0x4A4D55)), lineWidth: 0.7)
-            if major && !underLidCapsule(x(angle), x: x) {
-                context.draw(Text(L10n.string("\(Int(angle))°")).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
-                             at: CGPoint(x: x(angle), y: axisY + 18))
-            }
-        }
-        var finalTick = Path()
-        finalTick.move(to: CGPoint(x: x(LidAxis.maximum), y: axisY))
-        finalTick.addLine(to: CGPoint(x: x(LidAxis.maximum), y: axisY + 6))
-        context.stroke(finalTick, with: .color(Color(hex: 0x4A4D55)), lineWidth: 0.7)
-        // Anchored on its right edge so the last label stays inside the window rather than being clipped.
-        if !underLidCapsule(x(LidAxis.maximum) - 12, x: x) {
-            context.draw(Text(L10n.string("130°")).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
-                         at: CGPoint(x: x(LidAxis.maximum) + 4, y: axisY + 18), anchor: .trailing)
-        }
-        context.draw(Text(L10n.string("Lid angle")).font(.system(size: 11)).foregroundColor(secondary),
-                     at: CGPoint(x: 0, y: axisY + 18), anchor: .leading)
-    }
-
     private func drawRangeHandles(in context: inout GraphicsContext, x: (Double) -> CGFloat) {
         let range = range(for: lane)
         for (handle, angle, level) in [(lane.handles[0], range.lowAngle, range.lowLevel), (lane.handles[1], range.highAngle, range.highLevel)] {
@@ -414,7 +366,7 @@ struct LidAxisView: View {
     }
 
     private func drawZoneHandles(in context: inout GraphicsContext, x: (Double) -> CGFloat) {
-        for (handle, angle) in [(AxisHandle.zoneLow, features.snap.zoneLow), (.zoneHigh, features.snap.zoneHigh)] {
+        for (handle, angle) in [(AxisHandle.zoneLow, features.snapConfiguration.zoneLow), (.zoneHigh, features.snapConfiguration.zoneHigh)] {
             let rect = CGRect(x: x(angle) - 2, y: top - 3, width: 4, height: height + 6)
             let path = Path(roundedRect: rect, cornerRadius: 2)
             if isKeyboardFocused(handle) {
@@ -552,11 +504,44 @@ struct LidAxisView: View {
         }
     }
 
+    private func candidateTagRects(size: CGSize) -> [CGRect] {
+        let x = xPosition(size: size)
+        var rects: [CGRect] = []
+        for handle in lane.handles {
+            let point: CGPoint
+            if handle.isZone {
+                let angle = handle.isLow ? features.snapConfiguration.zoneLow : features.snapConfiguration.zoneHigh
+                point = CGPoint(x: x(angle), y: top + height / 2)
+            } else {
+                let r = range(for: lane)
+                let angle = handle.isLow ? r.lowAngle : r.highAngle
+                let level = handle.isLow ? r.lowLevel : r.highLevel
+                point = CGPoint(x: x(angle), y: top + height * CGFloat(1 - level))
+            }
+            let width = tagWidth(handle)
+            let clampY = { (y: CGFloat) in min(top + height - 10, max(top + 10, y)) }
+            let near = handle.isLow ? point.x - 10 - width / 2 : point.x + 10 + width / 2
+            let far = handle.isLow ? point.x + 10 + width / 2 : point.x - 10 - width / 2
+            let y = clampY(point.y)
+            var candidates = [CGPoint(x: near, y: y), CGPoint(x: far, y: y)]
+            if !handle.isZone {
+                for dy: CGFloat in [-22, 22] where clampY(point.y + dy) != y {
+                    candidates += [CGPoint(x: near, y: clampY(point.y + dy)), CGPoint(x: far, y: clampY(point.y + dy))]
+                }
+            }
+            let inside = candidates.filter { $0.x - width / 2 >= gutter + 2 && $0.x + width / 2 <= size.width - rightInset - 2 }
+            for c in inside {
+                rects.append(CGRect(x: c.x - width / 2 - 4, y: c.y - 10, width: width + 8, height: 20))
+            }
+        }
+        return rects
+    }
+
     private func tagPosition(_ handle: AxisHandle, size: CGSize) -> CGPoint {
         let x = xPosition(size: size)
         let point: CGPoint
         if handle.isZone {
-            let angle = handle.isLow ? features.snap.zoneLow : features.snap.zoneHigh
+            let angle = handle.isLow ? features.snapConfiguration.zoneLow : features.snapConfiguration.zoneHigh
             point = CGPoint(x: x(angle), y: top + height / 2)
         } else {
             let range = range(for: lane)
@@ -583,7 +568,7 @@ struct LidAxisView: View {
             let centre = tagPosition(low, size: size)
             return CGRect(x: centre.x - tagWidth(low) / 2, y: centre.y - 10, width: tagWidth(low), height: 20)
         }()
-        let lidX = reading.angle.map { x($0) }
+        let lidX = reading.untrackedAngle.map { x($0) }
         let clear = inside.first { c in
             let rect = CGRect(x: c.x - width / 2 - 4, y: c.y - 10, width: width + 8, height: 20)
             let missesLid = lidX.map { !(rect.minX...rect.maxX).contains($0) } ?? true
@@ -618,7 +603,7 @@ struct LidAxisView: View {
             .onEnded { value in
                 guard let active = self.active else { return }
                 history.endGesture()
-                logger.info("axis drag \(String(describing: active), privacy: .public) ended at \(Int(value.location.x), privacy: .public),\(Int(value.location.y), privacy: .public): keyboard=\(String(describing: controller.keyboardRange), privacy: .public) screen=\(String(describing: controller.screenRange), privacy: .public) zone=\(features.snap.zoneLow, privacy: .public)–\(features.snap.zoneHigh, privacy: .public)")
+                logger.info("axis drag \(String(describing: active), privacy: .public) ended at \(Int(value.location.x), privacy: .public),\(Int(value.location.y), privacy: .public): keyboard=\(String(describing: controller.keyboardRange), privacy: .public) screen=\(String(describing: controller.screenRange), privacy: .public) zone=\(features.snapConfiguration.zoneLow, privacy: .public)–\(features.snapConfiguration.zoneHigh, privacy: .public)")
                 self.active = nil
                 hovered = handle(at: value.location, size: size)
                 (hovered.map { cursor(for: $0, dragging: false) } ?? .arrow).set()
@@ -633,15 +618,13 @@ struct LidAxisView: View {
     }
 
     private func xPosition(size: CGSize) -> (Double) -> CGFloat {
-        let width = size.width - gutter - rightInset
-        let origin = gutter
-        return { origin + CGFloat(min(max($0 / LidAxis.maximum, 0), 1)) * width }
+        axisX(width: size.width, gutter: gutter, rightInset: rightInset)
     }
 
     func point(of handle: AxisHandle, size: CGSize) -> CGPoint {
         let x = xPosition(size: size)
         if handle.isZone {
-            let angle = handle == .zoneLow ? features.snap.zoneLow : features.snap.zoneHigh
+            let angle = handle == .zoneLow ? features.snapConfiguration.zoneLow : features.snapConfiguration.zoneHigh
             return CGPoint(x: x(angle), y: top + height / 2)
         }
         let range = range(for: lane)
@@ -679,7 +662,7 @@ struct LidAxisView: View {
 
     private func angleBinding(_ handle: AxisHandle) -> Binding<Double> {
         Binding(get: {
-            if handle.isZone { return handle.isLow ? features.snap.zoneLow : features.snap.zoneHigh }
+            if handle.isZone { return handle.isLow ? features.snapConfiguration.zoneLow : features.snapConfiguration.zoneHigh }
             let range = range(for: lane)
             return handle.isLow ? range.lowAngle : range.highAngle
         }, set: { value in
@@ -746,7 +729,8 @@ struct LidAxisView: View {
         switch lane {
         case .blur: features.angleBlurRange
         case .screen: controller.screenRange
-        case .keyboard, .privacy: controller.keyboardRange
+        case .keyboard: controller.keyboardRange
+        case .privacy: .keyboardDefault
         }
     }
 
@@ -754,7 +738,8 @@ struct LidAxisView: View {
         switch lane {
         case .blur: features.angleBlurRange = range
         case .screen: controller.screenRange = range
-        case .keyboard, .privacy: controller.keyboardRange = range
+        case .keyboard: controller.keyboardRange = range
+        case .privacy: break
         }
     }
 
@@ -779,20 +764,159 @@ struct LidAxisView: View {
     }
 
     private func adjustZone(isLow: Bool, direction: MoveCommandDirection, coalescing control: String) {
-        var angle = isLow ? features.snap.zoneLow : features.snap.zoneHigh
+        var angle = isLow ? features.snapConfiguration.zoneLow : features.snapConfiguration.zoneHigh
         switch direction {
         case .left: angle -= 1
         case .right: angle += 1
         case .up, .down:
-            history.change(lane.actionName, coalescing: control) {
-                var settings = features.snap
-                settings.blurStrength += direction == .up ? 0.05 : -0.05
-                features.snap = settings.clamped(maximum: LidAxis.maximum)
-            }
+            history.setSnap(\.blurStrength, features.snapBlurStrength + (direction == .up ? 0.05 : -0.05),
+                            coalescing: control)
             return
         @unknown default: break
         }
         setZone(isLow: isLow, angle: angle, coalescing: control)
+    }
+}
+
+// Where an angle sits on a bar of this width: the one scale every layer of a bar draws on.
+private func axisX(width: CGFloat, gutter: CGFloat, rightInset: CGFloat) -> (Double) -> CGFloat {
+    let span = width - gutter - rightInset
+    return { gutter + CGFloat(min(max($0 / LidAxis.maximum, 0), 1)) * span }
+}
+
+// A bar's lid layer: the lid line, the dot on the ramp, the "Lid N°" capsule, the tick labels it hides and the
+// screen bar's "untouched" label. The only part of a bar that reads the lid, so a moving lid redraws this alone.
+private struct LidMarker: View, Equatable {
+    let lane: AxisLane
+    let range: DimRange
+    let screenRange: DimRange
+    let size: CGSize
+    let gutter: CGFloat
+    let rightInset: CGFloat
+    let top: CGFloat
+    let height: CGFloat
+    let axisY: CGFloat
+    let candidateRects: [CGRect]
+    let reading: LidReading
+    let onCrossingsChange: () -> Void
+
+    static func == (lhs: LidMarker, rhs: LidMarker) -> Bool {
+        lhs.lane == rhs.lane &&
+        lhs.range == rhs.range &&
+        lhs.screenRange == rhs.screenRange &&
+        lhs.size == rhs.size &&
+        lhs.gutter == rhs.gutter &&
+        lhs.rightInset == rhs.rightInset &&
+        lhs.top == rhs.top &&
+        lhs.height == rhs.height &&
+        lhs.axisY == rhs.axisY &&
+        lhs.candidateRects == rhs.candidateRects &&
+        lhs.reading === rhs.reading
+    }
+
+    private let secondary = Color(hex: 0x9A9EA7)
+
+    private func xPosition(size: CGSize) -> (Double) -> CGFloat {
+        axisX(width: size.width, gutter: gutter, rightInset: rightInset)
+    }
+
+    private var lidX: CGFloat? { reading.angle.map { xPosition(size: size)($0) } }
+
+    // Which of the bar's candidate tag spots the lid line crosses at an angle. Tag placement depends on nothing else
+    // about the lid, so the bar hears of the lid only when this changes between two angles.
+    private func lidCrossings(at angle: Double?) -> [Bool] {
+        guard let angle else { return [] }
+        let x = xPosition(size: size)(angle)
+        return candidateRects.map { ($0.minX...$0.maxX).contains(x) }
+    }
+
+    var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("LidMarker.\(lane)")
+        #endif
+        Canvas { context, canvasSize in
+            drawMarker(in: &context, size: canvasSize)
+        }
+        .onChange(of: reading.angle) { oldAngle, newAngle in
+            if lidCrossings(at: oldAngle) != lidCrossings(at: newAngle) { onCrossingsChange() }
+        }
+    }
+
+    private func drawMarker(in context: inout GraphicsContext, size: CGSize) {
+        let x = xPosition(size: size)
+
+        for angle in stride(from: 0.0, through: 120.0, by: 15.0) {
+            let major = Int(angle) % 30 == 0 && angle < 120
+            if major && !underLidCapsule(x(angle), x: x) {
+                context.draw(Text(L10n.string("\(Int(angle))°")).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
+                             at: CGPoint(x: x(angle), y: axisY + 18))
+            }
+        }
+        if !underLidCapsule(x(LidAxis.maximum) - 12, x: x) {
+            context.draw(Text(L10n.string("130°")).font(.system(size: 11).monospacedDigit()).foregroundColor(secondary),
+                         at: CGPoint(x: x(LidAxis.maximum) + 4, y: axisY + 18), anchor: .trailing)
+        }
+
+        if let angle = reading.angle {
+            let markerX = x(angle)
+            var marker = Path()
+            marker.move(to: CGPoint(x: markerX, y: top - 2))
+            marker.addLine(to: CGPoint(x: markerX, y: axisY + 6))
+            context.stroke(marker, with: .color(Color.white.opacity(0.7)), lineWidth: 1)
+            if lane != .privacy, !(lane == .screen && angle >= screenRange.highAngle) {
+                let y = top + height * CGFloat(1 - range.level(at: angle))
+                context.fill(Path(ellipseIn: CGRect(x: markerX - 2.5, y: y - 2.5, width: 5, height: 5)), with: .color(.white))
+            }
+            let capsuleWidth = lidCapsuleWidth(angle)
+            let capsuleX = min(max(markerX, gutter + capsuleWidth / 2), size.width - capsuleWidth / 2)
+            let capsule = CGRect(x: capsuleX - capsuleWidth / 2, y: axisY + 7, width: capsuleWidth, height: 17)
+            context.fill(Path(roundedRect: capsule, cornerRadius: 8.5), with: .color(.white))
+            context.draw(Text(L10n.string("Lid \(Int(angle.rounded()))°")).font(.system(size: 11, weight: .semibold).monospacedDigit())
+                .foregroundColor(Color(hex: 0x141416)), at: CGPoint(x: capsule.midX, y: capsule.midY))
+        }
+
+        if lane == .screen {
+            drawUntouchedLabel(in: &context, x: x)
+        }
+    }
+
+    private func underLidCapsule(_ labelX: CGFloat, x: (Double) -> CGFloat) -> Bool {
+        guard let angle = reading.angle else { return false }
+        let width = lidCapsuleWidth(angle)
+        let centre = min(max(x(angle), gutter + width / 2), x(LidAxis.maximum) + rightInset - width / 2)
+        return abs(labelX - centre) < width / 2 + 18
+    }
+
+    private func lidCapsuleWidth(_ angle: Double) -> CGFloat {
+        let text = L10n.string("Lid \(Int(angle.rounded()))°")
+        return ceil((text as NSString).size(withAttributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .semibold)]).width) + 12
+    }
+
+    private func drawUntouchedLabel(in context: inout GraphicsContext, x: (Double) -> CGFloat) {
+        let start = x(screenRange.highAngle) + 6, end = x(LidAxis.maximum) - 6
+        let lidX = reading.angle.map { x($0) }
+        let gaps: [ClosedRange<CGFloat>] = {
+            // Swift traps on a range whose bounds are reversed, so every gap is checked before it is built:
+            func gap(_ low: CGFloat, _ high: CGFloat) -> ClosedRange<CGFloat>? {
+                low.isFinite && high.isFinite && low < high ? low...high : nil
+            }
+            guard let lidX, lidX > start, lidX < end else { return [gap(start, end)].compactMap { $0 } }
+            return [gap(start, lidX - 6), gap(lidX + 6, end)].compactMap { $0 }
+        }()
+        let choice: (words: String, width: CGFloat, gap: ClosedRange<CGFloat>)? = [
+            L10n.string("your own brightness, untouched"), L10n.string("untouched"),
+        ].lazy.compactMap { option in
+            let width = textWidth(option, size: 11) + 8
+            return gaps.max { ($0.upperBound - $0.lowerBound) < ($1.upperBound - $1.lowerBound) }
+                .flatMap { $0.upperBound - $0.lowerBound >= width ? (option, width, $0) : nil }
+        }.first
+        if let (words, labelWidth, gap) = choice {
+            let labelRect = CGRect(x: (gap.lowerBound + gap.upperBound) / 2 - labelWidth / 2,
+                                   y: top + height / 2 - 7, width: labelWidth, height: 14)
+            context.fill(Path(roundedRect: labelRect, cornerRadius: 3), with: .color(Color(hex: 0x111113)))
+            context.draw(Text(words).font(.system(size: 11)).foregroundColor(secondary),
+                         at: CGPoint(x: labelRect.midX, y: labelRect.midY))
+        }
     }
 }
 
