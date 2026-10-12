@@ -31,8 +31,9 @@ final class LidAngleSensor {
             kIOHIDPrimaryUsageKey as String: 0x8A,
         ]
         IOHIDManagerSetDeviceMatching(newManager, matching as CFDictionary)
-        guard IOHIDManagerOpen(newManager, IOOptionBits(kIOHIDOptionsTypeNone)) == kIOReturnSuccess,
-              let devices = IOHIDManagerCopyDevices(newManager) as? Set<IOHIDDevice>,
+        let managerResult = IOHIDManagerOpen(newManager, IOOptionBits(kIOHIDOptionsTypeNone))
+        guard managerResult == kIOReturnSuccess else { throw SensorError.openFailed(managerResult) }
+        guard let devices = IOHIDManagerCopyDevices(newManager) as? Set<IOHIDDevice>,
               let found = devices.first else { throw SensorError.unavailable }
         let result = IOHIDDeviceOpen(found, IOOptionBits(kIOHIDOptionsTypeNone))
         guard result == kIOReturnSuccess else { throw SensorError.openFailed(result) }

@@ -168,6 +168,23 @@ final class SettingsHistory: ObservableObject {
         change("Privacy veil tint", coalescing: "privacyVeilSmoke") { features.privacyVeilSmoke = value }
     }
 
+    func apply(_ look: VeilLook, to target: VeilLookTarget) {
+        change("Apply veil look") {
+            switch target {
+            case .snap:
+                var snap = features.snap
+                snap.blurStrength = look.strength
+                snap.smoke = look.tint
+                features.snap = snap
+            case .angle:
+                features.angleBlurSmoke = look.tint
+            case .privacy:
+                features.privacyVeilBlurStrength = look.strength
+                features.privacyVeilSmoke = look.tint
+            }
+        }
+    }
+
     func setPrivacyVeilEnabled(_ enabled: Bool) {
         change("Privacy veil") { features.privacyVeilEnabled = enabled }
     }

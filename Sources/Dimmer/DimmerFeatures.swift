@@ -7,10 +7,12 @@ import os
 @MainActor
 protocol PrivacyBlurOverlay: AnyObject {
     func update(privacyBlur: Bool, strength: Double, smoke: Double, reduceTransparency: Bool)
-    #if DEBUG
     func describe() -> String
-    #endif
     func stop()
+}
+
+extension PrivacyBlurOverlay {
+    func describe() -> String { "visibility unavailable" }
 }
 
 // The angle lanes' live levels as Settings shows them, in whole percent, nil without a lid angle. Each changes only
@@ -326,10 +328,14 @@ final class DimmerFeatures {
 
     func activatePrivacyBlurFromShortcut(at time: TimeInterval, angle: Double?) {
         guard privacyVeilEnabled else { return }
+        let shortcutStartedAt = ProcessInfo.processInfo.systemUptime
         snapDetector.reset()
         manualLift = ManualPrivacyLift(angle: angle)
         veilUsesShortcutTint = true
         lockPrivacyBlur(at: time, inputGrace: 0)
+#if DEBUG
+        logger.info("privacy shortcut to veil orderFront ms=\((ProcessInfo.processInfo.systemUptime - shortcutStartedAt) * 1000, privacy: .public)")
+#endif
     }
 
     private func lockPrivacyBlur(at time: TimeInterval, inputGrace: TimeInterval) {
@@ -344,13 +350,11 @@ final class DimmerFeatures {
         veilTarget = 1
         veilLevel = 1
         updateOverlay()
-        #if DEBUG
         logger.info("veil overlay \(self.overlay.describe(), privacy: .public)")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self else { return }
             self.logger.info("veil overlay +0.5s \(self.overlay.describe(), privacy: .public)")
         }
-        #endif
     }
 
     // The veil eases in over 180 ms and out over the requested duration (350 ms for near misses).
@@ -629,23 +633,23 @@ private final class DimmerBlurOverlayManager: PrivacyBlurOverlay {
         }
     }
 
-    #if DEBUG
     // For the log: what is really on screen, so a snap that shows nothing can be told apart from a
-    // detector that never fired.
+    // detector that never fired. The sampler reads this in Release too.
     func describe() -> String {
         windows.values.map { window in
             let server = (CGWindowListCopyWindowInfo([.optionIncludingWindow], CGWindowID(window.windowNumber))
                 as? [[String: Any]])?.first
-            return "visible=\(window.isVisible) onScreen=\(window.isOnActiveSpace) alpha=\(window.blurView.alphaValue)"
+            func field(_ key: CFString) -> String { server?[key as String].map { "\($0)" } ?? "nil" }
+            let local: String = "visible=\(window.isVisible) onScreen=\(window.isOnActiveSpace) alpha=\(window.blurView.alphaValue)"
                 + " windowAlpha=\(window.alphaValue) occluded=\(!window.occlusionState.contains(.visible))"
-                + " frame=\(NSStringFromRect(window.frame)) blurState=\(window.blurView.state.rawValue)"
-                + " tint=\(window.blurView.tintAlpha) server[onscreen=\(server?[kCGWindowIsOnscreen as String] ?? "nil")"
-                + " alpha=\(server?[kCGWindowAlpha as String] ?? "nil") layer=\(server?[kCGWindowLayer as String] ?? "nil")"
-                + " bounds=\(server?[kCGWindowBounds as String].map { "\($0)" } ?? "nil")]"
+            let state: String = " frame=\(NSStringFromRect(window.frame)) blurState=\(window.blurView.state.rawValue)"
+                + " tint=\(window.blurView.tintAlpha)"
+            let remote: String = " server[onscreen=\(field(kCGWindowIsOnscreen)) alpha=\(field(kCGWindowAlpha))"
+                + " layer=\(field(kCGWindowLayer)) bounds=\(field(kCGWindowBounds))]"
+            return local + state + remote
         }
         .joined(separator: "; ").ifEmpty("no windows")
     }
-    #endif
 
     func dismiss() {
         windows.values.forEach {
@@ -714,9 +718,7 @@ final class DimmerBlurView: NSVisualEffectView {
         fatalError("init(coder:) is not used")
     }
 
-    #if DEBUG
     var tintAlpha: CGFloat { tint.alphaValue }
-    #endif
 
     func update(smoke: Double, reduceTransparency: Bool) {
         tint.layer?.backgroundColor = reduceTransparency ? VeilAppearance.opaqueColour(smoke: smoke).cgColor : NSColor.black.cgColor
@@ -724,11 +726,9 @@ final class DimmerBlurView: NSVisualEffectView {
     }
 }
 
-#if DEBUG
 private extension String {
     func ifEmpty(_ fallback: String) -> String { isEmpty ? fallback : self }
 }
-#endif
 
 private extension NSScreen {
     var displayID: CGDirectDisplayID? {

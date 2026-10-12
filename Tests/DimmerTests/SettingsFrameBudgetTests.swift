@@ -10,6 +10,12 @@ import XCTest
 // the app's own lid sinks against the real Settings view, hosted in a window that is never put on screen.
 @MainActor
 final class SettingsFrameBudgetTests: XCTestCase {
+    private func makeController(defaults: UserDefaults) -> DimmerController {
+        let controller = DimmerController(defaults: defaults)
+        controller.simulateSensorAvailability(.available)
+        return controller
+    }
+
     private struct Run {
         var ticks = 0
         var cpu: Double = 0
@@ -48,7 +54,7 @@ final class SettingsFrameBudgetTests: XCTestCase {
         let previousLanguage = L10n.testLanguage
         L10n.testLanguage = "en-GB"
         defer { L10n.testLanguage = previousLanguage }
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         controller.dimsKeyboard = true
         controller.dimsScreen = true
         let features = DimmerFeatures(defaults: defaults, overlay: SilentBudgetOverlay())
@@ -280,7 +286,7 @@ final class SettingsFrameBudgetTests: XCTestCase {
 
     func testRangeEditPlacesTagAgainstCurrentLidInOneBarRender() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsFrameBudgetTests-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         controller.keyboardRange = DimRange(lowAngle: 20, lowLevel: 0.1, highAngle: 60, highLevel: 0.9)
         let features = DimmerFeatures(defaults: defaults, overlay: SilentBudgetOverlay())
         let bar = LidAxisView(lane: .keyboard, controller: controller, features: features,
@@ -315,7 +321,7 @@ final class SettingsFrameBudgetTests: XCTestCase {
     // its own and proves a range edit and a lid move each still change its pixels.
     func testBarStillRedrawsForARangeEditAndALidMove() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsFrameBudgetTests-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults, overlay: SilentBudgetOverlay())
         let bar = LidAxisView(lane: .keyboard, controller: controller, features: features,
                               history: SettingsHistory(controller: controller, features: features))
@@ -462,7 +468,7 @@ final class SettingsFrameBudgetTests: XCTestCase {
         L10n.testLanguage = "en-GB"
         defer { L10n.testLanguage = previousLanguage }
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SnapControlRendering-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults, overlay: SilentBudgetOverlay())
         defer { features.stop() }
         features.privacyEnabled = true
@@ -665,6 +671,9 @@ final class SettingsFrameBudgetTests: XCTestCase {
             report(label, run)
             XCTAssertLessThan(run.cpuPerTick, 25.0, "Strength edit should stay below 25 ms/event for \(label)")
             assertBodyRange(preview, in: run, minimum: 0.9, maximum: 1.1)
+            let lookMenu = target == .snapStrength ? "VeilLookMenu.snap" : "VeilLookMenu.privacy"
+            XCTAssertLessThanOrEqual(run.bodies[lookMenu, default: 0], 6,
+                                     "The Look menu should update only when the selected preset changes during \(label)")
             for other in ["BlurPreview.Snap", "BlurPreview.Angle", "BlurPreview.Privacy"] where other != preview {
                 XCTAssertEqual(run.bodies[other, default: 0], 0, "\(other) must not rebuild during \(label)")
             }
@@ -683,7 +692,7 @@ final class SettingsFrameBudgetTests: XCTestCase {
 
     func testTintPixelsChangeAndPrivacyVeilSwitchChangesGeometry() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsFrameBudgetTests-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults, overlay: SilentBudgetOverlay())
         features.privacyEnabled = true
         features.angleBlurEnabled = true

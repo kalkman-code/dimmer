@@ -9,8 +9,8 @@
 <p align="center"><img src=".github/readme/hero.webp" width="520" alt="A MacBook lid closes and its screen and keyboard fade to dark, then it opens and they come back; a quick snap of the lid frosts the screen, and lifting it clears the frost."></p>
 
 <p align="center">
-  <a href="https://github.com/kalkman-code/dimmer/releases/download/v1.3.1/Dimmer-1.3.1.dmg"><b>Download Dimmer 1.3.1</b></a><br>
-  macOS 14 or later · signed and notarised by Apple · free, GPL-3.0 · <a href="https://github.com/kalkman-code/dimmer/releases/tag/v1.3.1">release notes</a>
+  <a href="https://github.com/kalkman-code/dimmer/releases/download/v1.4.0/Dimmer-1.4.0.dmg"><b>Download Dimmer 1.4.0</b></a><br>
+  macOS 14 or later · signed and notarised by Apple · free, GPL-3.0 · <a href="https://github.com/kalkman-code/dimmer/releases/tag/v1.4.0">release notes</a>
 </p>
 
 Dimmer is a small menu bar app. It reads the lid angle from the MacBook's hinge sensor and sets the
@@ -21,8 +21,9 @@ keyboard backlight and screen from it, on ranges you set yourself.
 - Fades the keyboard and screen from full with the lid at 100 degrees to off at 68 by default. Drag or type each end's angle and brightness in Settings, where every feature has its own box and bar, or switch either off and its box folds away.
 - Puts your brightness back when you open the lid, pause or quit, and the keyboard backlight when the Mac sleeps, automatic keyboard brightness included.
 - While Privacy veil is on, press Ctrl+Cmd+P in any app and every screen frosts over until you type, touch the trackpad or lift the lid. Snap to blur, off by default, does the same when you snap the lid down quickly.
-- Blur by angle, off by default, adds a bar that frosts the screen more the further the lid closes, between two angles you set. Its own Frost to Smoke control tints the angle veil in proportion to its blur strength. Settings can undo each control and restore the range and tint together.
-- Snap to blur and Privacy veil have separate blur strengths. Snap to blur, Blur by angle and Privacy veil each have their own preview; Snap to blur has its own Frost to Smoke control, shown only while snap is on, and Privacy veil has a separate tint for the shortcut veil. When snap and angle blur overlap, the stronger strength sets the blur and the greater strength-weighted tint sets the darkness.
+- Each blur box has a `Look` menu with `Frost`, `Mist`, `Slate`, `Smoke` and `Charcoal`. Snap to blur and Privacy veil set blur strength and tint together; Blur by angle sets tint while keeping its range. Editing a look's controls selects `Custom`.
+- Blur by angle, off by default, adds a bar that frosts the screen more the further the lid closes, between two angles you set. Its `Tint` control darkens the angle veil in proportion to its blur strength. Settings can undo each control and restore the range and tint together.
+- Snap to blur and Privacy veil have separate blur strengths. Snap to blur, Blur by angle and Privacy veil each have their own preview; Snap to blur has its own `Tint` control, shown only while snap is on, and Privacy veil has a separate tint for the shortcut veil. When snap and angle blur overlap, the stronger strength sets the blur and the greater strength-weighted tint sets the darkness.
 - Restore links are scoped to their boxes: Snap restores its zone, snap distance, speed, blur strength and tint; Blur restores its range and tint; Privacy veil restores its own blur strength, clear speed and shortcut tint while leaving Snap tint and the shortcut assignment unchanged.
 - Go dark fades the keyboard and screen off without moving the lid (it can also have its own shortcut, unassigned by default); Keep awake holds the Mac awake on a timer or indefinitely. Both are in the menu bar panel.
 - Steps aside when you change the keyboard brightness yourself, and leaves the keyboard dark when macOS has dimmed it for inactivity.
@@ -30,7 +31,7 @@ keyboard backlight and screen from it, on ranges you set yourself.
 
 ## Requirements
 
-- macOS 14 or later, on a MacBook with a lid-angle sensor. Without one, the panel says "Built-in lid angle sensor is unavailable." and Dimmer dims nothing.
+- macOS 14 or later. A readable lid-angle sensor is required for keyboard and screen dimming, Snap to blur and Blur by angle. Without one, those angle controls are unavailable and no lid polling timer runs; Privacy veil, Go dark and Keep awake still work. Go dark wakes from keyboard or pointer input because lid movement cannot be detected.
 - Tested on one machine: a 16-inch MacBook Pro with M1 Max (2021) on macOS 27.2.
 - The app is universal, but Intel is untested. Only an Intel MacBook with the hinge sensor can work, reportedly the 2019 16-inch MacBook Pro onwards. A bug report saying whether it worked is welcome either way.
 
@@ -58,19 +59,19 @@ English, Spanish, Portuguese, German, French and Japanese, following your Mac's 
 
 ## Install
 
-1. Download [`Dimmer-1.3.1.dmg`](https://github.com/kalkman-code/dimmer/releases/download/v1.3.1/Dimmer-1.3.1.dmg).
+1. Download [`Dimmer-1.4.0.dmg`](https://github.com/kalkman-code/dimmer/releases/download/v1.4.0/Dimmer-1.4.0.dmg).
 2. Open it and drag Dimmer to Applications.
 3. Open Dimmer. Its icon, a diamond cut across by a line, appears in the menu bar: click it for the panel, right-click for Settings, About, Check for updates…, Go dark, Pause and Quit. The diamond turns to an outline while paused. The first time, Settings opens with a short welcome and offers Launch at Login.
 
-Dimmer 1.2.1 and earlier cannot update themselves: install 1.3 by hand once, the same way, dragging it
+Dimmer 1.2.1 and earlier cannot update themselves: install 1.4.0 by hand once, the same way, dragging it
 over the old copy in Applications. From 1.3 on, Dimmer offers updates itself. Sparkle normally checks
 the signed feed and the downloaded app against Dimmer's update key, and checks the new app's Apple code
 signature. After 20 days of failed feed-signature checks, Sparkle may offer an update with reduced feed
 protection; the download and Apple code-signature checks still apply. Sparkle does not check notarisation
 itself; releases are notarised before they are published.
 
-To check the download, compare `shasum -a 256 Dimmer-1.3.1.dmg` with
-[`SHA256SUMS`](https://github.com/kalkman-code/dimmer/releases/download/v1.3.1/SHA256SUMS) on the release.
+To check the download, compare `shasum -a 256 Dimmer-1.4.0.dmg` with
+[`SHA256SUMS`](https://github.com/kalkman-code/dimmer/releases/download/v1.4.0/SHA256SUMS) on the release.
 
 ## Uninstall
 

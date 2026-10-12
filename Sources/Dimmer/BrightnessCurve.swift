@@ -69,6 +69,66 @@ struct DimRange: Codable, Equatable, Sendable {
     }
 }
 
+struct BrightnessAngleFilter {
+    private var range: DimRange?
+    private var smoothed: Double?
+    private var endpoint: Double?
+
+    mutating func controlAngle(raw: Double, range: DimRange) -> Double {
+        if self.range != range {
+            self.range = range
+            smoothed = nil
+            endpoint = nil
+        }
+        // Two degrees reject the sensor's one-degree endpoint wobble; narrow ranges keep an interior.
+        let hysteresis = min(2, (range.highAngle - range.lowAngle) / 2)
+        if endpoint == range.highAngle, raw > range.highAngle - hysteresis {
+            return range.highAngle
+        }
+        if endpoint == range.lowAngle, raw < range.lowAngle + hysteresis {
+            return range.lowAngle
+        }
+        let leavingEndpoint = endpoint != nil
+        endpoint = nil
+        if raw >= range.highAngle { endpoint = range.highAngle }
+        if raw <= range.lowAngle { endpoint = range.lowAngle }
+        if let endpoint {
+            smoothed = endpoint
+            return endpoint
+        }
+        let angle = leavingEndpoint ? raw : smoothed.map { $0 * 0.65 + raw * 0.35 } ?? raw
+        smoothed = angle
+        return angle
+    }
+}
+
+struct KeyboardTargetLatency {
+    private(set) var pendingAt: TimeInterval?
+    private(set) var appliedTarget: Double?
+    private(set) var readback: Double?
+
+    mutating func observe(target: Double, readback: Double, time: TimeInterval, active: Bool) {
+        self.readback = readback
+        guard active, abs(target - readback) > 0.008 else {
+            pendingAt = nil
+            return
+        }
+        if pendingAt == nil {
+            pendingAt = time
+        }
+    }
+
+    mutating func didWrite(target: Double, readback: Double, time: TimeInterval) -> Double? {
+        let elapsed = pendingAt.map { (time - $0) * 1000 }
+        appliedTarget = target
+        self.readback = readback
+        pendingAt = nil
+        return elapsed
+    }
+
+    mutating func suspend() { pendingAt = nil }
+}
+
 enum LidAxis {
     static let maximum: Double = 130
 }

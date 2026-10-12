@@ -46,30 +46,40 @@ struct SettingsView: View {
             Section {
                 VStack(alignment: .leading, spacing: 10) {
                     statusLine
-                    axisHelp
+                    if controller.hasLidAngle { axisHelp }
                 }
                 .padding(.vertical, 4)
             }
 
-            Section {
-                LaneBox(lane: .keyboard, controller: controller, features: features, history: history) { EmptyView() }
-            }
-
-            Section {
-                LaneBox(lane: .screen, controller: controller, features: features, history: history) {
-                    OverlapNote(controller: controller, features: features, history: history)
+            if controller.hasLidAngle {
+                Section {
+                    LaneBox(lane: .keyboard, controller: controller, features: features, history: history) { EmptyView() }
                 }
-            }
 
-            snapBox
+                Section {
+                    LaneBox(lane: .screen, controller: controller, features: features, history: history) {
+                        OverlapNote(controller: controller, features: features, history: history)
+                    }
+                }
 
-            Section {
-                LaneBox(lane: .blur, controller: controller, features: features, history: history) {
-                    TintSettingRow(title: L10n.string("Tint"), accessibilityTitle: L10n.string("Blur tint"),
-                                   detail: L10n.string("Sets the darkness of the angle blur, scaled with its blur strength."),
-                                   tint: features.angleBlurTint, history: history,
-                                   actionName: "Blur tint", set: history.setAngleBlurSmoke)
-                    BlurPreviewRow(source: .angle, features: features)
+                snapBox
+
+                Section {
+                    LaneBox(lane: .blur, controller: controller, features: features, history: history) {
+                        TintSettingRow(title: L10n.string("Tint"), accessibilityTitle: L10n.string("Blur tint"),
+                                       detail: L10n.string("Sets the darkness of the angle blur, scaled with its blur strength."),
+                                       tint: features.angleBlurTint, history: history,
+                                       actionName: "Blur tint", set: history.setAngleBlurSmoke)
+                        VeilLookPicker(target: .angle, features: features, history: history)
+                        BlurPreviewRow(source: .angle, features: features)
+                    }
+                }
+            } else if controller.lidSensorState == .unavailable {
+                Section {
+                    Text(L10n.string("Angle controls are unavailable because this Mac has no readable lid sensor."))
+                        .font(.system(size: 11))
+                        .foregroundStyle(secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
@@ -119,6 +129,7 @@ struct SettingsView: View {
                                        detail: L10n.string("Sets the darkness of the shortcut veil"),
                                        tint: features.privacyVeilTint, history: history, actionName: "Privacy veil tint",
                                        available: privacyShortcutAvailable, set: history.setPrivacyVeilSmoke)
+                        VeilLookPicker(target: .privacy, features: features, history: history)
                         BlurPreviewRow(source: .privacy, features: features, available: privacyShortcutAvailable)
                     }
                 }
@@ -126,7 +137,9 @@ struct SettingsView: View {
 
             Section(L10n.string("Go dark")) {
                 HStack(spacing: 12) {
-                    settingLabel(L10n.string("Go dark shortcut"), detail: L10n.string("Fades the keyboard and screen to off from any app. Unassigned until you record one. Typing, the trackpad or moving the lid brings them back."))
+                    settingLabel(L10n.string("Go dark shortcut"), detail: L10n.string(controller.lidSensorState == .unavailable
+                        ? "Fades the keyboard and screen to off from any app. Unassigned until you record one. Typing or using the trackpad brings them back."
+                        : "Fades the keyboard and screen to off from any app. Unassigned until you record one. Typing, the trackpad or moving the lid brings them back."))
                     Spacer(minLength: 8)
                     KeyboardShortcuts.Recorder(for: .goDark, onChange: { _ in
                         NotificationCenter.default.post(name: .dimmerShortcutDidChange, object: nil)
@@ -296,6 +309,7 @@ struct SettingsView: View {
                            undoName: "Snap blur strength",
                            accessibilityTitle: L10n.string("Snap blur strength"))
                 SnapTintContent(features: features, tint: features.snapTint, history: history)
+                VeilLookPicker(target: .snap, features: features, history: history)
                 BlurPreviewRow(source: .snap, features: features)
             }
         }
@@ -344,9 +358,11 @@ struct SettingsView: View {
                 Text(statusTitle)
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(Color(hex: 0xE2E5EA))
-                Text(statusDescription)
-                    .font(.system(size: 11))
-                    .foregroundStyle(secondaryText)
+                if !statusDescription.isEmpty {
+                    Text(statusDescription)
+                        .font(.system(size: 11))
+                        .foregroundStyle(secondaryText)
+                }
             }
             .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
@@ -371,7 +387,15 @@ struct SettingsView: View {
         if controller.paused {
             description = L10n.string("Dimming is paused. Resume from the menu bar.")
         } else if controller.errorMessage != L10n.string("Active") {
-            description = !controller.hasLidAngle ? L10n.string("Waiting for the lid sensor.") : (controller.keyboardYielded ? L10n.string("Screen and privacy control continue. Choose Resume keyboard dimming in the menu bar panel to reconnect the keyboard.") : L10n.string("Screen and privacy control continue. Pause and resume to reconnect the keyboard."))
+            if controller.lidSensorState == .unavailable {
+                description = ""
+            } else if !controller.hasLidAngle {
+                description = L10n.string("Waiting for the lid sensor.")
+            } else {
+                description = controller.keyboardYielded
+                    ? L10n.string("Screen and privacy control continue. Choose Resume keyboard dimming in the menu bar panel to reconnect the keyboard.")
+                    : L10n.string("Screen and privacy control continue. Pause and resume to reconnect the keyboard.")
+            }
         } else {
             switch (controller.dimsKeyboard, controller.dimsScreen) {
             case (true, true): description = L10n.string("Dimming the keyboard and the screen as the lid closes.")
@@ -447,6 +471,77 @@ struct SettingsView: View {
         PrivacyNumberField(title: title, value: value, range: range, step: step, unit: unit)
     }
 
+}
+
+private struct VeilLookPicker: View {
+    let target: VeilLookTarget
+    @Bindable var features: DimmerFeatures
+    @ObservedObject var history: SettingsHistory
+
+    private var selectedLook: VeilLook? {
+        let strength: Double
+        let tint: Double
+        switch target {
+        case .snap:
+            strength = features.snapBlurStrength
+            tint = features.snapTint.value
+        case .angle:
+            strength = 1
+            tint = features.angleBlurTint.value
+        case .privacy:
+            strength = features.privacyVeilBlurStrength
+            tint = features.privacyVeilTint.value
+        }
+        return VeilLook.matching(strength: strength, tint: tint, target: target)
+    }
+
+    private var localeKey: String {
+        #if DEBUG
+        L10n.testLanguage ?? Locale.current.identifier
+        #else
+        Locale.current.identifier
+        #endif
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(L10n.string("Look")).font(.system(size: 13))
+            Spacer(minLength: 8)
+            VeilLookMenu(target: target, selection: selectedLook, localeKey: localeKey) { history.apply($0, to: target) }
+                .equatable()
+        }
+        .frame(minHeight: 36)
+    }
+}
+
+private struct VeilLookMenu: View, Equatable {
+    let target: VeilLookTarget
+    let selection: VeilLook?
+    let localeKey: String
+    let apply: (VeilLook) -> Void
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.target == rhs.target && lhs.selection == rhs.selection && lhs.localeKey == rhs.localeKey
+    }
+
+    var body: some View {
+        #if DEBUG
+        let _ = BodyCount.hit("VeilLookMenu.\(target)")
+        #endif
+        Picker(L10n.string(target.accessibilityLabel), selection: Binding(
+            get: { selection },
+            set: { if let look = $0 { apply(look) } }
+        )) {
+            Text(L10n.string("Custom")).tag(nil as VeilLook?)
+            ForEach(VeilLook.allCases) { look in
+                Text(look.title).tag(look as VeilLook?)
+            }
+        }
+        .labelsHidden()
+        .pickerStyle(.menu)
+        .fixedSize()
+        .accessibilityLabel(L10n.string(target.accessibilityLabel))
+    }
 }
 
 enum BlurPreviewSource: Equatable {

@@ -71,7 +71,9 @@ struct DimmerMenu: View {
             Divider()
             Button(L10n.string("Go dark")) { controller.goDark() }
                 .disabled(!controller.canGoDark)
-                .help(L10n.string("Fades the keyboard and screen to off. Input or moving the lid brings them back."))
+                .help(controller.hasLidAngle
+                      ? L10n.string("Fades the keyboard and screen to off. Input or moving the lid brings them back.")
+                      : L10n.string("Without a readable lid sensor, Go dark wakes when you type or use the trackpad or mouse."))
                 .buttonStyle(.plain)
             if updates.updateAvailable {
                 Button(L10n.string("Update available…")) { updates.checkForUpdates() }

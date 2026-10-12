@@ -193,7 +193,9 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValida
             menu.addItem(withTitle: L10n.string("View latest release…"), action: #selector(viewLatestRelease), keyEquivalent: "")
             menu.addItem(.separator())
             let dark = menu.addItem(withTitle: L10n.string("Go dark"), action: controller.canGoDark ? #selector(goDark) : nil, keyEquivalent: "")
-            dark.toolTip = L10n.string("Keyboard and screen off until you type, touch the trackpad or move the lid.")
+            dark.toolTip = controller.hasLidAngle
+                ? L10n.string("Keyboard and screen off until you type, touch the trackpad or move the lid.")
+                : L10n.string("Without a readable lid sensor, Go dark wakes when you type or use the trackpad or mouse.")
 
             if !controller.paused {
                 menu.addItem(withTitle: L10n.string("Pause for 15 minutes"), action: #selector(pause15), keyEquivalent: "")

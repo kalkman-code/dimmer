@@ -4,6 +4,146 @@ import XCTest
 
 @MainActor
 final class ControllerTests: XCTestCase {
+    func testFirstPartialCloseAfterLaunchAndWakeDimsBothOutputs() throws {
+        let devices = TestHardware()
+        defer { devices.cleanUp() }
+        let worker = devices.worker()
+        let gate = PollGeneration()
+        var detector = SnapDetector()
+        for _ in 0..<2 {
+            devices.keyboard.brightness = 1
+            devices.keyboard.automatic = true
+            devices.sensor.angle = 110
+            _ = try devices.poll(worker, gate: gate, detector: &detector)
+            devices.sensor.angle = 84
+            let closed = try devices.poll(worker, gate: gate, detector: &detector)
+            XCTAssertNil(closed.keyboardStatus)
+            XCTAssertLessThan(devices.keyboard.brightness, 1)
+            XCTAssertLessThan(devices.display.brightness, 0.6)
+            worker.restoreAndClose()
+        }
+    }
+
+    func testFirstCloseAfterOpeningExactlyToFullBoundaryDimsBothOutputs() throws {
+        let devices = TestHardware()
+        defer { devices.cleanUp() }
+        let worker = devices.worker()
+        let gate = PollGeneration()
+        var detector = SnapDetector()
+        devices.keyboard.brightness = 1
+        devices.sensor.angle = 99
+        _ = try devices.poll(worker, gate: gate, detector: &detector)
+        devices.sensor.angle = 100
+        _ = try devices.poll(worker, gate: gate, detector: &detector)
+        devices.sensor.angle = 84
+        let closed = try devices.poll(worker, gate: gate, detector: &detector)
+        XCTAssertNil(closed.keyboardStatus)
+        XCTAssertLessThan(devices.keyboard.brightness, 1)
+        XCTAssertLessThan(devices.display.brightness, 0.6)
+    }
+
+    func testKeyboardEndpointDoesNotResetScreenFilterWithDifferentRanges() throws {
+        let devices = TestHardware()
+        defer { devices.cleanUp() }
+        let worker = devices.worker()
+        let gate = PollGeneration()
+        let keyboard = DimRange(lowAngle: 68, lowLevel: 0, highAngle: 80, highLevel: 1)
+        func poll(_ angle: Double) throws {
+            devices.sensor.angle = angle
+            _ = try worker.poll(keyboardRange: keyboard, screenRange: .screenDefault,
+                                dimsKeyboard: true, dimsScreen: true, darkness: 0,
+                                generation: gate.current, gate: gate)
+        }
+        try poll(110)
+        try poll(90)
+        try poll(92)
+        XCTAssertEqual(devices.keyboard.brightness, 1)
+        XCTAssertEqual(devices.display.brightness, 0.6 * DimRange.screenDefault.level(at: 90.7), accuracy: 0.0001)
+        try poll(90)
+        XCTAssertEqual(devices.display.brightness, 0.6 * DimRange.screenDefault.level(at: 90.455), accuracy: 0.0001)
+    }
+
+    func testEndpointWobbleDoesNotRepeatKeyboardOrDisplayWrites() throws {
+        let devices = TestHardware()
+        defer { devices.cleanUp() }
+        let worker = devices.worker()
+        let gate = PollGeneration()
+        var detector = SnapDetector()
+        var displayWrites = 0
+        devices.display.onWrite = { _ in displayWrites += 1 }
+        _ = try devices.poll(worker, gate: gate, detector: &detector)
+        let keyboardWrites = devices.keyboard.writes.count
+        for angle in [99.0, 100, 99, 100, 99] {
+            devices.sensor.angle = angle
+            _ = try devices.poll(worker, gate: gate, detector: &detector)
+        }
+        XCTAssertEqual(devices.keyboard.writes.count, keyboardWrites)
+        XCTAssertEqual(displayWrites, 0)
+        devices.sensor.angle = 97
+        _ = try devices.poll(worker, gate: gate, detector: &detector)
+        XCTAssertLessThan(devices.keyboard.brightness, 1)
+        XCTAssertLessThan(devices.display.brightness, 0.6)
+        devices.sensor.angle = 68
+        _ = try devices.poll(worker, gate: gate, detector: &detector)
+        let lowKeyboardWrites = devices.keyboard.writes.count
+        let lowDisplayWrites = displayWrites
+        for angle in [69.0, 68, 69, 68] {
+            devices.sensor.angle = angle
+            _ = try devices.poll(worker, gate: gate, detector: &detector)
+        }
+        XCTAssertEqual(devices.keyboard.writes.count, lowKeyboardWrites)
+        XCTAssertEqual(displayWrites, lowDisplayWrites)
+    }
+
+    func testFirstPartialCloseAfterIdleLeavesKeyboardDarkButDimsScreen() throws {
+        let devices = TestHardware()
+        defer { devices.cleanUp() }
+        let worker = devices.worker()
+        let gate = PollGeneration()
+        var detector = SnapDetector()
+        devices.keyboard.brightness = 1
+        _ = try devices.poll(worker, gate: gate, detector: &detector)
+        let owned = devices.keyboard.brightness
+        devices.keyboard.isIdleDimmed = true
+        devices.keyboard.brightness = 0
+        for _ in 0..<10 { _ = try devices.poll(worker, gate: gate, detector: &detector) }
+        let writes = devices.keyboard.writes.count
+        devices.sensor.angle = 80
+        let closed = try devices.poll(worker, gate: gate, detector: &detector)
+        XCTAssertNil(closed.keyboardStatus)
+        XCTAssertEqual(devices.keyboard.brightness, 0)
+        XCTAssertEqual(devices.keyboard.writes.count, writes)
+        XCTAssertLessThan(devices.display.brightness, 0.6)
+        devices.keyboard.isIdleDimmed = false
+        devices.keyboard.brightness = owned
+        let awake = try devices.poll(worker, gate: gate, detector: &detector)
+        XCTAssertNil(awake.keyboardStatus)
+        XCTAssertNotNil(awake.written)
+        XCTAssertLessThan(devices.keyboard.brightness, 1)
+    }
+
+    func testAutomaticModeChangeWhileRunningLatchesOnlyKeyboardUntilResume() throws {
+        let devices = TestHardware()
+        defer { devices.cleanUp() }
+        let worker = devices.worker()
+        let gate = PollGeneration()
+        var detector = SnapDetector()
+        _ = try devices.poll(worker, gate: gate, detector: &detector)
+        for _ in 0..<10 { _ = try devices.poll(worker, gate: gate, detector: &detector) }
+        devices.keyboard.automatic = true
+        XCTAssertNotNil(try devices.poll(worker, gate: gate, detector: &detector).keyboardStatus)
+        devices.keyboard.automatic = false
+        devices.sensor.angle = 80
+        let closed = try devices.poll(worker, gate: gate, detector: &detector)
+        XCTAssertNotNil(closed.keyboardStatus)
+        XCTAssertNil(closed.written)
+        XCTAssertLessThan(devices.display.brightness, 0.6)
+        worker.resumeKeyboard()
+        let resumed = try devices.poll(worker, gate: gate, detector: &detector)
+        XCTAssertNil(resumed.keyboardStatus)
+        XCTAssertNotNil(resumed.written)
+    }
+
     func testSensorFailureDuringGoDarkRestoresYieldedKeyboard() throws {
         let devices = TestHardware()
         defer { devices.cleanUp() }
@@ -39,6 +179,56 @@ final class ControllerTests: XCTestCase {
         XCTAssertTrue(controller.canGoDark)
         controller.simulateLid(angle: nil)
         XCTAssertFalse(controller.canGoDark)
+    }
+
+    func testSensorlessWakeAppliesQueuedZeroAfterDelayedDisplayWrite() async throws {
+        let devices = TestHardware()
+        defer { devices.cleanUp() }
+        let started = expectation(description: "The first sensorless display write starts")
+        let restored = expectation(description: "The queued zero darkness restores the display")
+        let release = DispatchSemaphore(value: 0)
+        var delayed = false
+        var restorationSeen = false
+        devices.display.onWrite = { value in
+            if !delayed {
+                delayed = true
+                started.fulfill()
+                release.wait()
+            }
+            if value > 0.59 && !restorationSeen {
+                restorationSeen = true
+                restored.fulfill()
+            }
+        }
+        defer { release.signal() }
+        let suite = UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let controller = DimmerController(defaults: defaults, hardware: devices.worker())
+        defer { controller.stop() }
+        controller.simulateSensorAvailability(.unavailable)
+        controller.goDark()
+
+        await fulfillment(of: [started], timeout: 3)
+        controller.simulateWake()
+        try await Task.sleep(nanoseconds: 700_000_000)
+        release.signal()
+        await fulfillment(of: [restored], timeout: 3)
+        XCTAssertEqual(devices.display.brightness, 0.6, accuracy: 0.01)
+    }
+
+    func testSensorlessGoDarkDimsDisplayWhenKeyboardFactoryThrows() throws {
+        let devices = TestHardware()
+        defer { devices.cleanUp() }
+        try FileManager.default.createDirectory(at: devices.directory, withIntermediateDirectories: true)
+        let worker = HardwareWorker(makeBacklight: { throw NSError(domain: "NoKeyboard", code: 1) },
+                                    makeDisplay: { devices.display },
+                                    keyboardJournalURL: devices.directory.appendingPathComponent("keyboard.json"),
+                                    displayJournalURL: devices.directory.appendingPathComponent("display.json"))
+        let gate = PollGeneration()
+        try worker.darkTick(darkness: 1, generation: gate.current, gate: gate)
+        try worker.darkTick(darkness: 1, generation: gate.current, gate: gate)
+        XCTAssertLessThan(devices.display.brightness, 0.6)
     }
 
     func testGoDarkDoesNotBrightenAnAlreadyDimmedLane() throws {
@@ -129,7 +319,7 @@ final class ControllerTests: XCTestCase {
         devices.keyboard.brightness = owned
         let wake = try devices.poll(worker, gate: gate, detector: &detector)
         XCTAssertNil(wake.keyboardStatus)
-        XCTAssertEqual(devices.keyboard.brightness, DimRange.keyboardDefault.level(at: wake.angle), accuracy: 0.001)
+        XCTAssertEqual(devices.keyboard.brightness, DimRange.keyboardDefault.level(at: 80), accuracy: 0.001)
         devices.keyboard.brightness = 0.2
         let yielded = try devices.poll(worker, gate: gate, detector: &detector)
         XCTAssertNotNil(yielded.keyboardStatus)
@@ -457,9 +647,10 @@ final class TestHardware {
 
     final class Display: DisplayBrightnessControlling {
         var brightness = 0.6
+        var onWrite: ((Double) -> Void)?
         var displayID: UInt32 { 0 }
         func read() throws -> Double { brightness }
-        func write(_ value: Double) throws -> Double { brightness = value; return value }
+        func write(_ value: Double) throws -> Double { onWrite?(value); brightness = value; return value }
         func setGammaScale(_ factor: Double) throws {}
         func clearCapturedGamma() {}
         func restoreGamma() {}

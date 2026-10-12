@@ -8,11 +8,17 @@ import XCTest
 // either shows up here rather than on the first click in the app.
 @MainActor
 final class SettingsViewTests: XCTestCase {
+    private func makeController(defaults: UserDefaults) -> DimmerController {
+        let controller = DimmerController(defaults: defaults)
+        controller.simulateSensorAvailability(.available)
+        return controller
+    }
+
     func testPrivacyShortcutSettingsRequireAnEnabledVeilAndRecordedShortcut() throws {
         let suite = "PrivacyShortcutSettings-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults)
         defer { features.stop() }
         let history = SettingsHistory(controller: controller, features: features)
@@ -54,7 +60,7 @@ final class SettingsViewTests: XCTestCase {
 
     func testActualSnapBoxOffContainsOnlyItsTitleRow() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults)
         defer { features.stop() }
         features.privacyEnabled = false
@@ -83,7 +89,7 @@ final class SettingsViewTests: XCTestCase {
 
     func testSettingsViewRendersWithLiveState() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsViewTests-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults)
         let view = SettingsView(controller: controller, features: features, shell: ShellPreferences(defaults: defaults), login: LoginItem(), history: SettingsHistory(controller: controller, features: features), updates: UpdateController())
         let rep = try XCTUnwrap(render(view, size: NSSize(width: 680, height: 893)))
@@ -101,7 +107,7 @@ final class SettingsViewTests: XCTestCase {
         L10n.testLanguage = "en-GB"
         defer { L10n.testLanguage = previousLanguage }
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "BlurPreviewRows-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults)
         defer { features.stop() }
         features.privacyEnabled = true
@@ -210,7 +216,7 @@ final class SettingsViewTests: XCTestCase {
     // overlap note to the Screen box.
     func testSnapBoxCollapsesAndOverlapNoteShows() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsViewTests-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         controller.dimsScreen = true
         let features = DimmerFeatures(defaults: defaults)
         defer { features.stop() }
@@ -242,7 +248,7 @@ final class SettingsViewTests: XCTestCase {
     // zones pushed to the ends of the axis, so any value the Canvas draws from is exercised; the crash window was about 1.6° wide.
     func testEveryBarDrawsAtEveryLidAngleAndEdgeRange() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsViewTests-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults)
         let history = SettingsHistory(controller: controller, features: features)
         let hosts = try AxisLane.allCases.map { lane -> (NSHostingView<LidAxisView>, NSBitmapImageRep) in
@@ -286,7 +292,7 @@ final class SettingsViewTests: XCTestCase {
                                               (.privacy, "Privacy settings"), (.blur, "Blur range")]
         for (lane, name) in expected {
             let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsViewTests-\(UUID().uuidString)"))
-            let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
             let features = DimmerFeatures(defaults: defaults)
             defer { features.stop() }
             let history = SettingsHistory(controller: controller, features: features, isMouseDown: { true })
@@ -311,7 +317,7 @@ final class SettingsViewTests: XCTestCase {
     // A box whose feature is off is its title row alone, and each switch opens only its own box.
     func testEachBoxOpensOnlyWithItsOwnSwitch() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsViewTests-\(UUID().uuidString)"))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults)
         defer { features.stop() }
         let history = SettingsHistory(controller: controller, features: features)
@@ -368,13 +374,13 @@ final class SettingsViewTests: XCTestCase {
 
     func testMenuPanelRenders() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsViewTests-\(UUID().uuidString)"))
-        let view = DimmerMenu(controller: DimmerController(defaults: defaults), features: DimmerFeatures(defaults: defaults), updates: UpdateController(), showSettings: {})
+        let view = DimmerMenu(controller: makeController(defaults: defaults), features: DimmerFeatures(defaults: defaults), updates: UpdateController(), showSettings: {})
         XCTAssertNotNil(render(view, size: NSSize(width: 260, height: 360)))
     }
 
     func testMenuPanelIsFixedAt320Points() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "SettingsViewTests-\(UUID().uuidString)"))
-        let view = DimmerMenu(controller: DimmerController(defaults: defaults), features: DimmerFeatures(defaults: defaults), updates: UpdateController(), showSettings: {})
+        let view = DimmerMenu(controller: makeController(defaults: defaults), features: DimmerFeatures(defaults: defaults), updates: UpdateController(), showSettings: {})
         let width = NSHostingController(rootView: view).view.fittingSize.width
         XCTAssertEqual(width, 320, accuracy: 1)
     }
@@ -386,7 +392,7 @@ final class SettingsViewTests: XCTestCase {
         let name = "LocalisedLayoutTests-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
         defer { defaults.removePersistentDomain(forName: name) }
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults)
         features.privacyEnabled = true
         let panel = NSHostingView(rootView: DimmerMenu(controller: controller, features: features, updates: UpdateController(), showSettings: {}))
@@ -414,7 +420,7 @@ final class SettingsViewTests: XCTestCase {
     func testEveryLanguageFitsWithEveryBoxOpenAndCollapsed() throws {
         let name = "LocalisedFitTests-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
-        let controller = DimmerController(defaults: defaults)
+        let controller = makeController(defaults: defaults)
         let features = DimmerFeatures(defaults: defaults)
         defer { features.stop(); L10n.testLanguage = nil; defaults.removePersistentDomain(forName: name) }
         let minimumWidth: CGFloat = 680

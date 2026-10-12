@@ -8827,6 +8827,16 @@
         }
       }
     },
+    "Fades the keyboard and screen to off from any app. Unassigned until you record one. Typing or using the trackpad brings them back." : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Fades the keyboard and screen to off from any app. Unassigned until you record one. Typing or using the trackpad brings them back." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apaga gradualmente el teclado y la pantalla desde cualquier app. No está asignado hasta que grabes un atajo. Al escribir o usar el trackpad, vuelven a encenderse." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Apaga gradualmente o teclado e a tela em qualquer app. Fica sem atalho até você gravar um. Digitar ou usar o trackpad os acende novamente." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Blendet Tastatur und Bildschirm in jeder App aus. Bis zur Aufzeichnung nicht belegt. Tippen oder die Verwendung des Trackpads schalten sie wieder ein." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Éteint progressivement le clavier et l’écran depuis toute app. Aucun raccourci avant enregistrement. La saisie ou l’utilisation du trackpad les rallume." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "どのアプリからでもキーボードと画面を徐々に消灯します。ショートカットを記録するまで未割り当てです。入力またはトラックパッドの操作で再び点灯します。" } }
+      }
+    },
     "Go dark shortcut" : {
       "localizations" : {
         "en-GB" : {
@@ -10405,6 +10415,146 @@
         "de" : { "stringUnit" : { "state" : "translated", "value" : "Setzt den Unschärfebereich und den Farbton auf die Standardwerte zurück. Mit Cmd+Z rückgängig." } },
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rétablit les réglages par défaut de la plage et de la teinte du flou. Annuler avec Cmd+Z." } },
         "ja" : { "stringUnit" : { "state" : "translated", "value" : "ぼかしの範囲と色合いをデフォルトに戻します。Cmd+Zで取り消せます。" } }
+      }
+    },
+    "Apply veil look" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Apply veil look" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aplicar aspecto del velo" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aplicar aparência do véu" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schleierdarstellung anwenden" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Appliquer l’apparence du voile" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ベールの見た目を適用" } }
+      }
+    },
+    "Angle controls are unavailable because this Mac has no readable lid sensor." : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Angle controls are unavailable because this Mac has no readable lid sensor." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los controles de ángulo no están disponibles porque este Mac no tiene un sensor de tapa legible." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Os controles de ângulo não estão disponíveis porque este Mac não tem um sensor da tampa legível." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Winkelsteuerungen sind nicht verfügbar, weil dieser Mac keinen auslesbaren Deckelsensor hat." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les commandes d’angle sont indisponibles, car ce Mac ne possède pas de capteur de fermeture lisible." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "このMacでは読み取れる蓋センサーがないため、角度コントロールは利用できません。" } }
+      }
+    },
+    "Blur by angle look" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Blur by angle look" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aspecto del desenfoque por ángulo" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aparência do desfoque por ângulo" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Darstellung der winkelabhängigen Unschärfe" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Apparence du flou selon l’angle" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "角度に応じたぼかしの見た目" } }
+      }
+    },
+    "Charcoal" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Charcoal" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Carbón" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Carvão" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kohle" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Charbon" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "チャコール" } }
+      }
+    },
+    "Custom" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Custom" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Personalizado" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Personalizado" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Benutzerdefiniert" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Personnalisé" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "カスタム" } }
+      }
+    },
+    "Frost" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Frost" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escarcha" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Geada" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Reif" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Givre" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "霜" } }
+      }
+    },
+    "Look" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Look" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aspecto" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aparência" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Darstellung" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Apparence" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "見た目" } }
+      }
+    },
+    "Mist" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Mist" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Niebla" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Névoa" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dunst" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Brume" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "霧" } }
+      }
+    },
+    "No readable lid sensor. Privacy veil, Go dark and Keep awake are available." : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "No readable lid sensor. Privacy veil, Go dark and Keep awake are available." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hay un sensor de tapa legible. El velo de privacidad, Apagar y Mantener despierto están disponibles." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Não há um sensor da tampa legível. O véu de privacidade, Escurecer e Manter acordado estão disponíveis." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kein auslesbarer Deckelsensor. Datenschutzschleier, Abdunkeln und Wach halten sind verfügbar." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun capteur de fermeture lisible. Le voile de confidentialité, Assombrir et Garder éveillé restent disponibles." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み取れる蓋センサーがありません。プライバシーベール、画面を暗くする機能、スリープ防止は利用できます。" } }
+      }
+    },
+    "Privacy veil look" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Privacy veil look" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aspecto del velo de privacidad" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aparência do véu de privacidade" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Darstellung des Datenschutzschleiers" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Apparence du voile de confidentialité" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プライバシーベールの見た目" } }
+      }
+    },
+    "Slate" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Slate" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pizarra" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ardósia" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schiefer" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ardoise" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スレート" } }
+      }
+    },
+    "Smoke" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Smoke" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Humo" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Fumo" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Rauch" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fumée" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "煙" } }
+      }
+    },
+    "Snap to blur look" : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Snap to blur look" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aspecto del desenfoque al cerrar de golpe" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aparência do desfoque ao fechar rapidamente" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Darstellung der Schnappunschärfe" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Apparence du flou au claquement" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スナップぼかしの見た目" } }
+      }
+    },
+    "Without a readable lid sensor, Go dark wakes when you type or use the trackpad or mouse." : {
+      "localizations" : {
+        "en-GB" : { "stringUnit" : { "state" : "translated", "value" : "Without a readable lid sensor, Go dark wakes when you type or use the trackpad or mouse." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sin un sensor de tapa legible, Apagar se desactiva al escribir o usar el trackpad o el ratón." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Sem um sensor da tampa legível, Escurecer é desativado ao escrever ou usar o trackpad ou o mouse." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ohne auslesbaren Deckelsensor wird Abdunkeln durch Tippen oder die Verwendung von Trackpad oder Maus beendet." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sans capteur de fermeture lisible, Assombrir se désactive lorsque vous tapez ou utilisez le trackpad ou la souris." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み取れる蓋センサーがない場合、入力またはトラックパッドやマウスの使用で画面の暗転が解除されます。" } }
       }
     }
   },

@@ -2,6 +2,21 @@ import XCTest
 @testable import Dimmer
 
 final class KeyboardIdleTests: XCTestCase {
+    func testLongRunningIdleWakeWithLateNativeRestoreIsClassifiedAsYield() {
+        var logic = KeyboardIdleLogic()
+        XCTAssertEqual(logic.update(idleDimmed: false, current: 1, automatic: false,
+                                    lastWritten: 1, now: 0), .apply)
+        XCTAssertEqual(logic.update(idleDimmed: true, current: 0, automatic: false,
+                                    lastWritten: 1, now: 3600), .wait)
+        XCTAssertEqual(logic.update(idleDimmed: false, current: 0, automatic: false,
+                                    lastWritten: 1, now: 3610), .wait)
+        XCTAssertEqual(logic.update(idleDimmed: false, current: 0, automatic: false,
+                                    lastWritten: 1, now: 3610.6), .yield)
+        // The worker latches the yield and stops calling this logic, even if native restoration finishes later.
+        XCTAssertEqual(logic.update(idleDimmed: false, current: 1, automatic: false,
+                                    lastWritten: 1, now: 3611), .apply)
+    }
+
     func testAwakeKeyboardOwnershipRejectsOneBrightnessKeyStep() {
         var logic = KeyboardIdleLogic()
         XCTAssertEqual(logic.update(idleDimmed: false, current: 0.42, automatic: false,

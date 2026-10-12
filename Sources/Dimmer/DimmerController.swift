@@ -44,6 +44,12 @@ protocol LidSensing: AnyObject {
     func readAngleDegrees() throws -> Double
 }
 
+enum LidSensorState: Equatable {
+    case starting
+    case available
+    case unavailable
+}
+
 protocol KeyboardBacklightControlling: AnyObject {
     var isIdleDimmed: Bool { get }
     func read() throws -> (brightness: Double, automatic: Bool)
@@ -77,6 +83,8 @@ final class HardwareWorker: @unchecked Sendable {
     private var displayJournal: DisplayRecoveryJournal?
     private var displayLogic = DisplayDimmingLogic()
     private var smoothedAngle: Double?
+    private var keyboardAngleFilter = BrightnessAngleFilter()
+    private var screenAngleFilter = BrightnessAngleFilter()
     private var yieldedControl = false
     private var keyboardIdle = KeyboardIdleLogic()
     private var lastKeyboardIdleDimmed: Bool?
@@ -92,6 +100,10 @@ final class HardwareWorker: @unchecked Sendable {
     private let makeDisplay: () throws -> any DisplayBrightnessControlling
     private let keyboardJournalURL: URL?
     private let displayJournalURL: URL?
+    private var keyboardLatency = KeyboardTargetLatency()
+    private var lastKeyboardDecision: KeyboardIdleLogic.Decision?
+    private var lastPollTraceAt: TimeInterval = 0
+    private var darkKeyboardRetryAfter = Date.distantPast
 
     init(makeSensor: @escaping () -> any LidSensing = { LidAngleSensor() },
          makeBacklight: @escaping () throws -> any KeyboardBacklightControlling = { try KeyboardBacklight() },
@@ -115,6 +127,49 @@ final class HardwareWorker: @unchecked Sendable {
         }
     }
 
+    func probeSensor() throws {
+        do {
+            if sensor == nil {
+                let device = makeSensor()
+                try device.open()
+                sensor = device
+            }
+            _ = try sensor?.readAngleDegrees()
+        } catch {
+            sensor?.close()
+            sensor = nil
+            throw error
+        }
+    }
+
+    @discardableResult
+    func darkTick(darkness: Double, generation: Int, gate: PollGeneration) throws -> Bool {
+        guard gate.isCurrent(generation) else { return false }
+        if Date() >= darkKeyboardRetryAfter {
+            do {
+                if backlight == nil { backlight = try makeBacklight() }
+                _ = try apply(0, range: .keyboardDefault, enabled: false, darkness: darkness)
+                darkKeyboardRetryAfter = .distantPast
+            } catch {
+                darkKeyboardRetryAfter = Date().addingTimeInterval(2)
+                logger.error("sensorless Go dark keyboard control unavailable: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        guard gate.isCurrent(generation) else { return false }
+        do {
+            _ = try updateDisplay(angle: 0, range: .screenDefault, enabled: false, darkness: darkness,
+                                  generation: generation, gate: gate)
+        } catch {
+            restoreAndClose(resetKeyboardYield: false)
+            throw error
+        }
+        let keyboardRestored = journal == nil && RecoveryJournal.load(from: keyboardJournalURL) == nil
+            && darkKeyboardBaseline == nil
+        let displayRestored = displayLogic.baseline == nil && displayJournal == nil
+            && DisplayRecoveryJournal.load(from: displayJournalURL) == nil && !gammaActive
+        return keyboardRestored && displayRestored
+    }
+
     private func readAndApply(keyboardRange: DimRange, screenRange: DimRange, dimsKeyboard: Bool, dimsScreen: Bool, darkness: Double, generation: Int, gate: PollGeneration) throws -> HardwarePoll {
         if sensor == nil {
             let device = makeSensor()
@@ -129,12 +184,21 @@ final class HardwareWorker: @unchecked Sendable {
         let sample = LidSample(angle: raw, time: ProcessInfo.processInfo.systemUptime)
         let angle = smoothedAngle.map { $0 * 0.65 + raw * 0.35 } ?? raw
         smoothedAngle = angle
+        let keyboardAngle = keyboardAngleFilter.controlAngle(raw: raw, range: keyboardRange)
+        let screenAngle = screenAngleFilter.controlAngle(raw: raw, range: screenRange)
+        let rawTarget = keyboardRange.level(at: raw)
         var written: Double?
-        guard try gate.performIfCurrent(generation, action: { written = try apply(angle, range: keyboardRange, enabled: dimsKeyboard, darkness: darkness) }) else {
+        guard try gate.performIfCurrent(generation, action: { written = try apply(keyboardAngle, range: keyboardRange, enabled: dimsKeyboard, darkness: darkness, latencySample: (rawTarget, sample.time)) }) else {
             throw PollCancelled()
         }
-        let displaySample = try updateDisplay(angle: angle, range: screenRange, enabled: dimsScreen, darkness: darkness,
+        let displaySample = try updateDisplay(angle: screenAngle, range: screenRange, enabled: dimsScreen, darkness: darkness,
                                               generation: generation, gate: gate)
+        #if DEBUG
+        if sample.time - lastPollTraceAt >= 1 {
+            lastPollTraceAt = sample.time
+            logger.info("lid state uptime=\(sample.time, privacy: .public) raw=\(raw, privacy: .public) filtered=\(angle, privacy: .public) keyboardTarget=\(rawTarget, privacy: .public) yielded=\(self.yieldedControl, privacy: .public) idle=\(self.backlight!.isIdleDimmed, privacy: .public) screenStatus=\(displaySample.status, privacy: .public) screenBaseline=\(self.displayLogic.baseline ?? -1, privacy: .public)")
+        }
+        #endif
         let keyboardStatus = yieldedControl
             ? L10n.string("Keyboard brightness changed outside Dimmer; control paused to respect it.") : nil
         return (sample, angle, try backlight!.read().brightness, written, displaySample.brightness,
@@ -198,6 +262,11 @@ final class HardwareWorker: @unchecked Sendable {
         sensor = nil
         backlight = nil
         smoothedAngle = nil
+        keyboardAngleFilter = BrightnessAngleFilter()
+        screenAngleFilter = BrightnessAngleFilter()
+        keyboardLatency = KeyboardTargetLatency()
+        lastKeyboardDecision = nil
+        lastPollTraceAt = 0
         if resetKeyboardYield { yieldedControl = false }
         keyboardIdle = KeyboardIdleLogic()
         lastKeyboardIdleDimmed = nil
@@ -212,7 +281,10 @@ final class HardwareWorker: @unchecked Sendable {
         }
     }
 
-    private func apply(_ angle: Double, range: DimRange, enabled: Bool, darkness: Double) throws -> Double? {
+    private func apply(_ angle: Double, range: DimRange, enabled: Bool, darkness: Double,
+                       latencySample: (target: Double, time: TimeInterval)? = nil) throws -> Double? {
+        var latencyEligible = false
+        defer { if !latencyEligible { keyboardLatency.suspend() } }
         guard !yieldedControl || darkness > 0 || darkKeyboardBaseline != nil else { return nil }
         guard let backlight else { return nil }
         var current = try backlight.read()
@@ -227,6 +299,13 @@ final class HardwareWorker: @unchecked Sendable {
                                            lastWritten: ownership?.lastWritten,
                                            pendingBrightness: ownership?.pendingBrightness,
                                            now: ProcessInfo.processInfo.systemUptime)
+        #if DEBUG
+        if decision != lastKeyboardDecision {
+            lastKeyboardDecision = decision
+            let state = decision == .wait ? "wait" : decision == .yield ? "yield" : "apply"
+            logger.info("keyboard decision=\(state, privacy: .public) uptime=\(ProcessInfo.processInfo.systemUptime, privacy: .public) idle=\(idleDimmed, privacy: .public) current=\(current.brightness, privacy: .public) automatic=\(current.automatic, privacy: .public) owned=\(ownership?.lastWritten ?? -1, privacy: .public) pending=\(ownership?.pendingBrightness ?? -1, privacy: .public)")
+        }
+        #endif
         if decision == .wait { return nil }
         if journal == nil {
             guard try recoverStaleState(with: backlight) else { return nil }
@@ -244,6 +323,7 @@ final class HardwareWorker: @unchecked Sendable {
             if automaticResolved { RecoveryJournal.clear(at: keyboardJournalURL) }
             self.journal = nil
             yieldedControl = true
+            logger.info("keyboard control yielded current=\(current.brightness, privacy: .public) automatic=\(current.automatic, privacy: .public) lastWritten=\(journal.lastWritten, privacy: .public); explicit resume required")
             if darkness <= 0 { return nil }
             current = try backlight.read()
         }
@@ -288,6 +368,11 @@ final class HardwareWorker: @unchecked Sendable {
         let output = GoDark.level(darkKeyboardBaseline ?? range.level(at: angle), darkness: darkness)
         let skipWrite = abs(output - current.brightness) <= 0.008
             && abs(current.brightness - journal!.lastWritten) <= RecoveryJournal.ownershipTolerance
+        if let latencySample, enabled, !yieldedControl, darkness == 0, !backlight.isIdleDimmed {
+            latencyEligible = true
+            keyboardLatency.observe(target: latencySample.target, readback: current.brightness,
+                                    time: latencySample.time, active: !skipWrite)
+        }
         if !skipWrite {
             var pending = journal!
             pending.pendingBrightness = output
@@ -296,12 +381,24 @@ final class HardwareWorker: @unchecked Sendable {
             let actual = try backlight.write(output)
             // Idle dimming can begin between the ownership check and the write. Leave the pending
             // target journalled; do not record the OS attenuation as our last brightness.
-            if backlight.isIdleDimmed { return nil }
+            if backlight.isIdleDimmed {
+                latencyEligible = false
+                return nil
+            }
             pending.lastWritten = actual
             pending.pendingBrightness = nil
             journal = pending
             try pending.save(to: keyboardJournalURL)
             guard abs(actual - output) <= 0.035 else { throw BacklightError.writeMismatch }
+            if latencyEligible {
+                let elapsed = keyboardLatency.didWrite(target: output, readback: actual,
+                                                       time: ProcessInfo.processInfo.systemUptime)
+                #if DEBUG
+                if let elapsed {
+                    logger.info("angle-to-keyboard-brightness ms=\(elapsed, privacy: .public)")
+                }
+                #endif
+            }
             return actual
         }
         return nil
@@ -679,7 +776,6 @@ final class DimmerController {
         get { telemetry.angle }
         set {
             telemetry.angle = newValue
-            if hasLidAngle != (newValue != nil) { hasLidAngle = newValue != nil }
         }
     }
     private(set) var rawSample: LidSample? {
@@ -698,7 +794,8 @@ final class DimmerController {
         set { telemetry.displayBrightness = newValue }
     }
     // Whether there is a lid angle at all: the coarse fact the status line and Go dark need, published only when it flips.
-    private(set) var hasLidAngle = false
+    private(set) var lidSensorState = LidSensorState.starting
+    var hasLidAngle: Bool { lidSensorState == .available }
     // Whether there is a sample at all, for Go dark: the sample itself is not observed, so a view reading only it
     // would never see the first one arrive.
     private(set) var hasLidSample = false
@@ -746,6 +843,12 @@ final class DimmerController {
     @ObservationIgnored private let pollGeneration = PollGeneration()
     @ObservationIgnored private let logger = Logger(subsystem: "uk.co.kalkmancode.Dimmer", category: "hardware")
     @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var darkPollInFlight = false
+    @ObservationIgnored private var darkPollPending = false
+    @ObservationIgnored private var darkPollLevel = 0.0
+    @ObservationIgnored private var darkRestoreStartedAt: TimeInterval?
+    @ObservationIgnored private var probeRetryTimer: Timer?
+    @ObservationIgnored private var failedSensorProbes = 0
     @ObservationIgnored private var keyboardRecoveryTimer: Timer?
     @ObservationIgnored private let keyboardRecoveryGate = PollGeneration()
     @ObservationIgnored private var lastHardwareLog = Date.distantPast
@@ -754,6 +857,7 @@ final class DimmerController {
     @ObservationIgnored private var pollPending = false
     @ObservationIgnored private var controlFailureNeedsResume = false
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let forceSensorless: Bool
 
     private(set) var resumeAt: Date?
     @ObservationIgnored private(set) var pauseToken: UUID?
@@ -761,9 +865,12 @@ final class DimmerController {
     @ObservationIgnored private var pauseTimer: Timer?
     @ObservationIgnored private let now: () -> Date
 
-    init(defaults: UserDefaults = .standard, hardware: HardwareWorker = HardwareWorker(), now: @escaping () -> Date = Date.init) {
+    init(defaults: UserDefaults = .standard, hardware: HardwareWorker = HardwareWorker(),
+         forceSensorless: Bool = CommandLine.arguments.contains("--force-sensorless"),
+         now: @escaping () -> Date = Date.init) {
         self.defaults = defaults
         self.hardware = hardware
+        self.forceSensorless = forceSensorless
         self.now = now
         let keyboardData = defaults.data(forKey: "keyboardRange")
         let screenData = defaults.data(forKey: "screenRange")
@@ -788,9 +895,73 @@ final class DimmerController {
 
     func start() {
         guard !paused else { return }
+        probeRetryTimer?.invalidate()
+        probeRetryTimer = nil
+        failedSensorProbes = 0
         pollPending = false
         timer?.invalidate()
+        timer = nil
+        hasLidSample = false
+        rawSample = nil
+        angle = nil
         retryAfter = .distantPast
+        lidSensorState = .starting
+        if forceSensorless {
+            setSensorlessStatus()
+            work.async { [hardware] in hardware.restoreAndClose() }
+            return
+        }
+        let generation = pollGeneration.current
+        probeSensor(generation: generation)
+    }
+
+    private func probeSensor(generation: Int) {
+        let gate = pollGeneration
+        work.async { [weak self, hardware] in
+            guard gate.isCurrent(generation) else { return }
+            let result = Result { try hardware.probeSensor() }
+            Task { @MainActor in
+                guard let self, !self.paused, self.pollGeneration.isCurrent(generation) else { return }
+                switch result {
+                case .success:
+                    self.failedSensorProbes = 0
+                    self.errorMessage = L10n.string("Active")
+                    self.lidSensorState = .available
+                    self.startSensorPolling()
+                case .failure(let error):
+                    if let sensorError = error as? SensorError, case .unavailable = sensorError {
+                        self.setSensorlessStatus()
+                        self.logger.info("lid angle sensor unavailable: \(error.localizedDescription, privacy: .public)")
+                        self.work.async { [hardware] in hardware.restoreAndClose() }
+                    } else {
+                        self.failedSensorProbes += 1
+                        self.errorMessage = error.localizedDescription
+                        // A sensor that exists but will not read is never treated as absent: a slow wake can
+                        // fail for several seconds. Retry every 2 s, then every 30 s so a broken one costs nothing.
+                        if self.failedSensorProbes == 5 {
+                            self.logger.error("lid angle sensor probe failed five times; retrying every 30 s")
+                        }
+                        self.probeRetryTimer?.invalidate()
+                        self.probeRetryTimer = Timer.scheduledTimer(withTimeInterval: self.failedSensorProbes < 5 ? 2 : 30, repeats: false) { [weak self] _ in
+                            Task { @MainActor in
+                                guard let self, !self.paused, !self.preparingForSleep, self.pollGeneration.isCurrent(generation) else { return }
+                                self.probeSensor(generation: generation)
+                            }
+                        }
+                        self.work.async { [hardware] in hardware.restoreAndClose() }
+                    }
+                }
+            }
+        }
+    }
+
+    private func setSensorlessStatus() {
+        lidSensorState = .unavailable
+        errorMessage = L10n.string("No readable lid sensor. Privacy veil, Go dark and Keep awake are available.")
+    }
+
+    private func startSensorPolling() {
+        timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self, !self.paused else { return }
@@ -801,10 +972,13 @@ final class DimmerController {
         poll()
     }
 
-    var canGoDark: Bool { !paused && !isDark && hasLidSample }
+    var sensorPollTimerScheduled: Bool { timer != nil }
+
+    var canGoDark: Bool { !paused && !isDark && (hasLidSample || lidSensorState == .unavailable) }
 
     func goDark() {
         guard canGoDark else { return }
+        darkRestoreStartedAt = nil
         isDark = true
         if DisplayAccessibility.shared.preferences.reduceMotion { darkness = 1 }
         darkAt = ProcessInfo.processInfo.systemUptime
@@ -823,8 +997,52 @@ final class DimmerController {
     private func cancelDark() {
         darkTimer?.invalidate()
         darkTimer = nil
+        darkRestoreStartedAt = nil
         isDark = false
         darkness = 0
+    }
+
+    private func pollDarkness() {
+        guard !paused, !preparingForSleep else { return }
+        guard !darkPollInFlight else {
+            if darkness != darkPollLevel { darkPollPending = true }
+            return
+        }
+        darkPollInFlight = true
+        darkPollPending = false
+        let level = darkness
+        darkPollLevel = level
+        let generation = pollGeneration.current
+        let gate = pollGeneration
+        work.async { [weak self, hardware] in
+            let result = Result { try hardware.darkTick(darkness: level, generation: generation, gate: gate) }
+            Task { @MainActor in
+                guard let self else { return }
+                self.darkPollInFlight = false
+                guard !self.paused, !self.preparingForSleep, gate.isCurrent(generation) else { return }
+                if case .failure(let error) = result {
+                    self.errorMessage = error.localizedDescription
+                    self.logger.error("sensorless Go dark failed: \(error.localizedDescription, privacy: .public)")
+                    self.cancelDark()
+                } else if self.darkPollPending || self.darkness != level {
+                    self.pollDarkness()
+                } else if !self.isDark && self.darkness == 0 {
+                    let restored = (try? result.get()) == true
+                    if restored {
+                        self.darkRestoreStartedAt = nil
+                        self.stopDarkTimer()
+                    } else {
+                        let now = ProcessInfo.processInfo.systemUptime
+                        if self.darkRestoreStartedAt == nil { self.darkRestoreStartedAt = now }
+                        if now - (self.darkRestoreStartedAt ?? now) >= 10 {
+                            self.logger.error("sensorless Go dark restoration did not finish within ten seconds")
+                            self.darkRestoreStartedAt = nil
+                            self.stopDarkTimer()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // One timer drives the fade either way and, while dark, watches for the input or lid move that
@@ -835,11 +1053,13 @@ final class DimmerController {
         darkTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
+                guard !self.paused, !self.preparingForSleep else { return }
                 let now = ProcessInfo.processInfo.systemUptime
                 let step = now - last
                 last = now
                 self.darkness = GoDark.nextDarkness(self.darkness, isDark: self.isDark, elapsed: step,
                                                    reduceMotion: DisplayAccessibility.shared.preferences.reduceMotion)
+                if self.lidSensorState == .unavailable { self.pollDarkness() }
                 if self.isDark {
                     let input = InputActivity.lastInput()
                     if GoDark.shouldWake(idleSeconds: input.seconds, now: now,
@@ -850,8 +1070,11 @@ final class DimmerController {
                     }
                 } else {
                     if self.darkness == 0 {
-                        self.darkTimer?.invalidate()
-                        self.darkTimer = nil
+                        if self.lidSensorState == .unavailable {
+                            self.pollDarkness()
+                        } else {
+                            self.stopDarkTimer()
+                        }
                     }
                 }
             }
@@ -859,7 +1082,20 @@ final class DimmerController {
         darkTimer?.tolerance = 0.005
     }
 
+    private func stopDarkTimer() {
+        darkTimer?.invalidate()
+        darkTimer = nil
+    }
+
     #if DEBUG
+    func simulateSensorAvailability(_ state: LidSensorState) {
+        lidSensorState = state
+    }
+
+    var darkTimerScheduledForTesting: Bool { darkTimer != nil }
+    var darknessForTesting: Double { darkness }
+    func pollForTesting() { poll() }
+
     // Tests drive the views through lid angles the sensor would report.
     func simulateLid(angle: Double?) {
         self.angle = angle
@@ -889,6 +1125,8 @@ final class DimmerController {
             performResume()
         } else {
             paused = true
+            probeRetryTimer?.invalidate()
+            probeRetryTimer = nil
             keyboardYielded = false
             cancelKeyboardRecovery()
             cancelDark()
@@ -935,6 +1173,8 @@ final class DimmerController {
 
     func prepareForSleep() {
         preparingForSleep = true
+        probeRetryTimer?.invalidate()
+        probeRetryTimer = nil
         pauseTimer?.invalidate()
         cancelDark()
         cancelKeyboardRecovery()
@@ -959,6 +1199,8 @@ final class DimmerController {
     }
 
     func stop() {
+        probeRetryTimer?.invalidate()
+        probeRetryTimer = nil
         pauseTimer?.invalidate()
         resumeAt = nil
         pauseToken = nil
@@ -1074,11 +1316,21 @@ final class DimmerController {
                         self.logger.info("angle=\(sample.angle, privacy: .public)° target=\(target, privacy: .public) readback=\(sample.brightness, privacy: .public)")
                     }
                 case .failure(let error):
+                    guard gate.isCurrent(generation), !self.preparingForSleep else { break }
                     if !(error is PollCancelled) {
                         self.rawSample = nil
                         self.angle = nil
+                        self.hasLidSample = false
                     }
-                    if !(error is PollCancelled), error is BacklightError || (error as NSError).domain == "Dimmer" {
+                    if let sensorError = error as? SensorError, case .unavailable = sensorError {
+                        self.pollGeneration.cancel()
+                        self.timer?.invalidate()
+                        self.timer = nil
+                        self.setSensorlessStatus()
+                        self.work.async { [hardware] in hardware.restoreAndClose() }
+                    } else if error is SensorError {
+                        self.retryAfter = Date().addingTimeInterval(2)
+                    } else if !(error is PollCancelled), error is BacklightError || (error as NSError).domain == "Dimmer" {
                         self.controlFailureNeedsResume = true
                         self.timer?.invalidate()
                         self.timer = nil
