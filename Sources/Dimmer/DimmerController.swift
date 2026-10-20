@@ -504,10 +504,8 @@ final class HardwareWorker: @unchecked Sendable {
         }
 
         if angle >= range.highAngle && darkness <= 0 {
-            var didRestore = false
             let journalBaseline = displayJournal?.originalBrightness ?? DisplayRecoveryJournal.load(from: displayJournalURL)?.originalBrightness
             if let baseline = displayLogic.isDimming ? displayLogic.prepareRestore() : journalBaseline {
-                didRestore = true
                 guard restoreDisplay(to: baseline) else {
                     return (try? display?.read(), L10n.string("Display brightness restoration is retrying."))
                 }
@@ -517,7 +515,6 @@ final class HardwareWorker: @unchecked Sendable {
             do {
                 let current = try display?.read()
                 if let current {
-                    if didRestore { return (current, L10n.string("Screen ready.")) }
                     let previousBaseline = displayLogic.baseline
                     let decision = displayLogic.update(angle: angle, current: current, range: range)
                     if case .capture(let value) = decision {
@@ -553,13 +550,16 @@ final class HardwareWorker: @unchecked Sendable {
                 let target = darkDisplayBaseline.map { GoDark.level($0, darkness: darkness) } ?? lidTarget
                 if displayJournal == nil {
                     guard let baseline = displayLogic.baseline else { throw DisplayBrightnessError.controlsUnavailable }
-                    let captured = DisplayRecoveryJournal(originalBrightness: baseline, lastWritten: baseline)
+                    let captured = DisplayRecoveryJournal(originalBrightness: min(max(baseline, 0), 1), lastWritten: current)
                     try captured.save(to: displayJournalURL)
                     displayJournal = captured
                 }
                 guard var active = displayJournal else { throw DisplayBrightnessError.controlsUnavailable }
+                if let baseline = displayLogic.baseline {
+                    active.originalBrightness = min(max(baseline, 0), 1)
+                }
                 if override {
-                    logger.info("display override; automatic brightness changed during close; target will be enforced until reopen")
+                    logger.info("display override; brightness changed mid-close; kept here, gliding back to the open level on reopen")
                 }
                 active.pendingBrightness = target
                 try active.save(to: displayJournalURL)
@@ -679,6 +679,7 @@ final class HardwareWorker: @unchecked Sendable {
 
     @discardableResult
     private func restoreDisplay(to baseline: Double) -> Bool {
+        let baseline = min(max(baseline, 0), 1)
         let device = display ?? (try? makeDisplay())
         display = device
         var resolved = false

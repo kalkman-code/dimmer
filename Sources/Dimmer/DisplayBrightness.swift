@@ -30,7 +30,7 @@ enum DisplayBrightnessError: LocalizedError {
 
 enum DisplayBrightnessTarget {
     static func value(captured: Double, factor: Double) -> Double {
-        min(max(captured, 0), max(0, captured) * min(max(factor, 0), 1))
+        min(1, max(0, captured) * min(max(factor, 0), 1))
     }
 
     static func owns(current: Double, lastWritten: Double) -> Bool {
@@ -84,27 +84,47 @@ struct DisplayDimmingLogic {
     private(set) var isDimming = false
     private var overrideLogged = false
     private var lastWritten: Double?
+    private var adjustment: (angle: Double, level: Double, range: DimRange)?
 
     mutating func update(angle: Double, current: Double, range: DimRange, darkness: Double = 0) -> Decision {
         if angle >= range.highAngle && darkness <= 0 {
             guard !isDimming else { return .idle }
             baseline = current
+            lastWritten = nil
+            adjustment = nil
             return .capture(current)
         }
         // Go dark can start with the lid fully open or with screen dimming off, before anything was
         // captured; nothing of ours is on the screen yet, so the current value is the user's own.
         if darkness > 0 && baseline == nil { baseline = current }
 
-        guard let baseline else { return .waitForOpen }
+        guard baseline != nil else { return .waitForOpen }
         let lidLevel = angle >= range.highAngle ? 1 : range.level(at: angle)
         let factor = GoDark.level(lidLevel, darkness: darkness)
-        let target = DisplayBrightnessTarget.value(captured: baseline, factor: factor)
         let outsideChange = lastWritten.map { !DisplayBrightnessTarget.owns(current: current, lastWritten: $0) } ?? false
+        // A change made mid-close (brightness keys, ambient light) is kept where it was made: closing
+        // further scales down from it, opening glides from it back to the open baseline. Rescaling the
+        // baseline instead sent a near-shut key press to full brightness on reopen. A black screen
+        // (factor 0) has nothing to scale from and stays enforced.
+        if adjustment?.range != range { adjustment = nil }
+        if outsideChange && darkness <= 0 && factor > 0 { adjustment = (angle, current, range) }
+        if let adjustment, range.level(at: adjustment.angle) <= 0 { self.adjustment = nil }
+        let target: Double
+        if let adjustment, darkness <= 0 {
+            if angle >= adjustment.angle {
+                let progress = (angle - adjustment.angle) / max(range.highAngle - adjustment.angle, .ulpOfOne)
+                target = adjustment.level + (baseline! - adjustment.level) * min(progress, 1)
+            } else {
+                target = adjustment.level * factor / range.level(at: adjustment.angle)
+            }
+        } else {
+            target = DisplayBrightnessTarget.value(captured: baseline!, factor: factor)
+        }
         let shouldLogOverride = outsideChange && !overrideLogged
         if shouldLogOverride { overrideLogged = true }
         isDimming = true
-        lastWritten = target
-        return .dim(target: target, override: shouldLogOverride)
+        // lastWritten is left to markWritten: a ramp cancelled before its first step would otherwise read as a change.
+        return .dim(target: min(max(target, 0), 1), override: shouldLogOverride)
     }
 
     mutating func markWritten(_ brightness: Double) {
@@ -115,7 +135,8 @@ struct DisplayDimmingLogic {
         isDimming = false
         overrideLogged = false
         lastWritten = nil
-        return baseline
+        adjustment = nil
+        return baseline.map { min(max($0, 0), 1) }
     }
 
     mutating func reset() {
@@ -123,11 +144,12 @@ struct DisplayDimmingLogic {
         isDimming = false
         overrideLogged = false
         lastWritten = nil
+        adjustment = nil
     }
 }
 
 struct DisplayRecoveryJournal: Codable {
-    let originalBrightness: Double
+    var originalBrightness: Double
     var lastWritten: Double
     var pendingBrightness: Double? = nil
 
@@ -144,12 +166,22 @@ struct DisplayRecoveryJournal: Codable {
 
     func save(to destination: URL? = nil) throws {
         try FileManager.default.createDirectory(at: (destination ?? Self.url).deletingLastPathComponent(), withIntermediateDirectories: true)
-        try JSONEncoder().encode(self).write(to: destination ?? Self.url, options: .atomic)
+        var bounded = self
+        bounded.clampBrightness()
+        try JSONEncoder().encode(bounded).write(to: destination ?? Self.url, options: .atomic)
     }
 
     static func load(from source: URL? = nil) -> DisplayRecoveryJournal? {
         guard let data = try? Data(contentsOf: source ?? url) else { return nil }
-        return try? JSONDecoder().decode(DisplayRecoveryJournal.self, from: data)
+        guard var journal = try? JSONDecoder().decode(DisplayRecoveryJournal.self, from: data) else { return nil }
+        journal.clampBrightness()
+        return journal
+    }
+
+    private mutating func clampBrightness() {
+        originalBrightness = min(max(originalBrightness, 0), 1)
+        lastWritten = min(max(lastWritten, 0), 1)
+        pendingBrightness = pendingBrightness.map { min(max($0, 0), 1) }
     }
 
     static func clear(at destination: URL? = nil) {

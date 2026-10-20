@@ -566,6 +566,41 @@ final class ControllerTests: XCTestCase {
         XCTAssertEqual(DisplayBrightnessTarget.value(captured: 0.72, factor: 2), 0.72)
     }
 
+    func testBrightnessChangedMidCloseSticksThenGlidesBackToTheOpenLevel() {
+        let range = DimRange(lowAngle: 0, lowLevel: 0, highAngle: 100, highLevel: 1)
+        var logic = DisplayDimmingLogic()
+        XCTAssertEqual(logic.update(angle: 100, current: 0.8, range: range), .capture(0.8))
+        guard case .dim(let half, _) = logic.update(angle: 50, current: 0.8, range: range) else { return XCTFail() }
+        XCTAssertEqual(half, 0.4, accuracy: 0.0001)
+        logic.markWritten(half)
+        guard case .dim(let kept, let override) = logic.update(angle: 50, current: 0.6, range: range) else { return XCTFail() }
+        XCTAssertEqual(kept, 0.6, accuracy: 0.0001)
+        XCTAssertTrue(override)
+        logic.markWritten(kept)
+        guard case .dim(let lower, _) = logic.update(angle: 25, current: 0.6, range: range) else { return XCTFail() }
+        XCTAssertEqual(lower, 0.3, accuracy: 0.0001)
+        logic.markWritten(lower)
+        guard case .dim(let gliding, _) = logic.update(angle: 75, current: 0.3, range: range) else { return XCTFail() }
+        XCTAssertEqual(gliding, 0.7, accuracy: 0.0001)
+        logic.markWritten(gliding)
+        XCTAssertEqual(logic.prepareRestore(), 0.8)
+    }
+
+    func testNearShutKeyPressNeverSendsTheOpenLevelToMax() {
+        let range = DimRange.screenDefault
+        var logic = DisplayDimmingLogic()
+        _ = logic.update(angle: 110, current: 0.8125, range: range)
+        guard case .dim(let target, _) = logic.update(angle: 71, current: 0.8125, range: range) else { return XCTFail() }
+        logic.markWritten(target)
+        guard case .dim(let kept, _) = logic.update(angle: 71, current: 0.4375, range: range) else { return XCTFail() }
+        XCTAssertEqual(kept, 0.4375, accuracy: 0.0001)
+        logic.markWritten(kept)
+        guard case .dim(let nearlyOpen, _) = logic.update(angle: 98, current: kept, range: range) else { return XCTFail() }
+        XCTAssertLessThanOrEqual(nearlyOpen, 0.8125)
+        XCTAssertGreaterThan(nearlyOpen, kept)
+        XCTAssertEqual(logic.prepareRestore(), 0.8125)
+    }
+
     func testDisplayBaselineWaitsForOpenAndUsesIndependentRange() {
         let range = DimRange(lowAngle: 66, lowLevel: 0, highAngle: 99, highLevel: 1)
         var logic = DisplayDimmingLogic()
@@ -650,7 +685,11 @@ final class TestHardware {
         var onWrite: ((Double) -> Void)?
         var displayID: UInt32 { 0 }
         func read() throws -> Double { brightness }
-        func write(_ value: Double) throws -> Double { onWrite?(value); brightness = value; return value }
+        func write(_ value: Double) throws -> Double {
+            onWrite?(value)
+            brightness = min(max(value, 0), 1)
+            return brightness
+        }
         func setGammaScale(_ factor: Double) throws {}
         func clearCapturedGamma() {}
         func restoreGamma() {}
