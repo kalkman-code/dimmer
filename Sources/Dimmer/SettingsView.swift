@@ -256,7 +256,7 @@ struct SettingsView: View {
                     Button(L10n.string("Open Login Items…")) { login.openLoginItems() }
                 }
             } footer: {
-                Link(L10n.string("Buy me a coffee"), destination: SupportDetails.coffeeURL)
+                Link(L10n.string("kalkmancode.co.uk"), destination: SupportDetails.websiteURL)
                     .font(.system(size: 11))
             }
         }

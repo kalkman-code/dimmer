@@ -9,8 +9,8 @@
 <p align="center"><img src=".github/readme/hero.webp" width="520" alt="A MacBook lid closes and its screen and keyboard fade to dark, then it opens and they come back; a quick snap of the lid frosts the screen, and lifting it clears the frost."></p>
 
 <p align="center">
-  <a href="https://github.com/kalkman-code/dimmer/releases/download/v1.4.2/Dimmer-1.4.2.dmg"><b>Download Dimmer 1.4.2</b></a><br>
-  macOS 14 or later · signed and notarised by Apple · free, GPL-3.0 · <a href="https://github.com/kalkman-code/dimmer/releases/tag/v1.4.2">release notes</a>
+  <a href="https://github.com/kalkman-code/dimmer/releases/download/v1.4.3/Dimmer-1.4.3.dmg"><b>Download Dimmer 1.4.3</b></a><br>
+  macOS 14 or later · signed and notarised by Apple · free, GPL-3.0 · <a href="https://github.com/kalkman-code/dimmer/releases/tag/v1.4.3">release notes</a>
 </p>
 
 Dimmer is a small menu bar app. It reads the lid angle from the MacBook's hinge sensor and sets the
@@ -59,19 +59,19 @@ English, Spanish, Portuguese, German, French and Japanese, following your Mac's 
 
 ## Install
 
-1. Download [`Dimmer-1.4.2.dmg`](https://github.com/kalkman-code/dimmer/releases/download/v1.4.2/Dimmer-1.4.2.dmg).
+1. Download [`Dimmer-1.4.3.dmg`](https://github.com/kalkman-code/dimmer/releases/download/v1.4.3/Dimmer-1.4.3.dmg).
 2. Open it and drag Dimmer to Applications.
 3. Open Dimmer. Its icon, a diamond cut across by a line, appears in the menu bar: click it for the panel, right-click for Settings, About, Check for updates…, Go dark, Pause and Quit. The diamond turns to an outline while paused. The first time, Settings opens with a short welcome and offers Launch at Login.
 
-Dimmer 1.2.1 and earlier cannot update themselves: install 1.4.2 by hand once, the same way, dragging it
+Dimmer 1.2.1 and earlier cannot update themselves: install 1.4.3 by hand once, the same way, dragging it
 over the old copy in Applications. From 1.3 on, Dimmer offers updates itself. Sparkle normally checks
 the signed feed and the downloaded app against Dimmer's update key, and checks the new app's Apple code
 signature. After 20 days of failed feed-signature checks, Sparkle may offer an update with reduced feed
 protection; the download and Apple code-signature checks still apply. Sparkle does not check notarisation
 itself; releases are notarised before they are published.
 
-To check the download, compare `shasum -a 256 Dimmer-1.4.2.dmg` with
-[`SHA256SUMS`](https://github.com/kalkman-code/dimmer/releases/download/v1.4.2/SHA256SUMS) on the release.
+To check the download, compare `shasum -a 256 Dimmer-1.4.3.dmg` with
+[`SHA256SUMS`](https://github.com/kalkman-code/dimmer/releases/download/v1.4.3/SHA256SUMS) on the release.
 
 ## Uninstall
 

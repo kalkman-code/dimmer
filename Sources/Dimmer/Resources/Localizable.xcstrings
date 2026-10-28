@@ -7706,42 +7706,42 @@
         }
       }
     },
-    "Buy me a coffee" : {
+    "kalkmancode.co.uk" : {
       "localizations" : {
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buy me a coffee"
+            "value" : "kalkmancode.co.uk"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invítame a un café"
+            "value" : "kalkmancode.co.uk"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Me pague um café"
+            "value" : "kalkmancode.co.uk"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spendier mir einen Kaffee"
+            "value" : "kalkmancode.co.uk"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Offrez-moi un café"
+            "value" : "kalkmancode.co.uk"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コーヒーをおごる"
+            "value" : "kalkmancode.co.uk"
           }
         }
       }
