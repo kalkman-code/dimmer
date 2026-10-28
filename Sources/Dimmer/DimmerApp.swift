@@ -191,6 +191,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValida
                          action: updates.canCheckForUpdates || updates.updateAvailable ? #selector(checkForUpdates) : nil, keyEquivalent: "")
             menu.addItem(withTitle: L10n.string("Report a bug…"), action: #selector(reportBug), keyEquivalent: "")
             menu.addItem(withTitle: L10n.string("View latest release…"), action: #selector(viewLatestRelease), keyEquivalent: "")
+            menu.addItem(withTitle: L10n.string("Buy me a coffee"), action: #selector(buyMeACoffee), keyEquivalent: "")
             menu.addItem(.separator())
             let dark = menu.addItem(withTitle: L10n.string("Go dark"), action: controller.canGoDark ? #selector(goDark) : nil, keyEquivalent: "")
             dark.toolTip = controller.hasLidAngle
@@ -229,6 +230,7 @@ final class DimmerAppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValida
         NSWorkspace.shared.open(SupportDetails.issueURL)
     }
     @objc private func viewLatestRelease() { NSWorkspace.shared.open(SupportDetails.releaseURL) }
+    @objc private func buyMeACoffee() { NSWorkspace.shared.open(SupportDetails.coffeeURL) }
     @objc private func checkForUpdates() { updates.checkForUpdates() }
     @objc private func uninstallDimmer() { UninstallGuide.show() }
 

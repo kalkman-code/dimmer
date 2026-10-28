@@ -255,6 +255,9 @@ struct SettingsView: View {
                 if login.status == .requiresApproval {
                     Button(L10n.string("Open Login Items…")) { login.openLoginItems() }
                 }
+            } footer: {
+                Link(L10n.string("Buy me a coffee"), destination: SupportDetails.coffeeURL)
+                    .font(.system(size: 11))
             }
         }
         .formStyle(.grouped)

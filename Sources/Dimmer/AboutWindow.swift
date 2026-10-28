@@ -16,6 +16,7 @@ struct SupportDetails {
     var text: String { L10n.string("Dimmer: \(version)\nBuild: \(build)\nmacOS: \(macOS)\nMac model: \(model)") }
 
     static let projectURL = URL(string: "https://github.com/kalkman-code/dimmer")!
+    static let coffeeURL = URL(string: "https://kalkmancode.co.uk/coffee/")!
     static let issueURL = URL(string: "https://github.com/kalkman-code/dimmer/issues/new?template=bug_report.yml")!
     static let releaseURL = URL(string: "https://github.com/kalkman-code/dimmer/releases/latest")!
 }

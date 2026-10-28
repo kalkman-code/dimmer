@@ -99,6 +99,7 @@ struct DimmerMenu: View {
                     .disabled(!updates.canCheckForUpdates)
                 Button(L10n.string("Report a bug…"), action: reportBug)
                 Button(L10n.string("View latest release…")) { NSWorkspace.shared.open(SupportDetails.releaseURL) }
+                Link(L10n.string("Buy me a coffee"), destination: SupportDetails.coffeeURL)
                 Button(L10n.string("Uninstall Dimmer…")) { UninstallGuide.show() }
             }
             .menuStyle(.borderlessButton)
